@@ -9,8 +9,10 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <dirent.h>
 
-#define PORT 12345
+#define PORT 1234
 
 int create_server_socket(void);
 void accept_new_connection(int server_socket, fd_set *all_sockets, int *fd_max);
@@ -109,9 +111,9 @@ int main(void)
             else {
                 // Socket is a client socket, let's read it
                 dprintf(2, "socket client pret a write\n");
-                write_data_from_socket(i, &all_sockets, fd_max, server_socket);
+                write_data_from_socket(i, &all_sockets, fd_max, i);
                 // FD_CLR(4, &write_fds);
-                FD_CLR(4, &all_sockets);
+                FD_CLR(i, &all_sockets);
                 fd_max = server_socket; 
             }
         }
@@ -136,6 +138,7 @@ int create_server_socket(void)
         fprintf(stderr, "[Server] Socket error: %s\n", strerror(errno));
         return (-1);
     }
+    fcntl(socket_fd, F_SETFL, O_NONBLOCK);
     printf("[Server] Created server socket fd: %d\n", socket_fd);
 
     // Bind socket to address and port
@@ -164,6 +167,7 @@ void accept_new_connection(int server_socket, fd_set *all_sockets, int *fd_max)
     if (client_fd > *fd_max) {
         *fd_max = client_fd; // Update the highest socket
     }
+    fcntl(client_fd, F_SETFL, O_NONBLOCK);
     printf("[Server] Accepted new connection on client socket %d.\n", client_fd);
     // memset(&msg_to_send, '\0', sizeof msg_to_send);
     // sprintf(msg_to_send, "Welcome. You are client fd [%d]\n", client_fd);
@@ -222,13 +226,13 @@ void read_data_from_socket(int socket, fd_set *all_sockets, int fd_max, int serv
     dprintf(2, "read data 4\n");
 }
 
-void write_data_from_socket(int socket, fd_set *all_sockets, int fd_max, int server_socket)
+void write_data_from_socket(int socket, fd_set *all_sockets, int fd_max, int socket_write)
 {
     int status;
     (void) socket;
     (void) all_sockets;
     (void) fd_max;
-    (void) server_socket;
+    // (void) server_socket;
     // char *hello = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!:)";
     
     // for (int j = 0; j <= fd_max; j++) 
@@ -238,12 +242,12 @@ void write_data_from_socket(int socket, fd_set *all_sockets, int fd_max, int ser
         // {
             // status = send(j, msg_to_send, strlen(msg_to_send), 0);
             // status = send(4, hello, strlen(hello), 0);
-            status = write(4, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!:)", strlen("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!:)"));
+            status = write(socket_write, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!:)", strlen("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!:)"));
             if (status == -1) {
                 fprintf(stderr, "[Server] Send error to client fd 4: %s\n", strerror(errno));
             }
             dprintf(2, "send data\n");
-            close(4);
+            close(socket_write);
         
         // }
     // }  
