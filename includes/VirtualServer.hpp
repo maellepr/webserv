@@ -1,3 +1,6 @@
+#ifndef VIRTUALSERVER_HPP
+# define VIRTUALSERVER_HPP
+
 #include "webserv.hpp"
 
 class VirtualServer
@@ -9,6 +12,7 @@ class VirtualServer
 	bool	init(void);
 
 	int		&getPort();
+	int		&getFd();
 	void	setfd(int fd);
 
 	private:
@@ -16,8 +20,6 @@ class VirtualServer
 		std::string	_serverName;
 		int			_socketfd;
 
-		fd_set 		_all_sockets;
-		fd_set		_read_fds;
-		fd_set		_write_fds;
-		int     fd_max;
 };
+
+#endif

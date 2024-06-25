@@ -151,7 +151,6 @@ int create_server_socket(void)
     return (socket_fd);   
 }
 
-
 void accept_new_connection(int server_socket, fd_set *all_sockets, int *fd_max)
 {
     int client_fd;
@@ -178,6 +177,7 @@ void accept_new_connection(int server_socket, fd_set *all_sockets, int *fd_max)
     // }
     // dprintf(2, "etape 1\n");
 }
+
 
 void read_data_from_socket(int socket, fd_set *all_sockets, int fd_max, int server_socket)
 {

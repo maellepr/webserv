@@ -14,7 +14,7 @@ int main(int argc, char **argv)
 	{
 		if (!server.init(argv[1]))
 			return 1;
-			server.loop();
+		server.loop();
 	}
 	catch (std::exception &e)
 	{
