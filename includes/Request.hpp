@@ -7,6 +7,7 @@ class Request
 		Request();
 		~Request();
 
+		int	parse(char *buffer, size_t bytesRead);
 	private:
 
 };

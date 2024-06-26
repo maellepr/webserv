@@ -47,4 +47,6 @@ class ErrorAcceptNewC : public std::exception
 		}
 };
 
+// Structures ----------------------------------------------------------------------------- //
+
 #endif

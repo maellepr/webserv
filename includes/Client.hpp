@@ -3,6 +3,7 @@
 
 #include "webserv.hpp"
 #include "VirtualServer.hpp"
+#include "Request.hpp"
 
 class Client 
 {
@@ -17,7 +18,8 @@ class Client
         int writeResponse();
         
     private :
-        int _socketfd;
+        int 	_socketfd;
+	Request	_request;
 
 };
 

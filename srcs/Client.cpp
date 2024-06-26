@@ -22,27 +22,34 @@ int Client::getFd()
 
 int Client::readRequest()
 {
-    dprintf(2, "read data from socket [%d]\n", _socketfd);
-    
-    char buffer[BUFSIZ];// A MODIF
-    int bytes_read;
+	dprintf(2, "read data from socket [%d]\n", _socketfd);
 
-    memset(&buffer, '\0', sizeof(buffer));
-    bytes_read = recv(_socketfd, buffer, BUFSIZ, 0);
-    if (bytes_read <= 0) {
-        if (bytes_read == 0)
-            printf("[%d] Client socket closed connection.\n", _socketfd);
-        else
-            fprintf(stderr, "[Server] Recv error: %s\n", strerror(errno));
-        close(_socketfd); // Close the socket
-        return (-1);
-    }
-    else 
-    {
-        printf("[%d] Got message: %s", _socketfd, buffer);// buffer A PARSER
-    }
-    dprintf(2, "read data 4\n");
-    return (0);
+	char	buffer[BUFSIZ];// A MODIF
+	size_t	bytesRead;
+	int	parseRequestResult;
+
+	memset(&buffer, '\0', sizeof(buffer));
+	bytesRead = recv(_socketfd, buffer, BUFSIZ, 0);
+	if (bytesRead <= 0) {
+		if (bytesRead == 0)
+			printf("[%d] Client socket closed connection.\n", _socketfd);
+		else
+			fprintf(stderr, "[Server] Recv error: %s\n", strerror(errno));
+		close(_socketfd); // A VOIR ??
+		return (-1);
+	}
+	else 
+	{
+		printf("[%d] Got message: %s", _socketfd, buffer);// buffer A PARSER
+		if (_request == NULL)
+			_request = new Request; // A PROTEGER ?
+	}
+	parseRequestResult = _request->parse(buffer, bytesRead);
+
+	delete _request;
+	_request = NULL;
+	dprintf(2, "read data 4\n");
+	return (0);
 }
 
 int Client::writeResponse()
