@@ -89,11 +89,11 @@ void	Server::loop()
 	while (1)
 	{
     	dprintf(2, "while 1\n");
-        // sleep(1);
+        sleep(2);
         _read_fds = _all_sockets;
         _write_fds = _all_sockets;
         // 2 second timeout for select()
-        timer.tv_sec = 2;
+        timer.tv_sec = 10;
         timer.tv_usec = 0;
         
         dprintf(2, "while 2\n");
