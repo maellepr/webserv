@@ -12,6 +12,7 @@ class VirtualServer
 	bool	init(void);
 
 	int		&getPort();
+	void	setPort(int port);
 	int		&getFd();
 	void	setfd(int fd);
 

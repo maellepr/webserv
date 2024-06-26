@@ -20,6 +20,11 @@ int&	VirtualServer::getPort()
 	return (_port);
 }
 
+void	VirtualServer::setPort(int port)
+{
+	_port = port;
+}
+
 int&	VirtualServer::getFd()
 {
 	return (_socketfd);

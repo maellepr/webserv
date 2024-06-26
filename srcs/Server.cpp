@@ -21,14 +21,23 @@ bool	Server::init(const char *filename)
 		return false;
 	_virtualServers.push_back(vs);
 
+	VirtualServer vs2;
+	vs2.setPort(1234);
+	_virtualServers.push_back(vs2);
+
+	VirtualServer vs3;
+	vs3.setPort(12345);
+	_virtualServers.push_back(vs3);
+
 	connectVirtualServers();
 	return true;
 }
 
 void	Server::connectVirtualServers()
 {
-for (size_t i = 0; i < 1; i++)
+	for (size_t i = 0; i < _virtualServers.size(); i++)
 	{
+		dprintf(2, "VS numero %lu, port %d\n", i, _virtualServers[i].getPort());
 		struct sockaddr_in sa;
 		int socket_fd;
 		int status;
@@ -68,13 +77,19 @@ void	Server::loop()
 	FD_ZERO(&_all_sockets);
 	FD_ZERO(&_read_fds);
 	FD_ZERO(&_write_fds);
-	FD_SET(_virtualServers[0].getFd(), &_all_sockets); // Add listener socket to set
-	_fd_max = 3; // Highest fd is necessarily our socket A CHANGER
+	_fd_max = 0;
+	for (size_t i = 0; i < _virtualServers.size(); i++)
+	{
+		FD_SET(_virtualServers[i].getFd(), &_all_sockets); // Add listener socket to set
+		if (_fd_max < _virtualServers[i].getFd())
+			_fd_max = _virtualServers[i].getFd();
+	}
+	dprintf(2, "fd max du debut = %d\n", _fd_max);
 	
 	while (1)
 	{
     	dprintf(2, "while 1\n");
-        sleep(2);
+        // sleep(1);
         _read_fds = _all_sockets;
         _write_fds = _all_sockets;
         // 2 second timeout for select()
@@ -130,6 +145,8 @@ void	Server::loop()
 				{
 					FD_CLR(i, &_all_sockets); // Remove socket from the set
 					_clients.erase(i);
+					if (i == _fd_max)
+						_fd_max = _fd_max - 1; //TEMPORAIRE A MODIF
 				}
             }
         }
@@ -147,10 +164,10 @@ void	Server::loop()
 				{
 					close(i);
 					FD_CLR(i, &_all_sockets);
-					FD_CLR(i, &_all_sockets);
+					_clients.erase(i);
+					if (i == _fd_max)
+						_fd_max = _fd_max - 1; //TEMPORAIRE A MODIF
 				}
-				if (i == _fd_max)
-					_fd_max = _fd_max - 1; 
             }
         }
 	}
