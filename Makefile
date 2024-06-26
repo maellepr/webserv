@@ -7,7 +7,7 @@ INC_PATH = ./includes/
 INC = -I $(INC_PATH)
 
 SRCS_PATH = ./srcs/
-SRC = main.cpp webserv.cpp Server.cpp VirtualServer.cpp Client.cpp
+SRC = main.cpp webserv.cpp Server.cpp VirtualServer.cpp Client.cpp utils.cpp
 SRCS = $(addprefix $(SRCS_PATH), $(SRC))
 
 OBJS_PATH = ./objects/

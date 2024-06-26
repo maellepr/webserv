@@ -14,11 +14,18 @@
 #include <sys/select.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <dirent.h>
+#include <fstream>
+#include <sstream>
 
 void	callException(int errorNum);
+
+
+bool	extension(const std::string& str, const std::string& extension);
+bool	isDirectory(const std::string & filename);
 
 class ErrorConnectVS : public std::exception
 {

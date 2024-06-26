@@ -1,4 +1,3 @@
-
 #include "../includes/webserv.hpp"
 
 void	callException(int errorNum)

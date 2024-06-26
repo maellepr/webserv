@@ -15,19 +15,33 @@ Server::~Server()
 bool	Server::init(const char *filename)
 {
 	// parse to do
-	(void) filename;
-	VirtualServer vs;
-	if (!vs.init())
+	// (void) filename;
+	if (!extension(filename, ".conf") || !isDirectory(filename))
 		return false;
-	_virtualServers.push_back(vs);
+	std::ifstream file(filename);
+	if (!file.is_open())
+	{
+		std::cerr << "Error : file couldn't open\n";
+		return false;
+	}
+	std::string	line;
+	while (std::getline(file, line))
+	{
+		if (line == "server {")
+		{
+			VirtualServer vs;
+			if (!vs.init(file))
+				return false;
+			_virtualServers.push_back(vs);
+		}
+	}
+	// VirtualServer vs2;
+	// vs2.setPort(1234);
+	// _virtualServers.push_back(vs2);
 
-	VirtualServer vs2;
-	vs2.setPort(1234);
-	_virtualServers.push_back(vs2);
-
-	VirtualServer vs3;
-	vs3.setPort(12345);
-	_virtualServers.push_back(vs3);
+	// VirtualServer vs3;
+	// vs3.setPort(12345);
+	// _virtualServers.push_back(vs3);
 
 	connectVirtualServers();
 	return true;

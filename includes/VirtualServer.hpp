@@ -9,7 +9,8 @@ class VirtualServer
 		VirtualServer();
 		~VirtualServer();
 
-	bool	init(void);
+	bool	init(std::istream& file);
+	bool	parseListen(std::istringstream& iss);
 
 	int		&getPort();
 	void	setPort(int port);
