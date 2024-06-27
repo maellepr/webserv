@@ -45,7 +45,6 @@ int Client::readRequest()
 			_request = new Request; // A PROTEGER ?
 	}
 	parseRequestResult = _request->parse(buffer, bytesRead);
-
 	delete _request;
 	_request = NULL;
 	dprintf(2, "read data 4\n");
