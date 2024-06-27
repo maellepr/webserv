@@ -18,8 +18,9 @@ class Client
         int writeResponse();
         
     private :
-        int 	_socketfd;
-	Request	_request;
+        int 		_socketfd;
+		Request		*_request;
+		std::string	_buffer;
 
 };
 
