@@ -16,24 +16,27 @@ bool	Server::init(const char *filename)
 {
 	// parse to do
 	// (void) filename;
-	if (!extension(filename, ".conf") || !isDirectory(filename))
-		return false;
+	extension(filename, ".conf");
+	isDirectory(filename);
+
 	std::ifstream file(filename);
 	if (!file.is_open())
-	{
-		std::cerr << "Error : file couldn't open\n";
-		return false;
-	}
+		throw ErrorConfigFile("Error : file couldn't open");
+
 	std::string	line;
 	while (std::getline(file, line))
 	{
+		std::cerr << "line : " << line << "\n";
 		if (line == "server {")
 		{
 			VirtualServer vs;
-			if (!vs.init(file))
-				return false;
+			memset(&vs.sa, 0, sizeof vs.sa);
+			vs.init(file);
+
 			_virtualServers.push_back(vs);
 		}
+		else
+			throw ErrorConfigFile("Error : missing server in config file");
 	}
 	// VirtualServer vs2;
 	// vs2.setPort(1234);
@@ -52,14 +55,14 @@ void	Server::connectVirtualServers()
 	for (size_t i = 0; i < _virtualServers.size(); i++)
 	{
 		dprintf(2, "VS numero %lu, port %d\n", i, _virtualServers[i].getPort());
-		struct sockaddr_in sa;
+		// struct sockaddr_in sa;
 		int socket_fd;
 		int status;
 
 		// Prepare the address and port for the server socket
-		memset(&sa, 0, sizeof sa);
+		// memset(&sa, 0, sizeof sa);
 		sa.sin_family = AF_INET; // IPv4
-		sa.sin_addr.s_addr = htonl(INADDR_LOOPBACK); // 127.0.0.1, localhost
+		// sa.sin_addr.s_addr = htonl(INADDR_LOOPBACK); // 127.0.0.1, localhost
 		sa.sin_port = htons(_virtualServers[i].getPort());
 
 		// Create the socket
@@ -202,4 +205,3 @@ int	Server::_acceptNewConnection(int server_socket)
     printf("[Server] Accepted new connection on client socket %d.\n", client_fd);
 	return (client_fd);
 }
-

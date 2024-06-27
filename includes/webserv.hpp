@@ -24,8 +24,21 @@
 void	callException(int errorNum);
 
 
-bool	extension(const std::string& str, const std::string& extension);
-bool	isDirectory(const std::string & filename);
+void	extension(const std::string& str, const std::string& extension);
+void	isDirectory(const std::string & filename);
+
+class ErrorConfigFile : public std::exception
+{
+	public:
+		ErrorConfigFile(std::string errorMsg) throw();
+		~ErrorConfigFile() throw();
+
+		virtual const char* what() const throw();
+		std::string	errorMsg;
+		
+	private:
+		// std::string	_errorMsg;
+};
 
 class ErrorConnectVS : public std::exception
 {
