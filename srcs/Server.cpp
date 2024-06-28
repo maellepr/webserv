@@ -30,9 +30,10 @@ bool	Server::init(const char *filename)
 		if (line == "server {")
 		{
 			VirtualServer vs;
-			memset(&vs.sa, 0, sizeof vs.sa);
+			// memset(&vs.sa, 0, sizeof vs.sa);
+			// vs.sa.sin_family = AF_INET; // IPv4			
 			vs.init(file);
-
+			// vs.sa.sin_port = htons(vs.getPort());
 			_virtualServers.push_back(vs);
 		}
 		else
@@ -61,19 +62,19 @@ void	Server::connectVirtualServers()
 
 		// Prepare the address and port for the server socket
 		// memset(&sa, 0, sizeof sa);
-		sa.sin_family = AF_INET; // IPv4
+		// sa.sin_family = AF_INET; // IPv4
 		// sa.sin_addr.s_addr = htonl(INADDR_LOOPBACK); // 127.0.0.1, localhost
-		sa.sin_port = htons(_virtualServers[i].getPort());
+		// sa.sin_port = htons(_virtualServers[i].getPort());
 
 		// Create the socket
-		socket_fd = socket(sa.sin_family, SOCK_STREAM, 0);
+		socket_fd = socket(_virtualServers[i].sa.sin_family, SOCK_STREAM, 0);
 		if (socket_fd == -1)
 			callException(-1);
 		fcntl(socket_fd, F_SETFL, O_NONBLOCK);
 		printf("[Server] Created server socket fd: %d\n", socket_fd);
 
 		// Bind socket to address and port
-		status = bind(socket_fd, (struct sockaddr *)&sa, sizeof sa);;
+		status = bind(socket_fd, (struct sockaddr *)&_virtualServers[i].sa, sizeof _virtualServers[i].sa);;
 		if (status != 0)
 			callException(-1);
 		printf("[Server] Bound socket to localhost port %d\n", _virtualServers[i].getPort());

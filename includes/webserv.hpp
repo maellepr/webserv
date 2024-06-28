@@ -34,10 +34,10 @@ class ErrorConfigFile : public std::exception
 		~ErrorConfigFile() throw();
 
 		virtual const char* what() const throw();
-		std::string	errorMsg;
+		// std::string	errorMsg;
 		
 	private:
-		// std::string	_errorMsg;
+		std::string	_errorMsg;
 };
 
 class ErrorConnectVS : public std::exception

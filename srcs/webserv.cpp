@@ -10,10 +10,10 @@ void	callException(int errorNum)
 		throw ErrorAcceptNewC();
 }
 
-ErrorConfigFile::ErrorConfigFile(std::string msg) throw() : errorMsg(msg) {}
+ErrorConfigFile::ErrorConfigFile(std::string msg) throw() : _errorMsg(msg) {}
 ErrorConfigFile::~ErrorConfigFile() throw() {}
 
 const char *ErrorConfigFile::what() const throw()
 {
-	return errorMsg.c_str();
+	return _errorMsg.c_str();
 }
