@@ -1,6 +1,6 @@
 #include "../includes/Request.hpp"
 
-Request::Request()
+Request::Request(VirtualServer &vs) : _vs(vs)
 {
 }
 
@@ -10,7 +10,7 @@ Request::~Request()
 
 StatusCode	Request::parseBuffer(std::string buffer)
 {
-	std::string	requestLine, header;
+	std::string	requestLine, header, body;
 	std::istringstream	is(buffer);
 	StatusCode	ret;
 
@@ -29,18 +29,28 @@ StatusCode	Request::parseBuffer(std::string buffer)
 		if (header.size() > MAX_HEADER_SIZE)
 			return (STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE);
 
-		if (header.substr(header.size() - 2, npos) != "\r\n")
+		if (header.size() > 2 && header.substr(header.size() - 2, std::string::npos) != "\r\n")
 			return (STATUS_BAD_REQUEST);
-		else
-			header.resize(header.size() - 2);
 
-		if (header.empty())
-			// FIN DES HEADERS
+		if (header == "\r\n")
+			break ;
 		else
-			parseHeader(header);
-
+			ret = parseHeader(header);
+		if (ret != STATUS_NONE)
+			return (ret);
 	}
 
+	if (header == "\r\n")
+	{
+		ret = checkHeaders();
+		if (ret != STATUS_NONE)
+			return (ret);
+	}
+	
+	getline(is, body);
+	{
+		
+	}
 	// parse Message body
 
 	return (STATUS_NONE);
@@ -71,5 +81,45 @@ StatusCode	Request::parseRequestLine(std::string requestLine)
 	if (protocol != PROTOCOL_VERSION)
 		return (STATUS_HTTP_VERSION_NOT_SUPPORTED);
 		
+	return (STATUS_NONE);
+}
+
+StatusCode	Request::parseHeader(std::string header)
+{
+	std::istringstream	is(header);
+	std::string	name, value;
+
+	std::getline(is, name, ':');
+	std::getline(is, value);
+	
+	if (name.empty() || value.empty())
+		return (STATUS_BAD_REQUEST);
+	
+	_headers[name] = value;
+	return (STATUS_NONE);
+}
+
+StatusCode	Request::checkHeaders()
+{
+	std::map<std::string, std::string>::iterator itHost = _headers.find("Host");
+	if (itHost == _headers.end())
+		return (STATUS_BAD_REQUEST);
+	// find server and location
+
+	if (_method == POST)
+	{
+		std::map<std::string, std::string>::iterator itContentLength = _headers.find("Content-Length");
+		if (itContentLength == _headers.end())
+			_contentLength = 0;
+		else
+		{
+			if (itContentLength->second.find_first_not_of("0123456789", 0) != std::string::npos)
+				return (STATUS_BAD_REQUEST);
+			_contentLength = strtol(itContentLength->second.c_str(), NULL, 10);
+			if (_contentLength > _vs.getMaxBodySize()) // A CORRIGER ICI
+				return (STATUS_PAYLOAD_TOO_LARGE);
+		}
+			
+	}
 	return (STATUS_NONE);
 }

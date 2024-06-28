@@ -18,6 +18,7 @@
 # include <fcntl.h>
 # include <dirent.h>
 # include <sstream>
+# include <cstdlib>
 
 # define MAX_URI_SIZE 2048
 # define MAX_HEADER_SIZE 8192
@@ -71,9 +72,10 @@ typedef enum StatusCode
 	STATUS_NONE = 0,
 	STATUS_BAD_REQUEST = 404,
 	STATUS_NOT_IMPLEMENTED = 501,
+	STATUS_PAYLOAD_TOO_LARGE = 413,
 	STATUS_URI_TOO_LONG = 414,
-	STATUS_HTTP_VERSION_NOT_SUPPORTED = 505,
-	STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE = 431
+	STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE = 431,
+	STATUS_HTTP_VERSION_NOT_SUPPORTED = 505
 } StatusCode;
 
 // Structures ----------------------------------------------------------------------------- //

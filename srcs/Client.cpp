@@ -1,5 +1,7 @@
 #include "../includes/Client.hpp"
 
+// CONSTRUCTORS / DESTRUCTORS ------------------------------------------------------ //
+
 Client::Client()
 {
 
@@ -7,8 +9,13 @@ Client::Client()
 
 Client::~Client()
 {
-
+	if (_request)
+		delete _request;
+	if (_response)
+		delete _response;
 }
+
+// GETTERS / SETTERS ------------------------------------------------------------ //
 
 void	Client::setFd(int fd)
 {
@@ -19,6 +26,28 @@ int Client::getFd()
 {
     return _socketfd;
 }
+
+void	Client::setConnectedServer(VirtualServer &vs)
+{
+    _connectedVS = vs;
+}
+
+VirtualServer &Client::getConnectedServer()
+{
+    return _connectedVS;
+}
+
+// void	Client::setMaxBodySize(size_t maxBodySize)
+// {
+// 	_maxBodySize = maxBodySize;
+// }
+
+// size_t	Client::getMaxBodySize()
+// {
+// 	return (_maxBodySize);
+// }
+
+// FUNCTIONS --------------------------------------------------------------------- //
 
 int Client::readRequest()
 {
@@ -56,7 +85,8 @@ int Client::readRequest()
 		}
 		printf("[%d] Got message: %s", _socketfd, buffer);// buffer A PARSER
 		if (_request == NULL)
-			_request = new Request; // A PROTEGER ?
+			_request = new Request(_connectedVS); // A PROTEGER ?
+
 	}
 	parseRequestResult = _request->parseBuffer(_buffer);
 	if (parseRequestResult != STATUS_NONE)

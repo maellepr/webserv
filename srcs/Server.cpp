@@ -129,7 +129,10 @@ void	Server::loop()
 					Client client;
 			
 					dprintf(2, "while 5\n");
+					// CHECK NB DE CLIENTS CONNECTES
 					client.setFd(_acceptNewConnection(_virtualServers[j].getFd()));
+					client.setConnectedServer(_virtualServers[j]);
+					// client.setMaxBodySize(_virtualServers[j].getMaxBodySize()); //A VOIR AVEC MAELLE
 					_clients[client.getFd()] = client;
 					res = 0;
 				}
