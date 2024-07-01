@@ -13,7 +13,7 @@ class Server
 		
 		bool	init(const char *filename);
 		void	loop();
-		void	connectVirtualServers();
+		// void	connectVirtualServers();
 
 	private:
 		std::vector<VirtualServer>	_virtualServers;

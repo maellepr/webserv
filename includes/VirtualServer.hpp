@@ -16,12 +16,15 @@ class VirtualServer
 	void	parseServerNames(std::istringstream& iss);
 	void	parseRoot(std::istringstream& iss);
 	void	parseAutoIndex(std::istringstream& iss);
+	void	parseMaxClientBodySize(std::istringstream& iss);
+	void	parseErrorPages(std::istringstream& iss);
 
 	int		&getPort();
 	void	setPort(int port);
 	int		&getFd();
 	void	setfd(int fd);
 
+	void	connectVirtualServers();
 
 
 	private:
@@ -31,7 +34,10 @@ class VirtualServer
 		int			_port;
 		std::string	_rootDir;
 		std::string	_index;
-		int			_indexOnOff;
+		bool		_indexOnOff;
+		size_t		_maxBodySize;
+		std::map<int, std::string>	_errorPages;
+		std::vector<std::string>	_indexPages;
 
 		std::vector<std::string>	_serverNames;
 		int			_socketfd;

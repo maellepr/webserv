@@ -26,6 +26,7 @@ bool	Server::init(const char *filename)
 	std::string	line;
 	while (std::getline(file, line))
 	{
+		// bool	par = false;
 		std::cerr << "line : " << line << "\n";
 		if (line == "server {")
 		{
@@ -35,9 +36,14 @@ bool	Server::init(const char *filename)
 			vs.init(file);
 			// vs.sa.sin_port = htons(vs.getPort());
 			_virtualServers.push_back(vs);
+			// par = true;
 		}
+		// else if (line.empty())
+		// 	continue ;
 		else
 			throw ErrorConfigFile("Error : missing server in config file");
+		std::getline(file, line);
+		std::cerr << "line = " << line << "\n";
 	}
 	// VirtualServer vs2;
 	// vs2.setPort(1234);
@@ -46,44 +52,48 @@ bool	Server::init(const char *filename)
 	// VirtualServer vs3;
 	// vs3.setPort(12345);
 	// _virtualServers.push_back(vs3);
-
-	connectVirtualServers();
-	return true;
-}
-
-void	Server::connectVirtualServers()
-{
+	dprintf(2, "taille VS = %lu\n", _virtualServers.size());
 	for (size_t i = 0; i < _virtualServers.size(); i++)
 	{
 		dprintf(2, "VS numero %lu, port %d\n", i, _virtualServers[i].getPort());
-		// struct sockaddr_in sa;
-		int socket_fd;
-		int status;
-
-		// Prepare the address and port for the server socket
-		// memset(&sa, 0, sizeof sa);
-		// sa.sin_family = AF_INET; // IPv4
-		// sa.sin_addr.s_addr = htonl(INADDR_LOOPBACK); // 127.0.0.1, localhost
-		// sa.sin_port = htons(_virtualServers[i].getPort());
-
-		// Create the socket
-		socket_fd = socket(_virtualServers[i].sa.sin_family, SOCK_STREAM, 0);
-		if (socket_fd == -1)
-			callException(-1);
-		fcntl(socket_fd, F_SETFL, O_NONBLOCK);
-		printf("[Server] Created server socket fd: %d\n", socket_fd);
-
-		// Bind socket to address and port
-		status = bind(socket_fd, (struct sockaddr *)&_virtualServers[i].sa, sizeof _virtualServers[i].sa);;
-		if (status != 0)
-			callException(-1);
-		printf("[Server] Bound socket to localhost port %d\n", _virtualServers[i].getPort());
-		status = listen(socket_fd, 10); // A MODIF
-		if (status != 0)
-			callException(-1);
-		_virtualServers[i].setfd(socket_fd);
+		_virtualServers[i].connectVirtualServers();
 	}
+	return true;
 }
+
+// void	Server::connectVirtualServers()
+// {
+// 	for (size_t i = 0; i < _virtualServers.size(); i++)
+// 	{
+// 		dprintf(2, "VS numero %lu, port %d\n", i, _virtualServers[i].getPort());
+// 		// struct sockaddr_in sa;
+// 		int socket_fd;
+// 		int status;
+
+// 		// Prepare the address and port for the server socket
+// 		// memset(&sa, 0, sizeof sa);
+// 		// sa.sin_family = AF_INET; // IPv4
+// 		// sa.sin_addr.s_addr = htonl(INADDR_LOOPBACK); // 127.0.0.1, localhost
+// 		// sa.sin_port = htons(_virtualServers[i].getPort());
+
+// 		// Create the socket
+// 		socket_fd = socket(_virtualServers[i].sa.sin_family, SOCK_STREAM, 0);
+// 		if (socket_fd == -1)
+// 			callException(-1);
+// 		fcntl(socket_fd, F_SETFL, O_NONBLOCK);
+// 		printf("[Server] Created server socket fd: %d\n", socket_fd);
+
+// 		// Bind socket to address and port
+// 		status = bind(socket_fd, (struct sockaddr *)&_virtualServers[i].sa, sizeof _virtualServers[i].sa);;
+// 		if (status != 0)
+// 			callException(-1);
+// 		printf("[Server] Bound socket to localhost port %d\n", _virtualServers[i].getPort());
+// 		status = listen(socket_fd, 10); // A MODIF
+// 		if (status != 0)
+// 			callException(-1);
+// 		_virtualServers[i].setfd(socket_fd);
+// 	}
+// }
 
 void	Server::loop()
 {
