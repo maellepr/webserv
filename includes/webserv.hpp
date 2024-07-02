@@ -66,9 +66,15 @@ typedef enum Method
 	DELETE
 } Method;
 
+typedef enum RequestOutcome
+{
+	SUCCESS,
+	PENDING,
+	FAILURE
+} RequestOutcome;
+
 typedef enum StatusCode
 {
-	STATUS_STOP = -1,
 	STATUS_NONE = 0,
 	STATUS_BAD_REQUEST = 404,
 	STATUS_NOT_IMPLEMENTED = 501,
@@ -80,5 +86,10 @@ typedef enum StatusCode
 
 // Structures ----------------------------------------------------------------------------- //
 
+typedef struct ParseRequestResult
+{	
+	RequestOutcome	outcome;
+	StatusCode	statusCode;
+} ParseRequestResult;
 
 #endif

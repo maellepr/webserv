@@ -55,7 +55,7 @@ int Client::readRequest()
 
 	char	buffer[BUFSIZ];// A MODIF
 	size_t	bytesRead;
-	StatusCode	parseRequestResult;
+	ParseRequestResult	reqRes;
 
 	memset(&buffer, '\0', sizeof(buffer));
 	bytesRead = recv(_socketfd, buffer, BUFSIZ, 0);
@@ -88,16 +88,15 @@ int Client::readRequest()
 			_request = new Request(_connectedVS); // A PROTEGER ?
 
 	}
-	parseRequestResult = _request->parseBuffer(_buffer);
-	if (parseRequestResult != STATUS_NONE)
-	{
-		if (parseRequestResult == STATUS_STOP) //fatal error
-			dprintf(2, "A MODIFIER/CHECKER : throw an exception to stop server");
-		else
-			dprintf(2, "A MODIFIER/CHECKER : renvoyer une erreur?");
-	}
-	else
-		std::cout << "SI LA REQUEST EST VALIDE, PASSER EN WRITE" << std::endl;
+	reqRes = _request->parseBuffer(_buffer); // FATAL ERRORS ?
+	if (reqRes.outcome == PENDING) // TIMEOUT TO DO
+			return (0);
+
+	// ECRIRE RESULTAT PARSING
+
+	_response = new Response; //A PROTEGER?
+	_response->generateResponse(reqRes);
+
 	delete _request;
 	_request = NULL;
 	dprintf(2, "read data 4\n");

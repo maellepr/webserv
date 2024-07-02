@@ -8,58 +8,59 @@ Request::~Request()
 {
 }
 
-StatusCode	Request::parseBuffer(std::string buffer)
+ParseRequestResult	Request::parseBuffer(std::string buffer)
 {
-	std::string	requestLine, header, body;
+	std::string	requestLine, header;
 	std::istringstream	is(buffer);
 	StatusCode	ret;
+	unsigned char c;
 
-	std::getline(is, requestLine);
-	if (is.fail())
-		return (STATUS_STOP); //A CHECKER
-	
+	std::getline(is, requestLine); //A CHECKER: can fail ?
 	ret = parseRequestLine(requestLine);
 	if (ret != STATUS_NONE)
-		return (ret);
+		return (parsingFailed(ret));
 
-	while (getline(is, header))
+	while (getline(is, header)) //A CHECKER: can fail ?
 	{
-		if (is.fail())
-			return (STATUS_STOP); //A CHECKER
 		if (header.size() > MAX_HEADER_SIZE)
-			return (STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE);
+		return (parsingFailed(STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE));
 
 		if (header.size() > 2 && header.substr(header.size() - 2, std::string::npos) != "\r\n")
-			return (STATUS_BAD_REQUEST);
+			return (parsingFailed(STATUS_BAD_REQUEST));
 
 		if (header == "\r\n")
 			break ;
 		else
 			ret = parseHeader(header);
 		if (ret != STATUS_NONE)
-			return (ret);
+			return (parsingFailed(ret));
 	}
 
 	if (header == "\r\n")
 	{
 		ret = checkHeaders();
 		if (ret != STATUS_NONE)
-			return (ret);
+			return (parsingFailed(ret));
 	}
-	
-	getline(is, body);
+	if (_contentLength == 0) // A CHECK
+		return (parsingSucceeded());
+	else
 	{
-		
+		while ((is >> c) && _body.size() < _contentLength)
+			_body += c;
 	}
-	// parse Message body
-
-	return (STATUS_NONE);
+	if (_body.size() < _contentLength)
+		return (parsingPending()); //CHECKER SI BAD REQUEST SI > _contentLength
+	return (parsingSucceeded());
 }
 
 StatusCode	Request::parseRequestLine(std::string requestLine)
 {
 	std::string	method, protocol, check;
 	std::istringstream	is(requestLine);
+
+	if (requestLine.empty()) //A CHECKER
+		return (STATUS_BAD_REQUEST);
 
 	if (!(is >> method >> protocol >> _uri) || (is >> check) || _uri[0] != '/')
 		return (STATUS_BAD_REQUEST);
@@ -122,4 +123,29 @@ StatusCode	Request::checkHeaders()
 			
 	}
 	return (STATUS_NONE);
+}
+
+ParseRequestResult Request::parsingFailed(StatusCode statusCode)
+{
+	ParseRequestResult	result;
+
+	result.outcome = FAILURE;
+	result.statusCode = statusCode;
+	return (result);
+}
+
+ParseRequestResult Request::parsingSucceeded()
+{
+	ParseRequestResult	result;
+
+	result.outcome = SUCCESS;
+	return (result);
+}
+
+ParseRequestResult Request::parsingPending()
+{
+	ParseRequestResult	result;
+
+	result.outcome = PENDING;
+	return (result);
 }

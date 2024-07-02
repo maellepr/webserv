@@ -34,3 +34,8 @@ void	VirtualServer::setfd(int fd)
 {
 	_socketfd = fd;
 }
+
+size_t	VirtualServer::getMaxBodySize()
+{
+	return _maxBodySize;
+}

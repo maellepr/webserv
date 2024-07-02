@@ -10,16 +10,20 @@ class Request
 		Request(VirtualServer &vs);
 		~Request();
 
-		StatusCode	parseBuffer(std::string buffer);
+		ParseRequestResult	parseBuffer(std::string buffer);
 		StatusCode	parseRequestLine(std::string requestLine);
 		StatusCode	parseHeader(std::string header);
 		StatusCode	checkHeaders();
+		ParseRequestResult parsingFailed(StatusCode statusCode);
+		ParseRequestResult parsingSucceeded();
+		ParseRequestResult parsingPending();
 
 	private:
 		VirtualServer						_vs;
 		Method								_method;
 		std::string							_uri;
 		std::map<std::string, std::string>	_headers;
+		std::string							_body;
 		size_t								_contentLength;
 
 };
