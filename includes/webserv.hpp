@@ -85,10 +85,17 @@ typedef enum Method
 
 typedef enum RequestOutcome
 {
-	SUCCESS,
-	PENDING,
-	FAILURE
+	REQUEST_SUCCESS,
+	REQUEST_PENDING,
+	REQUEST_FAILURE
 } RequestOutcome;
+
+typedef enum ResponseOutcome
+{
+	RESPONSE_SUCCESS,
+	RESPONSE_PENDING,
+	RESPONSE_FAILURE
+} ResponseOutcome;
 
 typedef enum StatusCode
 {

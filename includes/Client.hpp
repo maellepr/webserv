@@ -20,11 +20,11 @@ class Client
 		// size_t			getMaxBodySize();
 
         int readRequest();
-        int writeResponse();
+        ResponseOutcome writeResponse();
         
     private :
         int 			_socketfd;
-		VirtualServer	_connectedVS;
+		VirtualServer	_vs;
 		Request			*_request;
 		Response		*_response;
 		std::string		_buffer;

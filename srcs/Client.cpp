@@ -29,12 +29,12 @@ int Client::getFd()
 
 void	Client::setConnectedServer(VirtualServer &vs)
 {
-    _connectedVS = vs;
+    _vs = vs;
 }
 
 VirtualServer &Client::getConnectedServer()
 {
-    return _connectedVS;
+    return ;
 }
 
 // void	Client::setMaxBodySize(size_t maxBodySize)
@@ -85,11 +85,11 @@ int Client::readRequest()
 		}
 		printf("[%d] Got message: %s", _socketfd, buffer);// buffer A PARSER
 		if (_request == NULL)
-			_request = new Request(_connectedVS); // A PROTEGER ?
+			_request = new Request(_vs); // A PROTEGER ?
 
 	}
 	reqRes = _request->parseBuffer(_buffer); // FATAL ERRORS ?
-	if (reqRes.outcome == PENDING) // TIMEOUT TO DO
+	if (reqRes.outcome == REQUEST_PENDING) // TIMEOUT TO DO
 			return (0);
 
 	// ECRIRE RESULTAT PARSING
@@ -103,16 +103,20 @@ int Client::readRequest()
 	return (0);
 }
 
-int Client::writeResponse()
+ResponseOutcome Client::writeResponse()
 {
-    int status;
+    ResponseOutcome status;
 
-    status = write(_socketfd, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!:)", strlen("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!:)"));
-    if (status == -1) {
-        return (-1);
-        // fprintf(stderr, "[Server] Send error to client fd 4: %s\n", strerror(errno));
-    }
-    dprintf(2, "send data\n");
-    // close(_socketfd);
-    return (0);
+    // status = write(_socketfd, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!:)", strlen("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!:)"));
+    // if (status == -1)
+    //     return (-1);
+
+	status = _response->sendResponseToClient(_socketfd);
+	if (status != RESPONSE_PENDING)
+	{
+		delete _response;
+		_response = NULL;
+	}
+
+    return (status);
 }

@@ -129,7 +129,7 @@ ParseRequestResult Request::parsingFailed(StatusCode statusCode)
 {
 	ParseRequestResult	result;
 
-	result.outcome = FAILURE;
+	result.outcome = REQUEST_FAILURE;
 	result.statusCode = statusCode;
 	return (result);
 }
@@ -138,7 +138,7 @@ ParseRequestResult Request::parsingSucceeded()
 {
 	ParseRequestResult	result;
 
-	result.outcome = SUCCESS;
+	result.outcome = REQUEST_SUCCESS;
 	return (result);
 }
 
@@ -146,6 +146,6 @@ ParseRequestResult Request::parsingPending()
 {
 	ParseRequestResult	result;
 
-	result.outcome = PENDING;
+	result.outcome = REQUEST_PENDING;
 	return (result);
 }
