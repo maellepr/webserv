@@ -28,6 +28,7 @@ class VirtualServer
 	void	setPort(int port);
 	int		&getFd();
 	void	setfd(int fd);
+	size_t	getMaxBodySize();
 
 	void	connectVirtualServers();
 
@@ -38,7 +39,7 @@ class VirtualServer
 		std::string	_ip;
 		int			_port;
 		std::string	_rootDir;
-		std::string	_index;
+		std::string	_autoIndex;
 		bool		_indexOnOff;
 		size_t		_maxBodySize;// in bytes by default
 		std::map<int, std::string>	_errorPages;
@@ -48,9 +49,6 @@ class VirtualServer
 
 		std::map<std::string, Location> _location;
 		int			_socketfd;
-
-		// size_t	_maxBodySize;
-
 };
 
 #endif

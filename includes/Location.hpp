@@ -10,7 +10,10 @@ class Location
 		~Location();
 
 	private:
-		std::map<std::string, std::vector<std::string>>	_configLocation;
+		std::map<std::string, std::vector<std::string> >	_configLocation;
+		// root
+		// methods
+		// dir-listing / default-uri
 
 };
 

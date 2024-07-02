@@ -196,11 +196,11 @@ void	VirtualServer::parseRoot(std::istringstream& iss)
 
 void	VirtualServer::parseAutoIndex(std::istringstream& iss)
 {
-	if (!(iss >> _index) || _index.empty())
+	if (!(iss >> _autoIndex) || _autoIndex.empty())
 		throw ErrorConfigFile("Error in the conf file : auto index not specified");
-	if (_index == "on")
+	if (_autoIndex == "on")
 		_indexOnOff = true;
-	else if (_index == "off")
+	else if (_autoIndex == "off")
 		_indexOnOff = false;
 }
 
@@ -265,6 +265,7 @@ void	VirtualServer::setfd(int fd)
 	_socketfd = fd;
 }
 
+
 void	VirtualServer::connectVirtualServers()
 {
 // 	for (size_t i = 0; i < _virtualServers.size(); i++)
@@ -305,4 +306,9 @@ void	VirtualServer::connectVirtualServers()
 		_socketfd = socket_fd;
 		// _virtualServers[i].setfd(socket_fd);
 	// }
+}
+
+size_t	VirtualServer::getMaxBodySize()
+{
+	return _maxBodySize;
 }

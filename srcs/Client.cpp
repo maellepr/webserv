@@ -1,5 +1,7 @@
 #include "../includes/Client.hpp"
 
+// CONSTRUCTORS / DESTRUCTORS ------------------------------------------------------ //
+
 Client::Client()
 {
 
@@ -7,8 +9,13 @@ Client::Client()
 
 Client::~Client()
 {
-
+	if (_request)
+		delete _request;
+	if (_response)
+		delete _response;
 }
+
+// GETTERS / SETTERS ------------------------------------------------------------ //
 
 void	Client::setFd(int fd)
 {
@@ -20,29 +27,80 @@ int Client::getFd()
     return _socketfd;
 }
 
+void	Client::setConnectedServer(VirtualServer &vs)
+{
+    _connectedVS = vs;
+}
+
+VirtualServer &Client::getConnectedServer()
+{
+    return _connectedVS;
+}
+
+// void	Client::setMaxBodySize(size_t maxBodySize)
+// {
+// 	_maxBodySize = maxBodySize;
+// }
+
+// size_t	Client::getMaxBodySize()
+// {
+// 	return (_maxBodySize);
+// }
+
+// FUNCTIONS --------------------------------------------------------------------- //
+
 int Client::readRequest()
 {
-    dprintf(2, "read data from socket [%d]\n", _socketfd);
-    
-    char buffer[BUFSIZ];// A MODIF
-    int bytes_read;
+	dprintf(2, "read data from socket [%d]\n", _socketfd);
 
-    memset(&buffer, '\0', sizeof(buffer));
-    bytes_read = recv(_socketfd, buffer, BUFSIZ, 0);
-    if (bytes_read <= 0) {
-        if (bytes_read == 0)
-            printf("[%d] Client socket closed connection.\n", _socketfd);
-        else
-            fprintf(stderr, "[Server] Recv error: %s\n", strerror(errno));
-        close(_socketfd); // Close the socket
-        return (-1);
-    }
-    else 
-    {
-        printf("[%d] Got message: %s", _socketfd, buffer);// buffer A PARSER
-    }
-    dprintf(2, "read data 4\n");
-    return (0);
+	char	buffer[BUFSIZ];// A MODIF
+	size_t	bytesRead;
+	ParseRequestResult	reqRes;
+
+	memset(&buffer, '\0', sizeof(buffer));
+	bytesRead = recv(_socketfd, buffer, BUFSIZ, 0);
+	if (bytesRead <= 0)
+	{
+		if (bytesRead == 0)
+			printf("[%d] Client socket closed connection.\n", _socketfd);
+		else
+			fprintf(stderr, "[Server] Recv error: %s\n", strerror(errno));
+		close(_socketfd);
+		return (-1);
+	}
+	else 
+	{
+		size_t addBytes = bytesRead;
+		while (addBytes)
+		{
+			_buffer += std::string(buffer, addBytes);
+			memset(&buffer, '\0', sizeof(buffer));
+			addBytes = recv(_socketfd, buffer, BUFSIZ, 0);
+			if (addBytes < 0)
+			{
+				fprintf(stderr, "[Server] Recv error: %s\n", strerror(errno));
+				close(_socketfd);
+				return (-1);
+			}
+		}
+		printf("[%d] Got message: %s", _socketfd, buffer);// buffer A PARSER
+		if (_request == NULL)
+			_request = new Request(_connectedVS); // A PROTEGER ?
+
+	}
+	reqRes = _request->parseBuffer(_buffer); // FATAL ERRORS ?
+	if (reqRes.outcome == PENDING) // TIMEOUT TO DO
+			return (0);
+
+	// ECRIRE RESULTAT PARSING
+
+	_response = new Response; //A PROTEGER?
+	_response->generateResponse(reqRes);
+
+	delete _request;
+	_request = NULL;
+	dprintf(2, "read data 4\n");
+	return (0);
 }
 
 int Client::writeResponse()
