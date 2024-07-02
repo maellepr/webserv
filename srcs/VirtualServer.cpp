@@ -197,11 +197,13 @@ void	VirtualServer::parseRoot(std::istringstream& iss)
 void	VirtualServer::parseAutoIndex(std::istringstream& iss)
 {
 	if (!(iss >> _autoIndex) || _autoIndex.empty())
-		throw ErrorConfigFile("Error in the conf file : auto index not specified");
+		throw ErrorConfigFile("Error in the conf file : auto_index not specified");
 	if (_autoIndex == "on")
 		_indexOnOff = true;
 	else if (_autoIndex == "off")
 		_indexOnOff = false;
+	else
+		throw ErrorConfigFile("Error in the conf file : auto_index wrong content");
 }
 
 void	VirtualServer::parseMaxClientBodySize(std::istringstream& iss)
@@ -240,10 +242,60 @@ void	VirtualServer::parseMaxClientBodySize(std::istringstream& iss)
 void	VirtualServer::parseErrorPages(std::istringstream& iss)
 {
 	std::string	code;
+	std::vector <int> codeList;
+	int	errorCode;
+
 	if (!(iss >> code))
-		throw ErrorConfigFile("Error in the conf file : error_page : missing informations");
-	// parseErrorCode();
+		throw ErrorConfigFile("Error in the conf file : error_page : missing informations1");
+	errorCode = parseErrorCode(code);
+	codeList.push_back(errorCode);
+	while ((iss >> code) && code.find_first_not_of("0123456789") == std::string::npos)
+	{
+		std::cerr << "code line : " << code << "\n";
+		errorCode = parseErrorCode(code);
+		codeList.push_back(errorCode);
+	}
+	if (code.empty())
+		throw ErrorConfigFile("Error in the conf file : error_page : missing informations2");
+	// parsePathErrorPage(code);
+	if (code[0] != '/' && code.find("..") != std::string::npos)
+		throw ErrorConfigFile("Error in the conf file : error_page : wrong path");
+	if (iss >> code)
+		throw ErrorConfigFile("Error in the conf file : error_page : wrong content");
+	for (int i = 0; codeList[i]; i++)
+		_errorPages[codeList[i]] = code;
+	
+	// for (int i = 0; codeList[i]; i++)
+		// std::cerr << "codeList[" << i << "] = " << codeList[i] << "\n";
+	std::cerr << "_errorPage : ";
+	// for (int i = 0; codeList[i]; i++)
+		// std::cerr << 
+    for (std::map<int, std::string>::iterator it = _errorPages.begin(); it != _errorPages.end(); ++it) {
+        std::cout << it->first << " => " << it->second;
+    }
+	std::cerr << "\n";
 }
+
+int	VirtualServer::parseErrorCode(std::string& code)
+{
+	size_t	index = code.find_first_not_of("0123456789");
+	std::string	path;
+	if (index == std::string::npos) // pas d'autres caracteres que 0123456789
+	{
+		int errorCode = strtol(code.c_str(), NULL, 10);
+		if (errorCode < 100 || errorCode > 599)
+			throw ErrorConfigFile("Error in the conf file : error_page : wrong code");
+		return (errorCode);
+	}
+	else
+		throw ErrorConfigFile("Error in the conf file : error_page : wrong code");
+}
+
+// void	VirtualServer::parsePathErrorPage(std::string& path)
+// {
+// 	if (path[0] == '/' && path.find("..") == std::string::npos)
+		
+// }
 
 int&	VirtualServer::getPort()
 {

@@ -23,6 +23,8 @@ class VirtualServer
 	void	parseAutoIndex(std::istringstream& iss);
 	void	parseMaxClientBodySize(std::istringstream& iss);
 	void	parseErrorPages(std::istringstream& iss);
+	int		parseErrorCode(std::string& code);
+	// void	parsePathErrorPage(std::string& path);
 
 	int		&getPort();
 	void	setPort(int port);
