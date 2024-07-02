@@ -2,6 +2,11 @@
 # define VIRTUALSERVER_HPP
 
 #include "webserv.hpp"
+#include "Location.hpp"
+
+#define KB_IN_BYTES 1024;
+#define MB_IN_BYTES 1048576;
+#define	GB_IN_BYTES 1073741824; 
 
 class VirtualServer
 {
@@ -35,11 +40,13 @@ class VirtualServer
 		std::string	_rootDir;
 		std::string	_index;
 		bool		_indexOnOff;
-		size_t		_maxBodySize;
+		size_t		_maxBodySize;// in bytes by default
 		std::map<int, std::string>	_errorPages;
 		std::vector<std::string>	_indexPages;
 
 		std::vector<std::string>	_serverNames;
+
+		std::map<std::string, Location> _location;
 		int			_socketfd;
 
 		// size_t	_maxBodySize;

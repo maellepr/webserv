@@ -3,8 +3,9 @@
 VirtualServer::VirtualServer()
 {
 	memset(&_address, 0, sizeof _address);
-	_address.sin_family = AF_INET; // IPv4			
+	_address.sin_family = AF_INET; // IPv4
 	_address.sin_port = htons(8080);// port par defaut
+	_address.sin_addr.s_addr = htonl(INADDR_ANY);// adresse par defaut 0.0.0.0 (any address)
 }
 
 VirtualServer::~VirtualServer()
@@ -219,11 +220,11 @@ void	VirtualServer::parseMaxClientBodySize(std::istringstream& iss)
 		{
 			if (maxClientBS[index] == 'k' || maxClientBS[index] == 'K')
 			{
-				_maxBodySize = _maxBodySize << 10;
+				_maxBodySize *= KB_IN_BYTES;
 			}
 			else if (maxClientBS[index] == 'm' || maxClientBS[index] == 'M')
 			{
-				_maxBodySize = _maxBodySize << 20;
+				_maxBodySize *= MB_IN_BYTES;
 			}
 			else
 				throw ErrorConfigFile("Error in the conf file : max_client_body_size : wrong unit, must be m, M, k or K");
@@ -232,7 +233,7 @@ void	VirtualServer::parseMaxClientBodySize(std::istringstream& iss)
 		else
 			throw ErrorConfigFile("Error in the conf file : max_client_body_size : invalid character after the unit size");
 	}
-	if (_maxBodySize < 0 || _maxBodySize > 2000000)// limite est de 2MB
+	if (_maxBodySize < 0 || _maxBodySize > 2000000)// limite est de 2MB environ
 		throw ErrorConfigFile("Error in the conf file : max_body_client_size : size has to be between 0 and 1MB");
 }
 
