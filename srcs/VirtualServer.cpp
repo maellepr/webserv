@@ -58,11 +58,30 @@ void	VirtualServer::init(std::istream& file)
 		}
 		else if (keyword == "index")
 		{
-			continue ;
+			parseIndex(iss);
 		}
 		else if (keyword == "location")
 		{
-			continue ;
+			Location	location;
+			std::string	prefix;
+			if (!(iss >> keyword))
+				throw ErrorConfigFile("Error in the conf file : location : wrong content1");
+			if (keyword != "{")
+			{
+				if (prefix == "=")
+				{
+					location.setEqualModifier(true);
+					if (!(iss >> keyword))
+						throw ErrorConfigFile("Error in the conf file : location : wrong content2");
+				}
+				prefix = keyword; // verifier contenu peut-etre
+				if ((iss >> keyword) && keyword != "{")
+					throw ErrorConfigFile("Error in the conf file : location : wrong content3");
+			}
+			else
+				prefix = "none";
+			location.parseLocation(file);
+			_location[prefix] = location;
 		}
 		else
 			throw ErrorConfigFile("Error in the config file : wrong keyword");
@@ -291,11 +310,19 @@ int	VirtualServer::parseErrorCode(std::string& code)
 		throw ErrorConfigFile("Error in the conf file : error_page : wrong code");
 }
 
-// void	VirtualServer::parsePathErrorPage(std::string& path)
-// {
-// 	if (path[0] == '/' && path.find("..") == std::string::npos)
-		
-// }
+void	VirtualServer::parseIndex(std::istringstream& iss)
+{
+	std::string	index;
+	if (!(iss >> index))
+		throw ErrorConfigFile("Error in the conf file : index : missing information");
+	// A COMPLETER AVEC CAS D'ERREUR ?
+	_indexPages.push_back(index);
+	while (iss >> index)
+	{
+		// A COMPLETER AVEC CAS D'ERREUR ?
+		_indexPages.push_back(index);
+	}
+}
 
 int&	VirtualServer::getPort()
 {

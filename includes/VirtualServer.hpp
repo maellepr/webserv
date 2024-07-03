@@ -25,6 +25,7 @@ class VirtualServer
 	void	parseErrorPages(std::istringstream& iss);
 	int		parseErrorCode(std::string& code);
 	// void	parsePathErrorPage(std::string& path);
+	void	parseIndex(std::istringstream& iss);
 
 	int		&getPort();
 	void	setPort(int port);
@@ -49,7 +50,7 @@ class VirtualServer
 
 		std::vector<std::string>	_serverNames;
 
-		std::map<std::string, Location> _location;
+		std::map<std::string, Location> _location;// 
 		int			_socketfd;
 };
 
