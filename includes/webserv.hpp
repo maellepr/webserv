@@ -97,6 +97,21 @@ typedef enum ResponseOutcome
 	RESPONSE_FAILURE
 } ResponseOutcome;
 
+typedef enum ParsingStep
+{
+	IN_REQUESTLINE,
+	IN_HEADERS,
+	IN_BODY,
+	DONE
+} ParsingStep;
+
+typedef enum GnlStatus
+{
+	FOUND_NL,
+	NO_NL,
+	EMPTY
+} GnlStatus;
+
 typedef enum StatusCode
 {
 	STATUS_NONE = 0,

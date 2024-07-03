@@ -14,7 +14,7 @@ class Client
 
         void			setFd(int fd);
         int    			getFd();
-		void			setConnectedServer(VirtualServer &vs);
+		void			setConnectedServers(int serverfd, std::map<int, std::vector<VirtualServer*> >	&socketBoundVs);
 		VirtualServer	&getConnectedServer();
 		// void			setMaxBodySize(size_t maxBodySize);
 		// size_t			getMaxBodySize();
@@ -23,12 +23,15 @@ class Client
         ResponseOutcome writeResponse();
         
     private :
-        int 			_socketfd;
-		VirtualServer	_vs;
-		Request			*_request;
-		Response		*_response;
-		std::string		_buffer;
+        int 						_clientfd;
+		int							_serversfd;
+		std::vector<VirtualServer*>	_vsCandidates;
+		// VirtualServer				_vs;
+		Request						*_request;
+		Response					*_response;
+		std::string					_buffer;
 		// size_t 			_maxBodySize;
+		ParsingStep					_parsingStep;
 
 };
 

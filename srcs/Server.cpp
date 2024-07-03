@@ -99,7 +99,7 @@ void	Server::loop()
 {
 
 	int			status;
-	int			res = 0;
+	// int			res = 0;
 	struct timeval timer;
 	
 	FD_ZERO(&_all_sockets);
@@ -116,59 +116,57 @@ void	Server::loop()
 	
 	while (1)
 	{
-    	dprintf(2, "while 1\n");
-        sleep(2);
+    	dprintf(2, "WHILE 1 - before sleep\n");
+        sleep(2); // A ENLEVER
         _read_fds = _all_sockets;
         _write_fds = _all_sockets;
         timer.tv_sec = 2; // 2 second timeout for select()
         timer.tv_usec = 0;
         
-        dprintf(2, "while 2\n");
+        dprintf(2, "WHILE 2 - avant select\n");
         status = select(_fd_max + 1, &_read_fds, &_write_fds, NULL, &timer);
         if (status == -1)
             callException(-2);
         else if (status == 0)
 		{
-            // No socket fd is ready to read
             printf("[Server] Waiting...\n");
             continue;
         }
-        dprintf(2, "while 3\n");
+        dprintf(2, "WHILE 3 - apres select\n");
         dprintf(2, "_fd_max = %d\n", _fd_max);
         for (int i = 0; i <= _fd_max && status > 0; i++) 
         {
-            dprintf(2, "while 4\n");
             if (FD_ISSET(i, &_read_fds) == 1)
 			{
+				dprintf(2, "WHILE 4 - debut boucle read set\n");
 				status--;
-				printf("[%d] Ready for I/O operation\n", i);
-				// Socket is ready to read!
-				size_t j = 0;
-				for (;j < _virtualServers.size(); j++)
+				// size_t j = 0;
+				// for (;j < _virtualServers.size(); j++)
+				// {
+				// 	if (i == _virtualServers[j].getFd())
+				// 	{
+				// 		res = 1;
+				// 		break;
+				// 	}
+				// }
+				// if (res)
+				std::map<int, std::vector<VirtualServer*> >::iterator it = _socketBoundVs.find(i);
+				if (it != _socketBoundVs.end())
 				{
-					if (i == _virtualServers[j].getFd())
-					{
-						res = 1;
-						break;
-					}
-				}
-				if (res)
-				{
+					dprintf(2, "WHILE 5 - read socket is a server\n");
+					// CHECK NB DE CLIENTS CONNECTES TO DO
 					Client client;
-			
-					dprintf(2, "while 5\n");
-					// CHECK NB DE CLIENTS CONNECTES
-					client.setFd(_acceptNewConnection(_virtualServers[j].getFd()));
-					client.setConnectedServer(_virtualServers[j]);
-					// client.setMaxBodySize(_virtualServers[j].getMaxBodySize()); //A VOIR AVEC MAELLE
+
+					client.setFd(_acceptNewConnection(i));
+					client.setConnectedServers(i, _socketBoundVs);
 					_clients[client.getFd()] = client;
-					res = 0;
+					// res = 0;
 				}
 				else
 				{
+					dprintf(2, "WHILE 6 - read socket is a client\n");
 					Client&	client = _clients[i]; 
 					
-					dprintf(2, "while 6\n");
 					if (client.readRequest() == -1)
 					{
 						FD_CLR(i, &_all_sockets); // Remove socket from the set
@@ -177,12 +175,13 @@ void	Server::loop()
 							_fd_max = _fd_max - 1; //TEMPORAIRE A MODIF
 					}
 				}
+				dprintf(2, "END of READ\n");
       		}
 			else if (FD_ISSET(i, &_write_fds) == 1)
 			{
+				dprintf(2, "WHILE 7 - a client socket is ready to write\n");
 				status--;
                 Client&	client = _clients[i];
-				dprintf(2, "socket client %d pret a write\n", i);
 				if (client.writeResponse() == -1)
 				{
 					close(i);
@@ -191,6 +190,7 @@ void	Server::loop()
 					if (i == _fd_max)
 						_fd_max = _fd_max - 1; //TEMPORAIRE A MODIF
 				}
+				dprintf(2, "END of WRITE\n");
         	}
     	}
 	}

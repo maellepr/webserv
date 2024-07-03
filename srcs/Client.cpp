@@ -2,10 +2,7 @@
 
 // CONSTRUCTORS / DESTRUCTORS ------------------------------------------------------ //
 
-Client::Client()
-{
-
-}
+Client::Client() : _parsingStep(IN_REQUESTLINE) {}
 
 Client::~Client()
 {
@@ -19,17 +16,19 @@ Client::~Client()
 
 void	Client::setFd(int fd)
 {
-    _socketfd = fd;
+    _clientfd = fd;
 }
 
 int Client::getFd()
 {
-    return _socketfd;
+    return _clientfd;
 }
 
-void	Client::setConnectedServer(VirtualServer &vs)
+void	Client::setConnectedServers(int serverfd, std::map<int, std::vector<VirtualServer*> >	&socketBoundVs)
 {
-    _vs = vs;
+	std::map<int, std::vector<VirtualServer*> >::iterator it = socketBoundVs.find(serverfd);
+	if (it != socketBoundVs.end())
+		std::copy(it->second.begin(), it->second.end(), _vsCandidates.begin());
 }
 
 VirtualServer &Client::getConnectedServer()
@@ -51,21 +50,21 @@ VirtualServer &Client::getConnectedServer()
 
 int Client::readRequest()
 {
-	dprintf(2, "read data from socket [%d]\n", _socketfd);
+	dprintf(2, "read data from socket [%d]\n", _clientfd);
 
 	char	buffer[BUFSIZ];// A MODIF
 	size_t	bytesRead;
 	ParseRequestResult	reqRes;
 
 	memset(&buffer, '\0', sizeof(buffer));
-	bytesRead = recv(_socketfd, buffer, BUFSIZ, 0);
+	bytesRead = recv(_clientfd, buffer, BUFSIZ, 0);
 	if (bytesRead <= 0)
 	{
 		if (bytesRead == 0)
-			printf("[%d] Client socket closed connection.\n", _socketfd);
+			printf("[%d] Client socket closed connection.\n", _clientfd);
 		else
 			fprintf(stderr, "[Server] Recv error: %s\n", strerror(errno));
-		close(_socketfd);
+		close(_clientfd);
 		return (-1);
 	}
 	else 
@@ -75,19 +74,20 @@ int Client::readRequest()
 		{
 			_buffer += std::string(buffer, addBytes);
 			memset(&buffer, '\0', sizeof(buffer));
-			addBytes = recv(_socketfd, buffer, BUFSIZ, 0);
+			addBytes = recv(_clientfd, buffer, BUFSIZ, 0);
 			if (addBytes < 0)
 			{
 				fprintf(stderr, "[Server] Recv error: %s\n", strerror(errno));
-				close(_socketfd);
+				close(_clientfd);
 				return (-1);
 			}
 		}
-		printf("[%d] Got message: %s", _socketfd, buffer);// buffer A PARSER
+		printf("[%d] Got message: %s", _clientfd, buffer);// buffer A PARSER
 		if (_request == NULL)
-			_request = new Request(_vs); // A PROTEGER ?
+			_request = new Request(); // A PROTEGER ?
 
 	}
+	_buffer += buffer;
 	reqRes = _request->parseBuffer(_buffer); // FATAL ERRORS ?
 	if (reqRes.outcome == REQUEST_PENDING) // TIMEOUT TO DO
 			return (0);
@@ -99,7 +99,6 @@ int Client::readRequest()
 
 	delete _request;
 	_request = NULL;
-	dprintf(2, "read data 4\n");
 	return (0);
 }
 
@@ -107,11 +106,11 @@ ResponseOutcome Client::writeResponse()
 {
     ResponseOutcome status;
 
-    // status = write(_socketfd, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!:)", strlen("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!:)"));
+    // status = write(_clientfd, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!:)", strlen("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!:)"));
     // if (status == -1)
     //     return (-1);
 
-	status = _response->sendResponseToClient(_socketfd);
+	status = _response->sendResponseToClient(_clientfd);
 	if (status != RESPONSE_PENDING)
 	{
 		delete _response;

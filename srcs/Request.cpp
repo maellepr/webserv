@@ -1,42 +1,81 @@
 #include "../includes/Request.hpp"
 
-Request::Request(VirtualServer &vs) : _vs(vs)
-{
-}
+Request::Request() : _parsingStep(IN_REQUESTLINE) {}
 
 Request::~Request()
 {
 }
 
-ParseRequestResult	Request::parseBuffer(std::string buffer)
+GnlStatus	Request::getNextLine(std::string &buffer) // A AMELIORER
 {
-	std::string	requestLine, header;
-	std::istringstream	is(buffer);
+	size_t		strEnd;
+	
+	buffer = _line + buffer;
+	strEnd = buffer.find("\r\n", 0);
+	if (strEnd == std::string::npos)
+	{
+		_line = buffer;
+		buffer = "";
+		return (NO_NL);
+	}
+	_line = buffer.substr(0, strEnd);
+	buffer = buffer.substr(strEnd + strlen("\r\n"), std::string::npos);
+	return (FOUND_NL);
+};
+
+ParseRequestResult	Request::parseBuffer(std::string &buffer)
+{
 	StatusCode	ret;
 	unsigned char c;
 
-	std::getline(is, requestLine); //A CHECKER: can fail ?
-	ret = parseRequestLine(requestLine);
-	if (ret != STATUS_NONE)
-		return (parsingFailed(ret));
-
-	while (getline(is, header)) //A CHECKER: can fail ?
+	if (_parsingStep == IN_REQUESTLINE)
 	{
-		if (header.size() > MAX_HEADER_SIZE)
-		return (parsingFailed(STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE));
-
-		if (header.size() > 2 && header.substr(header.size() - 2, std::string::npos) != "\r\n")
-			return (parsingFailed(STATUS_BAD_REQUEST));
-
-		if (header == "\r\n")
-			break ;
-		else
-			ret = parseHeader(header);
+		// buffer empty ?
+		if (getNextLine(buffer) == NO_NL)
+		{
+			if (_line.size() > MAX_URI_SIZE)
+				return (parsingFailed(STATUS_URI_TOO_LONG));
+			else
+				return (parsingPending());
+		}
+		ret = parseRequestLine(_line);
 		if (ret != STATUS_NONE)
 			return (parsingFailed(ret));
+		_parsingStep = IN_HEADERS;
+		_line.clear();
 	}
+	if (_parsingStep == IN_HEADERS)
+	{
+		while (buffer.empty() == false)
+		{
+			if (getNextLine(buffer) == NO_NL)
+			{
+			if (_line.size() > MAX_HEADER_SIZE)
+				return (parsingFailed(STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE));
+			else
+				return (parsingPending());
+			}
+			if (_line.size() > MAX_HEADER_SIZE)
+			return (parsingFailed(STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE));
 
-	if (header == "\r\n")
+			// if (header.size() > 2 && header.substr(header.size() - 2, std::string::npos) != "\r\n")
+			// 	return (parsingFailed(STATUS_BAD_REQUEST));
+
+			// if (_line == "\r\n")
+			if (_line.empty())
+			{
+				_parsingStep = IN_BODY;
+				_line.clear();
+				break ;
+			}
+			else
+				ret = parseHeader(_line);
+			if (ret != STATUS_NONE)
+				return (parsingFailed(ret));
+			_line.clear();
+		}
+	}
+	if (_parsingStep == IN_BODY) // A REFAIRE
 	{
 		ret = checkHeaders();
 		if (ret != STATUS_NONE)
@@ -46,6 +85,7 @@ ParseRequestResult	Request::parseBuffer(std::string buffer)
 		return (parsingSucceeded());
 	else
 	{
+		std::istringstream	is(buffer);
 		while ((is >> c) && _body.size() < _contentLength)
 			_body += c;
 	}
@@ -56,11 +96,9 @@ ParseRequestResult	Request::parseBuffer(std::string buffer)
 
 StatusCode	Request::parseRequestLine(std::string requestLine)
 {
+	// request line empty ?
 	std::string	method, protocol, check;
 	std::istringstream	is(requestLine);
-
-	if (requestLine.empty()) //A CHECKER
-		return (STATUS_BAD_REQUEST);
 
 	if (!(is >> method >> protocol >> _uri) || (is >> check) || _uri[0] != '/')
 		return (STATUS_BAD_REQUEST);

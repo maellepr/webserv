@@ -16,12 +16,13 @@ class Server
 		// void	connectVirtualServers();
 
 	private:
-		std::vector<VirtualServer>	_virtualServers;
-		std::map<int, Client>		_clients;
-		fd_set 		_all_sockets;
-		fd_set		_read_fds;
-		fd_set		_write_fds;
-		int			_fd_max;
+		std::vector<VirtualServer>					_virtualServers;
+		std::map<int, Client>						_clients;
+		std::map<int, std::vector<VirtualServer*> >	_socketBoundVs; //AJOUT A VOIR AVEC MAELLE
+		fd_set 										_all_sockets;
+		fd_set										_read_fds;
+		fd_set										_write_fds;
+		int											_fd_max;
 
 		int	_acceptNewConnection(int server_socket);
 

@@ -14,10 +14,9 @@ class Response
 		int				pushStrToClient(int fd, std::string &str);
 
 	private:
-		std::string					_responseLine;
+		std::string				_responseLine;
 		std::map<std::string, std::string>	_headers;
-		// body
-
+		std::string				_body;
 };
 
 #endif

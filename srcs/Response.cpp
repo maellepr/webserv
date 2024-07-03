@@ -38,14 +38,19 @@ ResponseOutcome	Response::sendResponseToClient(int fd)
 	if (pushStrToClient(fd, line) == -1)
 		return RESPONSE_FAILURE;
 	
-	// METHOD HEAD => return success
+	// METHOD HEAD => stop and return success
 
-	// SEND BODY if any
-
-	if (1) // A MODIFIER
+	std::map<std::string, std::string>::iterator body = _headers.find("Content-Length");
+	if (body != _headers.end() && strtol(body->second.c_str(), NULL, 10) > 0)
+	{
+		line = _body.substr(0, strtol(body->second.c_str(), NULL, 10) - 1); //convertir
+		if (pushStrToClient(fd, line) == -1)
+			return RESPONSE_FAILURE;
+		return RESPONSE_SUCCESS;
+	}
+	else 
 		return (RESPONSE_SUCCESS);
-	else
-		return RESPONSE_PENDING;
+	return RESPONSE_PENDING;
 }
 
 int	Response::pushStrToClient(int fd, std::string &str)
