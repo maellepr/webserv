@@ -14,27 +14,23 @@ class VirtualServer
 		VirtualServer();
 		~VirtualServer();
 
-	void	init(std::istream& file);
-	void	parseListen(std::istringstream& iss);
-	void	parsePort(std::string& port);
-	void	parseIpAddrs(void);
-	void	parseServerNames(std::istringstream& iss);
-	void	parseRoot(std::istringstream& iss);
-	void	parseAutoIndex(std::istringstream& iss);
-	void	parseMaxClientBodySize(std::istringstream& iss);
-	void	parseErrorPages(std::istringstream& iss);
-	int		parseErrorCode(std::string& code);
-	// void	parsePathErrorPage(std::string& path);
-	void	parseIndex(std::istringstream& iss);
+		void	init(std::istream& file);
 
-	int		&getPort();
-	void	setPort(int port);
-	int		&getFd();
-	void	setfd(int fd);
-	size_t	getMaxBodySize();
+		std::string	&getIp();
+		void		setIp(std::string ip);
+		
+		int		&getPort();
+		void	setPort(int port);
+		int		&getFd();
+		void	setfd(int fd);
+		size_t	getMaxBodySize();
 
-	void	connectVirtualServers();
+		void	connectVirtualServers();
 
+		int		&getIsBind();
+		void	setIsBind(int bind);
+
+		std::string	&getServerName();
 
 	private:
 		struct sockaddr_in _address;
@@ -48,10 +44,29 @@ class VirtualServer
 		std::map<int, std::string>	_errorPages;
 		std::vector<std::string>	_indexPages;
 
-		std::vector<std::string>	_serverNames;
+		// std::vector<std::string>	_serverNames;
+		std::string	_serverName;
 
-		std::map<std::string, Location> _location;// 
-		int			_socketfd;
+		std::map<std::string, Location> _location;
+
+		int		_isBind;// -1 not bind / 0 not bind but should be bind / 1 bind
+
+		int		_socketfd;
+		
+		bool	_ipByDefault;
+		bool	_portByDefault;
+
+		void	parseListen(std::istringstream& iss);
+		void	parsePort(std::string& port);
+		void	parseIpAddrs(void);
+		void	parseServerNames(std::istringstream& iss);
+		void	parseRoot(std::istringstream& iss);
+		void	parseAutoIndex(std::istringstream& iss);
+		void	parseMaxClientBodySize(std::istringstream& iss);
+		void	parseErrorPages(std::istringstream& iss);
+		int		parseErrorCode(std::string& code);
+		// void	parsePathErrorPage(std::string& path);
+		void	parseIndex(std::istringstream& iss);
 };
 
 #endif

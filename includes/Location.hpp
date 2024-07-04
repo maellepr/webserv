@@ -12,10 +12,13 @@ class Location
 		void	setEqualModifier(bool state);
 
 		void	parseLocation(std::istream& file);
-		void	parseLocationOne(std::istringstream& iss, std::string keyword);
-	
+		void	parseLocation(std::istringstream& iss, std::string keyword);
+		void	parseLocationErrorPage(std::istringstream& iss);
+		int		parseErrorCode(std::string& code);
+
 	private:
 		std::map<std::string, std::vector<std::string> >	_configLocation;
+		std::map<int, std::string> 			_errorPages;
 		// root
 		// methods
 		// dir-listing / default-uri

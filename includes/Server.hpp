@@ -14,6 +14,7 @@ class Server
 		bool	init(const char *filename);
 		void	loop();
 		// void	connectVirtualServers();
+		
 
 	private:
 		std::vector<VirtualServer>					_virtualServers;
@@ -24,8 +25,9 @@ class Server
 		fd_set										_write_fds;
 		int											_fd_max;
 
-		int	_acceptNewConnection(int server_socket);
-
+		int		_acceptNewConnection(int server_socket);
+		void	_ipIsAnyAddress(int i);
+		void	_ipIsSpecificAddress(size_t i);
 
 };
 

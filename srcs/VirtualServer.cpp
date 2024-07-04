@@ -6,6 +6,14 @@ VirtualServer::VirtualServer()
 	_address.sin_family = AF_INET; // IPv4
 	_address.sin_port = htons(8080);// port par defaut
 	_address.sin_addr.s_addr = htonl(INADDR_ANY);// adresse par defaut 0.0.0.0 (any address)
+
+	_ip = "0 0 0 0";
+	_port = 8080;
+
+	_ipByDefault = true;
+	_portByDefault = true;
+
+	_isBind = 0;
 }
 
 VirtualServer::~VirtualServer()
@@ -20,14 +28,14 @@ void	VirtualServer::init(std::istream& file)
 	bool	empty = true;
 	while (std::getline(file, line))
 	{
-		std::cerr << "line vs = " << line << "\n";
+		// std::cerr << "line vs = " << line << "\n";
 		std::istringstream iss(line);
 
 		// iss >> keyword;
 
 		if (!(iss >> keyword) || keyword[0] == '#')
 			continue ;
-		std::cerr << "keyword vs = " << keyword << "\n";
+		// std::cerr << "keyword vs = " << keyword << "\n";
 		if (keyword == "}" && empty == true)
 			throw ErrorConfigFile("Error in the config file : empty server section");
 		else if (keyword == "}" && empty == false)
@@ -100,20 +108,27 @@ void	VirtualServer::parseListen(std::istringstream& iss)
 		throw ErrorConfigFile("Error in the config file : listen : wrong content");
 	// std::cerr << "line pL = " << line << "\n";
 	size_t	index = line.find(':');
+	size_t	point = line.find('.');
 	if (index != std::string::npos)// : est a ete trouve dans line
 	{
 		_ip = line.substr(0, index);
 		parseIpAddrs();
 		// std::cerr << "ipAddrs = " << ipAddrs << "\n"; 
 		std::string	port = line.substr(index + 1, line.size());
+		std::cerr << "port = " << port << "\n";
 		parsePort(port);
-		std::cerr << "_port = " << _port << "\n";
+		// std::cerr << "_port = " << _port << "\n";
+	}
+	else if (point != std::string::npos)
+	{
+		parseIpAddrs();
 	}
 	else
 	{
 		std::string	port = line;
+		std::cerr << "port else = " << port << "\n";
 		parsePort(port);
-		std::cerr << "_port else = " << _port << "\n";
+		// std::cerr << "_port else = " << _port << "\n";
 	}
 	if (iss >> line)
 		throw ErrorConfigFile("Error in the config file : listen : wrong content");
@@ -121,12 +136,16 @@ void	VirtualServer::parseListen(std::istringstream& iss)
 
 void	VirtualServer::parsePort(std::string& port)
 {
-	if (port.empty() || port.find_first_not_of("0123456789") != std::string::npos || port.size() > 5)
-		throw ErrorConfigFile("Error in the conf file : listen : wrong port");
+	if (port.empty())
+		return ;
+	if (port.find_first_not_of("0123456789") != std::string::npos || port.size() > 5)
+		throw ErrorConfigFile("Error in the conf file : listen : wrong port 1");
 	std::stringstream ss(port);
 	ss >> _port;
 	if (_port > 65535)// valeur max port
-		throw ErrorConfigFile("Error in the conf file : listen : wrong port");
+		throw ErrorConfigFile("Error in the conf file : listen : wrong port 2");
+	_address.sin_port = htons(_port);
+	_portByDefault = false;
 }
 
 void	VirtualServer::parseIpAddrs(void)
@@ -136,16 +155,18 @@ void	VirtualServer::parseIpAddrs(void)
 	if (_ip == "localhost")
 	{
 		_address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+		_ipByDefault = false;
 		return ;
 	}
 	if (_ip == "*")
 	{
 		_address.sin_addr.s_addr = htonl(INADDR_ANY);
+		_ipByDefault = false;
 		return ;
 	}
 	if (_ip.find_first_not_of("0123456789.") != std::string::npos)
 		throw ErrorConfigFile("Error in the conf file : listen : wrong host (ip address)");
-	std::cerr << "ipAddrs = " << _ip << "\n";
+	// std::cerr << "ipAddrs = " << _ip << "\n";
 	int	dots = 0;
 	for (int i = 0; _ip[i]; i++)
 	{	
@@ -171,8 +192,9 @@ void	VirtualServer::parseIpAddrs(void)
 	}
 	if (iss >> more)
 		throw ErrorConfigFile("Error in the conf file : listen : wrong host (ip address)");
-	std::cerr << "res ipAddrs = " << res << "\n";
+	// std::cerr << "res ipAddrs = " << res << "\n";
 	_address.sin_addr.s_addr = htonl(res);
+	_ipByDefault = false;
 }
 
 void	VirtualServer::parseServerNames(std::istringstream& iss)
@@ -180,9 +202,10 @@ void	VirtualServer::parseServerNames(std::istringstream& iss)
 	std::string	serverName;
 	if (!(iss >> serverName))
 		throw ErrorConfigFile("Error in the conf file : no server name");
-	_serverNames.push_back(serverName);
-	while (iss >> serverName)
-		_serverNames.push_back(serverName);
+	_serverName = serverName;
+	// _serverNames.push_back(serverName);
+	// while (iss >> serverName)
+	// 	_serverNames.push_back(serverName);
 }
 
 void	VirtualServer::parseRoot(std::istringstream& iss)
@@ -191,7 +214,7 @@ void	VirtualServer::parseRoot(std::istringstream& iss)
 	
 	if (!(iss >> path))
 		throw ErrorConfigFile("Error in the conf file : no root");
-	std::cerr << "path = " << path << "\n";
+	// std::cerr << "path = " << path << "\n";
 	if (path.compare(0, 8, "/var/www") == 0)
 		_rootDir = "www";
 	else
@@ -203,7 +226,7 @@ void	VirtualServer::parseRoot(std::istringstream& iss)
 		throw ErrorConfigFile("Error in the conf file : root : wrong content");
 	if (_rootDir.empty())
 		throw ErrorConfigFile("Error in the conf file : root : wrong content");
-	std::cerr << "_rootdir = " << _rootDir << "\n"; 
+	// std::cerr << "_rootdir = " << _rootDir << "\n"; 
 	
     struct stat info;
 
@@ -249,7 +272,7 @@ void	VirtualServer::parseMaxClientBodySize(std::istringstream& iss)
 			}
 			else
 				throw ErrorConfigFile("Error in the conf file : max_client_body_size : wrong unit, must be m, M, k or K");
-			std::cerr << "max client body size = " << _maxBodySize << '\n';
+			// std::cerr << "max client body size = " << _maxBodySize << '\n';
 		}
 		else
 			throw ErrorConfigFile("Error in the conf file : max_client_body_size : invalid character after the unit size");
@@ -270,7 +293,7 @@ void	VirtualServer::parseErrorPages(std::istringstream& iss)
 	codeList.push_back(errorCode);
 	while ((iss >> code) && code.find_first_not_of("0123456789") == std::string::npos)
 	{
-		std::cerr << "code line : " << code << "\n";
+		// std::cerr << "code line : " << code << "\n";
 		errorCode = parseErrorCode(code);
 		codeList.push_back(errorCode);
 	}
@@ -281,18 +304,16 @@ void	VirtualServer::parseErrorPages(std::istringstream& iss)
 		throw ErrorConfigFile("Error in the conf file : error_page : wrong path");
 	if (iss >> code)
 		throw ErrorConfigFile("Error in the conf file : error_page : wrong content");
-	for (int i = 0; codeList[i]; i++)
+	for (size_t i = 0; i < codeList.size(); i++)
 		_errorPages[codeList[i]] = code;
 	
-	// for (int i = 0; codeList[i]; i++)
-		// std::cerr << "codeList[" << i << "] = " << codeList[i] << "\n";
-	std::cerr << "_errorPage : ";
-	// for (int i = 0; codeList[i]; i++)
-		// std::cerr << 
-    for (std::map<int, std::string>::iterator it = _errorPages.begin(); it != _errorPages.end(); ++it) {
-        std::cout << it->first << " => " << it->second;
-    }
-	std::cerr << "\n";
+	// for (size_t i = 0; i < codeList.size(); i++)
+	// 	std::cerr << "codeList[" << i << "] = " << codeList[i] << "\n";
+	// std::cerr << "_errorPage : \n";
+    // for (std::map<int, std::string>::iterator it = _errorPages.begin(); it != _errorPages.end(); ++it) {
+    //     std::cout << it->first << " => " << it->second << "\n";
+    // }
+	// std::cerr << "\n";
 }
 
 int	VirtualServer::parseErrorCode(std::string& code)
@@ -344,26 +365,42 @@ void	VirtualServer::setfd(int fd)
 	_socketfd = fd;
 }
 
+size_t	VirtualServer::getMaxBodySize()
+{
+	return _maxBodySize;
+}
+
+int	&VirtualServer::getIsBind()
+{
+	return _isBind;
+}
+
+void	VirtualServer::setIsBind(int bind)
+{
+	_isBind = bind;
+}
+
+std::string	&VirtualServer::getIp()
+{
+	return _ip;
+}
+
+void		VirtualServer::setIp(std::string ip)
+{
+	_ip = ip;
+}
+
+std::string	&VirtualServer::getServerName()
+{
+	return _serverName;
+}
 
 void	VirtualServer::connectVirtualServers()
 {
-// 	for (size_t i = 0; i < _virtualServers.size(); i++)
-// 	{
 
 		// struct sockaddr_in sa;
 		int socket_fd;
 		int status;
-
-		// Prepare the address and port for the server socket
-		// memset(&sa, 0, sizeof sa);
-		// sa.sin_family = AF_INET; // IPv4
-		// sa.sin_addr.s_addr = htonl(INADDR_LOOPBACK); // 127.0.0.1, localhost
-		// sa.sin_port = htons(_virtualServers[i].getPort());
-
-		memset(&_address, 0, sizeof _address);
-		_address.sin_family = AF_INET; // IPv4
-		_address.sin_addr.s_addr = htonl(INADDR_LOOPBACK); // 127.0.0.1, localhost
-		_address.sin_port = htons(_port);
 
 		// Create the socket
 		socket_fd = socket(_address.sin_family, SOCK_STREAM, 0);
@@ -373,7 +410,7 @@ void	VirtualServer::connectVirtualServers()
 		printf("[Server] Created server socket fd: %d\n", socket_fd);
 
 		// Bind socket to address and port
-		status = bind(socket_fd, (struct sockaddr *)&_address, sizeof _address);;
+		status = bind(socket_fd, (struct sockaddr *)&_address, sizeof _address);
 		if (status != 0)
 		{
 			callException(-1);
@@ -383,11 +420,4 @@ void	VirtualServer::connectVirtualServers()
 		if (status != 0)
 			callException(-1);
 		_socketfd = socket_fd;
-		// _virtualServers[i].setfd(socket_fd);
-	// }
-}
-
-size_t	VirtualServer::getMaxBodySize()
-{
-	return _maxBodySize;
 }
