@@ -182,7 +182,7 @@ void	Server::loop()
 				dprintf(2, "WHILE 7 - a client socket is ready to write\n");
 				status--;
                 Client&	client = _clients[i];
-				if (client.writeResponse() == -1)
+				if (client.writeResponse() == RESPONSE_FAILURE) // A VERIF
 				{
 					close(i);
 					FD_CLR(i, &_all_sockets);

@@ -31,10 +31,10 @@ void	Client::setConnectedServers(int serverfd, std::map<int, std::vector<Virtual
 		std::copy(it->second.begin(), it->second.end(), _vsCandidates.begin());
 }
 
-VirtualServer &Client::getConnectedServer()
-{
-    return ;
-}
+// VirtualServer &Client::getConnectedServer()
+// {
+//     return ;
+// }
 
 // void	Client::setMaxBodySize(size_t maxBodySize)
 // {
@@ -50,6 +50,8 @@ VirtualServer &Client::getConnectedServer()
 
 int Client::readRequest()
 {
+	(void) _serversfd; //A ENLEVER
+	(void) _parsingStep; //A ENLEVER
 	dprintf(2, "read data from socket [%d]\n", _clientfd);
 
 	char	buffer[BUFSIZ];// A MODIF

@@ -15,7 +15,7 @@ class Client
         void			setFd(int fd);
         int    			getFd();
 		void			setConnectedServers(int serverfd, std::map<int, std::vector<VirtualServer*> >	&socketBoundVs);
-		VirtualServer	&getConnectedServer();
+		// VirtualServer	&getConnectedServer();
 		// void			setMaxBodySize(size_t maxBodySize);
 		// size_t			getMaxBodySize();
 

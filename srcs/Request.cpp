@@ -18,7 +18,7 @@ GnlStatus	Request::getNextLine(std::string &buffer) // A AMELIORER
 		buffer = "";
 		return (NO_NL);
 	}
-	_line = buffer.substr(0, strEnd);
+	_line = buffer.substr(0, strEnd + strlen("\r\n"));
 	buffer = buffer.substr(strEnd + strlen("\r\n"), std::string::npos);
 	return (FOUND_NL);
 };
@@ -48,21 +48,15 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 	{
 		while (buffer.empty() == false)
 		{
-			if (getNextLine(buffer) == NO_NL)
-			{
 			if (_line.size() > MAX_HEADER_SIZE)
 				return (parsingFailed(STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE));
-			else
+			if (getNextLine(buffer) == NO_NL)
 				return (parsingPending());
-			}
-			if (_line.size() > MAX_HEADER_SIZE)
-			return (parsingFailed(STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE));
 
 			// if (header.size() > 2 && header.substr(header.size() - 2, std::string::npos) != "\r\n")
 			// 	return (parsingFailed(STATUS_BAD_REQUEST));
 
-			// if (_line == "\r\n")
-			if (_line.empty())
+			if (_line == "\r\n")
 			{
 				_parsingStep = IN_BODY;
 				_line.clear();
@@ -75,23 +69,25 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 			_line.clear();
 		}
 	}
-	if (_parsingStep == IN_BODY) // A REFAIRE
-	{
-		ret = checkHeaders();
-		if (ret != STATUS_NONE)
-			return (parsingFailed(ret));
-	}
-	if (_contentLength == 0) // A CHECK
+		if (_parsingStep == IN_BODY) // A REFAIRE
+		{
+			ret = checkHeaders();
+			if (ret != STATUS_NONE)
+				return (parsingFailed(ret));
+		
+		if (_contentLength == 0) // A CHECK
+			return (parsingSucceeded());
+		else
+		{
+			std::istringstream	is(buffer);
+			while ((is >> c) && _body.size() < _contentLength)
+				_body += c;
+		}
+		if (_body.size() < _contentLength)
+			return (parsingPending()); //CHECKER SI BAD REQUEST SI > _contentLength
 		return (parsingSucceeded());
-	else
-	{
-		std::istringstream	is(buffer);
-		while ((is >> c) && _body.size() < _contentLength)
-			_body += c;
 	}
-	if (_body.size() < _contentLength)
-		return (parsingPending()); //CHECKER SI BAD REQUEST SI > _contentLength
-	return (parsingSucceeded());
+	return (parsingPending()); // A CHECKER
 }
 
 StatusCode	Request::parseRequestLine(std::string requestLine)

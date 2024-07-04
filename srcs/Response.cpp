@@ -55,11 +55,11 @@ ResponseOutcome	Response::sendResponseToClient(int fd)
 
 int	Response::pushStrToClient(int fd, std::string &str)
 {
-	size_t	bytesSent, tmpSent = 0;
+	size_t	bytesSent = 0, tmpSent = 0;
 
-	while (bytesSent < _responseLine.size())
+	while (bytesSent < str.size())
 	{
-		tmpSent = send(fd, _responseLine.c_str() + bytesSent, _responseLine.size() - bytesSent, 0);
+		tmpSent = send(fd, str.c_str() + bytesSent, str.size() - bytesSent, 0);
 		if (tmpSent <= 0)
 			return (-1);
 		bytesSent += tmpSent;
