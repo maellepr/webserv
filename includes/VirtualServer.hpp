@@ -32,6 +32,7 @@ class VirtualServer
 	int		&getFd();
 	void	setfd(int fd);
 	size_t	getMaxBodySize();
+	std::string	&getIP();
 
 	void	connectVirtualServers();
 

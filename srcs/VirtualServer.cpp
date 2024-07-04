@@ -365,6 +365,8 @@ void	VirtualServer::connectVirtualServers()
 		_address.sin_addr.s_addr = htonl(INADDR_LOOPBACK); // 127.0.0.1, localhost
 		_address.sin_port = htons(_port);
 
+		// std::cerr << "address.sin_port = " << _address.sin_port << "\n";
+		// std::cerr << "address.sin_addr.s = " << _address.sin_addr.s_addr << "\n";
 		// Create the socket
 		socket_fd = socket(_address.sin_family, SOCK_STREAM, 0);
 		if (socket_fd == -1)
@@ -390,4 +392,9 @@ void	VirtualServer::connectVirtualServers()
 size_t	VirtualServer::getMaxBodySize()
 {
 	return _maxBodySize;
+}
+
+std::string	&VirtualServer::getIP()
+{
+	return (_ip);
 }

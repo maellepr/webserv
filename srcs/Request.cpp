@@ -1,27 +1,8 @@
 #include "../includes/Request.hpp"
 
-Request::Request() : _parsingStep(IN_REQUESTLINE) {}
+Request::Request(int clientfd, std::vector<VirtualServer*> &vsCandidates) : _clientfd(clientfd), _vsCandidates(vsCandidates), _vs(NULL), _parsingStep(IN_REQUESTLINE) {}
 
-Request::~Request()
-{
-}
-
-GnlStatus	Request::getNextLine(std::string &buffer) // A AMELIORER
-{
-	size_t		strEnd;
-	
-	buffer = _line + buffer;
-	strEnd = buffer.find("\r\n", 0);
-	if (strEnd == std::string::npos)
-	{
-		_line = buffer;
-		buffer = "";
-		return (NO_NL);
-	}
-	_line = buffer.substr(0, strEnd + strlen("\r\n"));
-	buffer = buffer.substr(strEnd + strlen("\r\n"), std::string::npos);
-	return (FOUND_NL);
-};
+Request::~Request() {}
 
 ParseRequestResult	Request::parseBuffer(std::string &buffer)
 {
@@ -69,12 +50,16 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 			_line.clear();
 		}
 	}
-		if (_parsingStep == IN_BODY) // A REFAIRE
-		{
-			ret = checkHeaders();
-			if (ret != STATUS_NONE)
-				return (parsingFailed(ret));
-		
+	if (_parsingStep == IN_BODY && _vs == NULL)
+	{
+		associateVirtualServer();
+	}
+	if (_parsingStep == IN_BODY) // A REFAIRE
+	{
+		ret = checkHeaders();
+		if (ret != STATUS_NONE)
+			return (parsingFailed(ret));
+	
 		if (_contentLength == 0) // A CHECK
 			return (parsingSucceeded());
 		else
@@ -89,6 +74,23 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 	}
 	return (parsingPending()); // A CHECKER
 }
+
+GnlStatus	Request::getNextLine(std::string &buffer) // A AMELIORER
+{
+	size_t		strEnd;
+	
+	buffer = _line + buffer;
+	strEnd = buffer.find("\r\n", 0);
+	if (strEnd == std::string::npos)
+	{
+		_line = buffer;
+		buffer = "";
+		return (NO_NL);
+	}
+	_line = buffer.substr(0, strEnd + strlen("\r\n"));
+	buffer = buffer.substr(strEnd + strlen("\r\n"), std::string::npos);
+	return (FOUND_NL);
+};
 
 StatusCode	Request::parseRequestLine(std::string requestLine)
 {
@@ -151,7 +153,7 @@ StatusCode	Request::checkHeaders()
 			if (itContentLength->second.find_first_not_of("0123456789", 0) != std::string::npos)
 				return (STATUS_BAD_REQUEST);
 			_contentLength = strtol(itContentLength->second.c_str(), NULL, 10);
-			if (_contentLength > _vs.getMaxBodySize()) // A CORRIGER ICI
+			if (_contentLength > _vs->getMaxBodySize()) // A CORRIGER ICI
 				return (STATUS_PAYLOAD_TOO_LARGE);
 		}
 			
@@ -182,4 +184,72 @@ ParseRequestResult Request::parsingPending()
 
 	result.outcome = REQUEST_PENDING;
 	return (result);
+}
+
+void	Request::associateVirtualServer()
+{
+	fillClientInfos();	
+	if (_vsCandidates.size() == 1)
+	{
+		_vs = _vsCandidates[0];
+		return ;
+	}
+
+	// IP:port check
+	std::vector<VirtualServer*> matchingIpPortCombos;
+	matchingIpPortCombos = findIpPortMatches();
+	if (matchingIpPortCombos.size() == 1)
+	{
+		_vs = matchingIpPortCombos[0];
+		return ;
+	}
+
+	// server_name check
+	std::vector<VirtualServer*> matchingServerNames;
+	matchingServerNames = findServerNamesMatches();
+
+}
+
+void	Request::fillClientInfos()
+{
+	memset(&_clientAddr, 0, sizeof _clientAddr);
+	socklen_t len = sizeof _clientAddr;
+	getsockname(_clientfd, (struct sockaddr *) &_clientAddr, &len);
+
+	uint32_t addr = ntohl(_clientAddr.sin_addr.s_addr);
+	std::stringstream ss;
+	ss << ((addr >> 24) & 0xFF) << "." \
+		<< ((addr >> 16) & 0xFF) << "." \
+		<< ((addr >> 8) & 0xFF) << "." \
+		<< (addr & 0xFF);
+	_clientip = ss.str();
+
+	_clientport = ntohs(_clientAddr.sin_port);
+}
+
+std::vector<VirtualServer*>	Request::findIpPortMatches()
+{
+	std::vector<VirtualServer*> perfectMatch;
+	std::vector<VirtualServer*> generalMatch;
+
+	for (std::vector<VirtualServer*>::iterator it = _vsCandidates.begin(); it != _vsCandidates.end(); it++)
+	{
+		if ((*it)->getPort() != _clientport)
+			_vsCandidates.erase(it);
+		if ((*it)->getIP() != _clientip && (*it)->getIP() != "0.0.0.0")
+			_vsCandidates.erase(it);
+		if ((*it)->getIP() == "0.0.0.0")
+			generalMatch.push_back(*it);
+		else
+			perfectMatch.push_back(*it);
+	}
+	if (perfectMatch.empty() == false)
+		return (perfectMatch);
+	else
+		return (generalMatch);
+}
+
+std::vector<VirtualServer*>	Request::findServerNamesMatches()
+{
+
 }

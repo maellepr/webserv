@@ -86,7 +86,7 @@ int Client::readRequest()
 		}
 		printf("[%d] Got message: %s", _clientfd, buffer);// buffer A PARSER
 		if (_request == NULL)
-			_request = new Request(); // A PROTEGER ?
+			_request = new Request(_clientfd, _vsCandidates); // A PROTEGER ?
 
 	}
 	_buffer += buffer;
