@@ -60,8 +60,8 @@ void	Location::parseLocation(std::istream& file)
 		}
 		else if (line == "	}")
 			return ;
-		else
-			throw ErrorConfigFile("Error in the conf file : location : wrong content");
+		// else
+			// throw ErrorConfigFile("Error in the conf file : location : wrong content");
 	}
 }
 
