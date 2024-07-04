@@ -58,11 +58,30 @@ void	VirtualServer::init(std::istream& file)
 		}
 		else if (keyword == "index")
 		{
-			continue ;
+			parseIndex(iss);
 		}
 		else if (keyword == "location")
 		{
-			continue ;
+			Location	location;
+			std::string	prefix;
+			if (!(iss >> keyword))
+				throw ErrorConfigFile("Error in the conf file : location : wrong content1");
+			if (keyword != "{")
+			{
+				if (prefix == "=")
+				{
+					location.setEqualModifier(true);
+					if (!(iss >> keyword))
+						throw ErrorConfigFile("Error in the conf file : location : wrong content2");
+				}
+				prefix = keyword; // verifier contenu peut-etre
+				if ((iss >> keyword) && keyword != "{")
+					throw ErrorConfigFile("Error in the conf file : location : wrong content3");
+			}
+			else
+				prefix = "none";
+			location.parseLocation(file);
+			_location[prefix] = location;
 		}
 		else
 			throw ErrorConfigFile("Error in the config file : wrong keyword");
@@ -197,11 +216,13 @@ void	VirtualServer::parseRoot(std::istringstream& iss)
 void	VirtualServer::parseAutoIndex(std::istringstream& iss)
 {
 	if (!(iss >> _autoIndex) || _autoIndex.empty())
-		throw ErrorConfigFile("Error in the conf file : auto index not specified");
+		throw ErrorConfigFile("Error in the conf file : auto_index not specified");
 	if (_autoIndex == "on")
 		_indexOnOff = true;
 	else if (_autoIndex == "off")
 		_indexOnOff = false;
+	else
+		throw ErrorConfigFile("Error in the conf file : auto_index wrong content");
 }
 
 void	VirtualServer::parseMaxClientBodySize(std::istringstream& iss)
@@ -240,9 +261,67 @@ void	VirtualServer::parseMaxClientBodySize(std::istringstream& iss)
 void	VirtualServer::parseErrorPages(std::istringstream& iss)
 {
 	std::string	code;
+	std::vector <int> codeList;
+	int	errorCode;
+
 	if (!(iss >> code))
-		throw ErrorConfigFile("Error in the conf file : error_page : missing informations");
-	// parseErrorCode();
+		throw ErrorConfigFile("Error in the conf file : error_page : missing informations1");
+	errorCode = parseErrorCode(code);
+	codeList.push_back(errorCode);
+	while ((iss >> code) && code.find_first_not_of("0123456789") == std::string::npos)
+	{
+		std::cerr << "code line : " << code << "\n";
+		errorCode = parseErrorCode(code);
+		codeList.push_back(errorCode);
+	}
+	if (code.empty())
+		throw ErrorConfigFile("Error in the conf file : error_page : missing informations2");
+	// parsePathErrorPage(code);
+	if (code[0] != '/' && code.find("..") != std::string::npos)
+		throw ErrorConfigFile("Error in the conf file : error_page : wrong path");
+	if (iss >> code)
+		throw ErrorConfigFile("Error in the conf file : error_page : wrong content");
+	for (int i = 0; codeList[i]; i++)
+		_errorPages[codeList[i]] = code;
+	
+	// for (int i = 0; codeList[i]; i++)
+		// std::cerr << "codeList[" << i << "] = " << codeList[i] << "\n";
+	std::cerr << "_errorPage : ";
+	// for (int i = 0; codeList[i]; i++)
+		// std::cerr << 
+    for (std::map<int, std::string>::iterator it = _errorPages.begin(); it != _errorPages.end(); ++it) {
+        std::cout << it->first << " => " << it->second;
+    }
+	std::cerr << "\n";
+}
+
+int	VirtualServer::parseErrorCode(std::string& code)
+{
+	size_t	index = code.find_first_not_of("0123456789");
+	std::string	path;
+	if (index == std::string::npos) // pas d'autres caracteres que 0123456789
+	{
+		int errorCode = strtol(code.c_str(), NULL, 10);
+		if (errorCode < 100 || errorCode > 599)
+			throw ErrorConfigFile("Error in the conf file : error_page : wrong code");
+		return (errorCode);
+	}
+	else
+		throw ErrorConfigFile("Error in the conf file : error_page : wrong code");
+}
+
+void	VirtualServer::parseIndex(std::istringstream& iss)
+{
+	std::string	index;
+	if (!(iss >> index))
+		throw ErrorConfigFile("Error in the conf file : index : missing information");
+	// A COMPLETER AVEC CAS D'ERREUR ?
+	_indexPages.push_back(index);
+	while (iss >> index)
+	{
+		// A COMPLETER AVEC CAS D'ERREUR ?
+		_indexPages.push_back(index);
+	}
 }
 
 int&	VirtualServer::getPort()

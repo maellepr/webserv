@@ -9,11 +9,18 @@ class Location
 		Location();
 		~Location();
 
+		void	setEqualModifier(bool state);
+
+		void	parseLocation(std::istream& file);
+		void	parseLocationOne(std::istringstream& iss, std::string keyword);
+	
 	private:
 		std::map<std::string, std::vector<std::string> >	_configLocation;
 		// root
 		// methods
 		// dir-listing / default-uri
+
+		bool	_equalModifier;
 
 };
 
