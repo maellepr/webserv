@@ -10,6 +10,7 @@ class Location
 		~Location();
 
 		void	setEqualModifier(bool state);
+		bool	&getEqualModifier();
 
 		void	parseLocation(std::istream& file);
 		void	parseLocationOne(std::istringstream& iss, std::string keyword);

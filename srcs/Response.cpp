@@ -40,7 +40,7 @@ ResponseOutcome	Response::sendResponseToClient(int fd)
 	
 	// METHOD HEAD => stop and return success
 
-	std::map<std::string, std::string>::iterator body = _headers.find("Content-Length");
+	std::map<std::string, std::string>::iterator body = _headers.find("content-length");
 	if (body != _headers.end() && strtol(body->second.c_str(), NULL, 10) > 0)
 	{
 		line = _body.substr(0, strtol(body->second.c_str(), NULL, 10) - 1); //convertir

@@ -396,5 +396,25 @@ size_t	VirtualServer::getMaxBodySize()
 
 std::string	&VirtualServer::getIP()
 {
-	return (_ip);
+	return _ip;
+}
+
+std::string	&VirtualServer::getServerName()
+{
+	return _serverName;
+}
+
+bool	&VirtualServer::getDefaultVS()
+{
+	return _defaultVS;
+}
+
+bool	&VirtualServer::getPortByDefault()
+{
+	return _portByDefault;
+}
+
+std::map<std::string, Location>	&VirtualServer::getLocations()
+{
+	return _location;
 }

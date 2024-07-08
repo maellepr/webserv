@@ -21,6 +21,7 @@
 # include <sstream>
 # include <fstream>
 # include <cstdlib>
+# include <algorithm>
 
 # define MAX_URI_SIZE 2048
 # define MAX_HEADER_SIZE 8192

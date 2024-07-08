@@ -27,12 +27,16 @@ class VirtualServer
 	// void	parsePathErrorPage(std::string& path);
 	void	parseIndex(std::istringstream& iss);
 
-	int		&getPort();
-	void	setPort(int port);
-	int		&getFd();
-	void	setfd(int fd);
-	size_t	getMaxBodySize();
-	std::string	&getIP();
+	int								&getPort();
+	void							setPort(int port);
+	int								&getFd();
+	void							setfd(int fd);
+	size_t							getMaxBodySize();
+	std::string						&getIP();
+	std::string						&getServerName();
+	bool							&getDefaultVS();
+	bool							&getPortByDefault();
+	std::map<std::string, Location>	&getLocations();
 
 	void	connectVirtualServers();
 
@@ -50,9 +54,14 @@ class VirtualServer
 		std::vector<std::string>	_indexPages;
 
 		std::vector<std::string>	_serverNames;
+		std::string					_serverName;  // GARDER CELUI DE MAELLE
 
 		std::map<std::string, Location> _location;// 
 		int			_socketfd;
+
+		bool		_defaultVS; // GARDER CELUI DE MAELLE
+		bool		_portByDefault; // Indicates if the port was set by default 8080 or if it was defined in the config file
+
 };
 
 #endif
