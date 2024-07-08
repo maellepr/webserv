@@ -25,9 +25,16 @@ class Server
 		fd_set										_write_fds;
 		int											_fd_max;
 
+		void	_eraseVSIfDuplicate(std::vector<VirtualServer> &VirtualServersTemp);
+
 		int		_acceptNewConnection(int server_socket);
-		void	_ipIsAnyAddress(int i);
+		void	_ipIsAnyAddress(size_t i);
 		void	_ipIsSpecificAddress(size_t i);
+
+		void	_checkDuplicateDefaultServer();
+
+		void	_addBindedVS(int i, std::vector<VirtualServer*> bindedVS);
+
 
 };
 

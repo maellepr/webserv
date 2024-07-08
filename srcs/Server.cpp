@@ -14,8 +14,6 @@ Server::~Server()
 
 bool	Server::init(const char *filename)
 {
-	// parse to do
-	// (void) filename;
 	extension(filename, ".conf");
 	isDirectory(filename);
 
@@ -24,57 +22,150 @@ bool	Server::init(const char *filename)
 		throw ErrorConfigFile("Error : file couldn't open");
 
 	std::string	line;
+	std::vector <VirtualServer> virtualServersTemp;
+
 	while (std::getline(file, line))
 	{
-		// bool	par = false;
 		// std::cerr << "line : " << line << "\n";
 		if (line == "server {")
 		{
-			VirtualServer vs;
-			// memset(&vs.sa, 0, sizeof vs.sa);
-			// vs.sa.sin_family = AF_INET; // IPv4			
+			VirtualServer vs;	
+			
 			vs.init(file);
-			// vs.sa.sin_port = htons(vs.getPort());
-			_virtualServers.push_back(vs);
-			// par = true;
-		}
-		// else if (line.empty())
-		// 	continue ;
-		else
-			throw ErrorConfigFile("Error : missing server in config file");
-		std::getline(file, line);
-		// std::cerr << "line = " << line << "\n";
-	}
-	// VirtualServer vs2;
-	// vs2.setPort(1234);
-	// _virtualServers.push_back(vs2);
+			virtualServersTemp.push_back(vs);
 
-	// VirtualServer vs3;
-	// vs3.setPort(12345);
-	// _virtualServers.push_back(vs3);
-	// dprintf(2, "taille VS = %lu\n", _virtualServers.size());
+		}
+		else if (line.empty())
+			continue ;
+		else
+		{
+			std::cerr << "error = " << line << "\n";
+			throw ErrorConfigFile("Error : missing server in config file");
+		}
+	}
+	
+	_eraseVSIfDuplicate(virtualServersTemp);
+
 	for (size_t i = 0; i < _virtualServers.size(); i++)
 	{
-		dprintf(2, "VS numero %lu, port %d\n", i, _virtualServers[i].getPort());
+		std::cerr << "VS ip = " << _virtualServers[i].getIp() << " port = " << _virtualServers[i].getPort() << "\n";
+	}
+	
+	for (size_t i = 0; i < _virtualServers.size(); i++)
+	{
+		// dprintf(2, "VS numero %lu, port %d\n", i, _virtualServers[i].getPort());
+		if (_virtualServers[i].getIp() != "0.0.0.0")
+			_ipIsSpecificAddress(i);
+	}
+	for (size_t i = 0; i < _virtualServers.size(); i++)
+	{
 		if (_virtualServers[i].getIp() == "0.0.0.0")
 			_ipIsAnyAddress(i);
-		else
-			_ipIsSpecificAddress(i);
-		if (_virtualServers[i].getIsBind() == 0)
-			_virtualServers[i].connectVirtualServers();
 	}
+	for (size_t i = 0; i < _virtualServers.size(); i++)
+		std::cerr << "VS ip = " << _virtualServers[i].getIp() << " port = " << _virtualServers[i].getPort() << " server name = " << _virtualServers[i].getServerName() << " isBind = " << _virtualServers[i].getIsBind() << "\n";
+	_checkDuplicateDefaultServer();
+	for (size_t i = 0; i < _virtualServers.size(); i++)
+	{
+		if (_virtualServers[i].getIsBind() == 0)
+		{
+			std::vector<VirtualServer*>	bindedVS;
+
+			_virtualServers[i].connectVirtualServers();
+			bindedVS.push_back(&_virtualServers[i]);
+			_addBindedVS(i, bindedVS);
+			_socketBoundVs[_virtualServers[i].getSocketFd()] = bindedVS;
+		}
+	}
+	
 	return true;
 }
 
-void	Server::_ipIsAnyAddress(int i)
+void	Server::_addBindedVS(int i, std::vector<VirtualServer*> bindedVS)
+{
+	for (size_t j = 0; j < _virtualServers.size(); j++)
+	{
+		if (i != j)
+		{
+			if (_virtualServers[i].getIp() == _virtualServers[j].getIp() 
+				&& _virtualServers[i].getPort() == _virtualServers[j].getPort() 
+				&& _virtualServers[i].getServerName() == _virtualServers[j].getServerName())
+		}
+	}
+}
+
+void	Server::_eraseVSIfDuplicate(std::vector<VirtualServer> &virtualServersTemp)
+{
+	// for (size_t i = 0; i < virtualServersTemp.size(); i++)
+	// {	
+		// std::cerr << "Apres init : ip = " << _virtualServers[i].getIp() << " port = " << _virtualServers[i].getPort() << " server name = " << _virtualServers[i].getServerName() << " toErase = " << _virtualServers[i].getToErase() << "\n";
+	// }
+	// std::cerr << "\n\n";
+	for (size_t i = 0; i < virtualServersTemp.size(); i++)
+	{
+		// std::cerr << "->VS ip = " << _virtualServers[i].getIp() << " port = " << _virtualServers[i].getPort() << " server name = " << _virtualServers[i].getServerName() << "\n";
+		for (size_t j = 0; j < virtualServersTemp.size(); j++)
+		{
+			if (i != j)
+			{
+				if (virtualServersTemp[i].getIp() == virtualServersTemp[j].getIp() 
+				&& virtualServersTemp[i].getPort() == virtualServersTemp[j].getPort() 
+				&& virtualServersTemp[i].getServerName() == virtualServersTemp[j].getServerName())
+				{
+					// std::cerr << "j = " << j << " ->VS ip = " << _virtualServers[j].getIp() << " port = " << _virtualServers[j].getPort() << " server name = " << _virtualServers[j].getServerName() << "\n";
+					// std::cerr << "i = " << i << " ->VS ip = " << _virtualServers[i].getIp() << " port = " << _virtualServers[i].getPort() << " server name = " << _virtualServers[i].getServerName() << "\n";
+					
+					virtualServersTemp[j].setToErase(true);
+					virtualServersTemp[i].setToErase(true);
+				}
+			}
+		}
+	}
+	std::cerr << "_virtualServer AVANT erase :\n";
+	for (size_t i = 0; i < virtualServersTemp.size(); i++)
+	{	
+			std::cerr << "XXX ip = " << virtualServersTemp[i].getIp() << " port = " << virtualServersTemp[i].getPort() << " server name = " << virtualServersTemp[i].getServerName() << " toErase = " << virtualServersTemp[i].getToErase() << "\n";
+	}
+	std::cerr << "\n";
+
+	for (size_t i = 0; i < virtualServersTemp.size(); i++)
+	{
+		// std::cerr << "i = " << i << "\n"; 
+		if (virtualServersTemp[i].getToErase() == false)
+		{	
+			// std::cerr << "i = " << i << " to erase ->VS ip = " << _virtualServers[i].getIp() << " port = " << _virtualServers[i].getPort() << " server name = " << _virtualServers[i].getServerName() << "\n";
+			_virtualServers.push_back(virtualServersTemp[i]);
+			// _virtualServers.erase(_virtualServers.begin() + i);
+		}
+	}
+
+	std::cerr << "_virtualServer APRES erase :\n";
+	for (size_t i = 0; i < _virtualServers.size(); i++)
+	{	
+			std::cerr << "ip = " << _virtualServers[i].getIp() << " port = " << _virtualServers[i].getPort() << " server name = " << _virtualServers[i].getServerName() << " toErase = " << _virtualServers[i].getToErase() << "\n";
+	}
+	std::cerr << "\n";
+}
+
+void	Server::_ipIsAnyAddress(size_t i)
 {
 	// ce cas 0.0.0.0:8080 - 127.0.0.1:8080
 	//         a bind 0       deja bind 1
 	// _virtualServers[i].setIsBind(0);
 	for (size_t j = 0; j < _virtualServers.size(); j++)
 	{
-		if (_virtualServers[i].getPort() == _virtualServers[j].getPort())
-			_virtualServers[j].setIsBind(1);
+		if (j != i)
+		{
+			if (_virtualServers[i].getIp() == _virtualServers[j].getIp() && _virtualServers[i].getPort() == _virtualServers[j].getPort())
+			{
+				if (_virtualServers[i].getServerName() == _virtualServers[j].getServerName())
+					throw ErrorConfigFile("Error : two blocks server have same port, ip address and server_name");
+				if (_virtualServers[i].getIsBind() == 0)
+					_virtualServers[j].setIsBind(1);
+			}
+			if (_virtualServers[i].getPort() == _virtualServers[j].getPort())
+				_virtualServers[j].setIsBind(1);
+		}
 	}
 }
 
@@ -84,27 +175,33 @@ void	Server::_ipIsSpecificAddress(size_t i)
 	{
 		if (j != i)
 		{
-			if (_virtualServers[i].getIp() == _virtualServers[j].getIp())
-			{		
-				
-				if (_virtualServers[i].getPort() == _virtualServers[j].getPort())
-				{
-					std::cerr << "i = " << i << " j =" <<  j << "\n";
-					std::cerr << "ip = " << _virtualServers[i].getIp() << " " <<  _virtualServers[j].getIp() << "\n";
-					std::cerr << "port = " << _virtualServers[i].getPort() << " " <<  _virtualServers[j].getPort() << "\n";
-					// std::cerr << "server_name = " << _virtualServers[i].getServerName() << " " <<  _virtualServers[j].getServerName() << "\n";
-					if (_virtualServers[i].getServerName() == _virtualServers[j].getServerName())
-						throw ErrorConfigFile("Error : two blocks server have same port / ip address / server_name");
-				}
-				else
-				{
+			if (_virtualServers[i].getIp() == _virtualServers[j].getIp() && _virtualServers[i].getPort() == _virtualServers[j].getPort())
+			{				
+				// std::cerr << "i = " << i << " j =" <<  j << "\n";
+				// std::cerr << "ip = " << _virtualServers[i].getIp() << " " <<  _virtualServers[j].getIp() << "\n";
+				// std::cerr << "port = " << _virtualServers[i].getPort() << " " <<  _virtualServers[j].getPort() << "\n";
+				// std::cerr << "server_name = " << _virtualServers[i].getServerName() << " " <<  _virtualServers[j].getServerName() << "\n";
+				if (_virtualServers[i].getServerName() == _virtualServers[j].getServerName())
+					throw ErrorConfigFile("Error : two blocks server have same port / ip address / server_name");
+				if (_virtualServers[i].getIsBind() == 0)
 					_virtualServers[j].setIsBind(1);
-				}
 			}
 		}
 	}
 }
 
+void	Server::_checkDuplicateDefaultServer()
+{
+	int	nbDefaultVS = 0;
+
+	for (size_t i = 0; i < _virtualServers.size(); i++)
+	{
+		if (_virtualServers[i].getDefaultVS() == true)
+			nbDefaultVS++;
+	}
+	if (nbDefaultVS > 1)
+		throw ErrorConfigFile("Error in the conf file : there is several servers set up as server by default");
+}
 
 // void	Server::connectVirtualServers()
 // {

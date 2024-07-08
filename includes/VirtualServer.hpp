@@ -32,10 +32,18 @@ class VirtualServer
 
 		std::string	&getServerName();
 
+		bool	&getToErase();
+		void	setToErase(bool erase);
+
+		bool	&getDefaultVS();
+
+		int		&getSocketFd();
+
 	private:
 		struct sockaddr_in _address;
 	
 		std::string	_ip;
+		std::string	_ipParse;
 		int			_port;
 		std::string	_rootDir;
 		std::string	_autoIndex;
@@ -56,6 +64,10 @@ class VirtualServer
 		bool	_ipByDefault;
 		bool	_portByDefault;
 
+		bool	_toErase;
+
+		bool	_defaultVS;
+
 		void	parseListen(std::istringstream& iss);
 		void	parsePort(std::string& port);
 		void	parseIpAddrs(void);
@@ -67,6 +79,7 @@ class VirtualServer
 		int		parseErrorCode(std::string& code);
 		// void	parsePathErrorPage(std::string& path);
 		void	parseIndex(std::istringstream& iss);
+		void	parseDefaultServer(std::istringstream& iss);
 };
 
 #endif

@@ -7,11 +7,15 @@ VirtualServer::VirtualServer()
 	_address.sin_port = htons(8080);// port par defaut
 	_address.sin_addr.s_addr = htonl(INADDR_ANY);// adresse par defaut 0.0.0.0 (any address)
 
-	_ip = "0 0 0 0";
+	_ip = "0.0.0.0";
 	_port = 8080;
 
 	_ipByDefault = true;
 	_portByDefault = true;
+
+	_toErase = false;
+
+	_defaultVS = false;
 
 	_isBind = 0;
 }
@@ -41,33 +45,21 @@ void	VirtualServer::init(std::istream& file)
 		else if (keyword == "}" && empty == false)
 			return ;
 		else if (keyword == "listen")
-		{
 			parseListen(iss);
-		}
 		else if (keyword == "server_name")
-		{
 			parseServerNames(iss);
-		}
 		else if (keyword == "root")
-		{
 			parseRoot(iss);
-		}
 		else if (keyword == "autoindex")
-		{
 			parseAutoIndex(iss);
-		}
 		else if (keyword == "client_max_body_size")
-		{
 			parseMaxClientBodySize(iss);
-		}
 		else if (keyword == "error_page")
-		{
 			parseErrorPages(iss);
-		}
 		else if (keyword == "index")
-		{
 			parseIndex(iss);
-		}
+		else if (keyword == "default_server")
+			parseDefaultServer(iss);
 		else if (keyword == "location")
 		{
 			Location	location;
@@ -109,24 +101,28 @@ void	VirtualServer::parseListen(std::istringstream& iss)
 	// std::cerr << "line pL = " << line << "\n";
 	size_t	index = line.find(':');
 	size_t	point = line.find('.');
+
 	if (index != std::string::npos)// : est a ete trouve dans line
 	{
 		_ip = line.substr(0, index);
+		_ipParse = _ip;
 		parseIpAddrs();
 		// std::cerr << "ipAddrs = " << ipAddrs << "\n"; 
 		std::string	port = line.substr(index + 1, line.size());
-		std::cerr << "port = " << port << "\n";
+		// std::cerr << "port = " << port << "\n";
 		parsePort(port);
 		// std::cerr << "_port = " << _port << "\n";
 	}
 	else if (point != std::string::npos)
 	{
+		_ip = line;
+		_ipParse = line;
 		parseIpAddrs();
 	}
 	else
 	{
 		std::string	port = line;
-		std::cerr << "port else = " << port << "\n";
+		// std::cerr << "port else = " << port << "\n";
 		parsePort(port);
 		// std::cerr << "_port else = " << _port << "\n";
 	}
@@ -150,48 +146,48 @@ void	VirtualServer::parsePort(std::string& port)
 
 void	VirtualServer::parseIpAddrs(void)
 {
-	if (_ip.empty()/* || _ipAddrs.find_first_not_of("0123456789.") != std::string::npos*/)
-		throw ErrorConfigFile("Error in the conf file : listen : wrong host (ip address)");
-	if (_ip == "localhost")
+	if (_ipParse.empty()/* || _ipAddrs.find_first_not_of("0123456789.") != std::string::npos*/)
+		throw ErrorConfigFile("Error in the conf file : listen : wrong host (ip address)1");
+	if (_ipParse == "localhost")
 	{
 		_address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 		_ipByDefault = false;
 		return ;
 	}
-	if (_ip == "*")
-	{
-		_address.sin_addr.s_addr = htonl(INADDR_ANY);
-		_ipByDefault = false;
-		return ;
-	}
-	if (_ip.find_first_not_of("0123456789.") != std::string::npos)
-		throw ErrorConfigFile("Error in the conf file : listen : wrong host (ip address)");
+	// if (_ipParse == "*")
+	// {
+	// 	_address.sin_addr.s_addr = htonl(INADDR_ANY);
+	// 	_ipByDefault = false;
+	// 	return ;
+	// }
+	if (_ipParse.find_first_not_of("0123456789.") != std::string::npos)
+		throw ErrorConfigFile("Error in the conf file : listen : wrong host (ip address)2");
 	// std::cerr << "ipAddrs = " << _ip << "\n";
 	int	dots = 0;
-	for (int i = 0; _ip[i]; i++)
+	for (int i = 0; _ipParse[i]; i++)
 	{	
-		if (_ip[i] == '.')
+		if (_ipParse[i] == '.')
 		{
-			_ip.replace(i, 1, 1, ' ');
+			_ipParse.replace(i, 1, 1, ' ');
 			dots++;
 		}
 	}
 	if (dots != 3)
-		throw ErrorConfigFile("Error in the conf file : listen : wrong host (ip address)");
-	std::istringstream iss(_ip);
+		throw ErrorConfigFile("Error in the conf file : listen : wrong host (ip address)3");
+	std::istringstream iss(_ipParse);
 	std::string	more;
 	int	ip[4];
 	if (!(iss >> ip[0]) || !(iss >> ip[1]) || !(iss >> ip[2]) || !(iss >> ip[3]))
-		throw ErrorConfigFile("Error in the conf file : listen : wrong host (ip address)");
+		throw ErrorConfigFile("Error in the conf file : listen : wrong host (ip address)4");
 	int res = 0;
 	for (int i = 0; i < 4; i++)
 	{
 		if (ip[i] < 0 || ip[i] > 255)
-			throw ErrorConfigFile("Error in the conf file : listen : wrong host (ip address)");
+			throw ErrorConfigFile("Error in the conf file : listen : wrong host (ip address)5");
 		res = res << 8 | ip[i];
 	}
 	if (iss >> more)
-		throw ErrorConfigFile("Error in the conf file : listen : wrong host (ip address)");
+		throw ErrorConfigFile("Error in the conf file : listen : wrong host (ip address)6");
 	// std::cerr << "res ipAddrs = " << res << "\n";
 	_address.sin_addr.s_addr = htonl(res);
 	_ipByDefault = false;
@@ -203,6 +199,8 @@ void	VirtualServer::parseServerNames(std::istringstream& iss)
 	if (!(iss >> serverName))
 		throw ErrorConfigFile("Error in the conf file : no server name");
 	_serverName = serverName;
+	if (iss >> serverName)
+		throw ErrorConfigFile("Error in the conf file : server_name");
 	// _serverNames.push_back(serverName);
 	// while (iss >> serverName)
 	// 	_serverNames.push_back(serverName);
@@ -345,6 +343,16 @@ void	VirtualServer::parseIndex(std::istringstream& iss)
 	}
 }
 
+void	VirtualServer::parseDefaultServer(std::istringstream& iss)
+{
+	std::string	string;
+
+	_defaultVS = true;
+	std::cerr << "icii\n";
+	if (iss >> string)
+		throw ErrorConfigFile("Error in the conf file : default_server : wrong content");
+}
+
 int&	VirtualServer::getPort()
 {
 	return (_port);
@@ -395,6 +403,26 @@ std::string	&VirtualServer::getServerName()
 	return _serverName;
 }
 
+void	VirtualServer::setToErase(bool erase)
+{
+	_toErase = erase;
+}
+
+bool	&VirtualServer::getToErase()
+{
+	return _toErase;
+}
+
+bool	&VirtualServer::getDefaultVS()
+{
+	return _defaultVS;
+}
+
+int	&VirtualServer::getSocketFd()
+{
+	return _socketfd;
+}
+
 void	VirtualServer::connectVirtualServers()
 {
 
@@ -415,7 +443,7 @@ void	VirtualServer::connectVirtualServers()
 		{
 			callException(-1);
 		}
-		printf("[Server] Bound socket to localhost port %d\n", _port);
+		printf("[Server] Bound socket address ip = %s port %d\n", _ip.c_str(), _port);
 		status = listen(socket_fd, 10); // A MODIF
 		if (status != 0)
 			callException(-1);
