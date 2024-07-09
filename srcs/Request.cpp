@@ -7,16 +7,19 @@ Request::~Request() {}
 ParseRequestResult	Request::parseBuffer(std::string &buffer)
 {
 	StatusCode	ret;
+	GnlStatus	gnl;
 
 	if (_parsingStep == IN_REQUESTLINE)
 	{
 		// buffer empty ?
-		if (getNextLine(buffer) == NO_NL)
+		gnl = getNextLine(buffer);
+		if (gnl != FOUND_NL)
 		{
+			if (gnl == BAD_REQUEST)
+				return (parsingFailed(STATUS_BAD_REQUEST));
 			if (_line.size() > MAX_URI_SIZE)
 				return (parsingFailed(STATUS_URI_TOO_LONG));
-			else
-				return (parsingPending());
+			return (parsingPending());
 		}
 		ret = parseRequestLine(_line);
 		if (ret != STATUS_NONE)
@@ -28,13 +31,15 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 	{
 		while (buffer.empty() == false)
 		{
-			if (_line.size() > MAX_HEADER_SIZE)
-				return (parsingFailed(STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE));
-			if (getNextLine(buffer) == NO_NL)
+			gnl = getNextLine(buffer);
+			if (gnl != FOUND_NL)
+			{
+				if (gnl == BAD_REQUEST)
+					return (parsingFailed(STATUS_BAD_REQUEST));
+				if (_line.size() > MAX_HEADER_SIZE)
+					return (parsingFailed(STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE));
 				return (parsingPending());
-
-			// if (header.size() > 2 && header.substr(header.size() - 2, std::string::npos) != "\r\n")
-			// 	return (parsingFailed(STATUS_BAD_REQUEST));
+			}
 
 			if (_line == "\r\n")
 			{
@@ -57,6 +62,9 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 		ret = associateVirtualServer();
 		if (ret != STATUS_NONE)
 			return (parsingFailed(ret));
+		// A AJOUTER : 
+		// if _vs contient une return directive
+		//	return parsingSuccedeed();
 		ret = associateLocation();
 		if (ret != STATUS_NONE)
 			return (parsingFailed(ret));
@@ -92,13 +100,15 @@ GnlStatus	Request::getNextLine(std::string &buffer)
 	size_t		strEnd;
 	
 	buffer = _line + buffer;
-	strEnd = buffer.find("\r\n", 0);
+	strEnd = buffer.find("\n", 0);
 	if (strEnd == std::string::npos)
 	{
 		_line = buffer;
 		buffer = "";
 		return (NO_NL);
 	}
+	if (buffer[strEnd - 1] != '\r')
+		return (BAD_REQUEST);
 	_line = buffer.substr(0, strEnd + strlen("\r\n"));
 	buffer = buffer.substr(strEnd + strlen("\r\n"), std::string::npos);
 	return (FOUND_NL);
@@ -206,7 +216,7 @@ StatusCode	Request::associateVirtualServer()
 	if (_vsCandidates.size() == 1)
 	{
 		_vs = _vsCandidates[0];
-		return ;
+		return (STATUS_NONE);
 	}
 
 	// IP:port check
@@ -215,7 +225,7 @@ StatusCode	Request::associateVirtualServer()
 	if (matchingIpPortCombos.size() == 1)
 	{
 		_vs = matchingIpPortCombos[0];
-		return ;
+		return (STATUS_NONE);
 	}
 
 	// server_name check
@@ -315,14 +325,14 @@ VirtualServer*	Request::findServerNamesMatches(std::vector<VirtualServer*> match
 		if (serverName == _hostName)
 				return (*it);
 		// leading or trailing wildcards : *server_name or server_name*
-		if (serverName.front() == '*')
+		if (serverName[0] == '*')
 		{
 			std::string wServerName = serverName.substr(1, std::string::npos);
-			std::string::iterator match = find(_hostName.begin(), _hostName.end(), wServerName);
-			if (match != _hostName.end() && (match + wServerName.size()) == _hostName.end())
+			size_t match_pos = _hostName.find(wServerName);
+			if (match_pos != std::string::npos && (match_pos - 1 + wServerName.size()) == _hostName.size())
 				leadingWildcard.push_back(*it);
 		}
-		if (leadingWildcard.empty() && serverName.back() == '*')
+		if (leadingWildcard.empty() && serverName[serverName.size() - 1] == '*')
 		{
 			std::string serverNameW = serverName.substr(0, serverName.size() - 1);
 			if (_hostName.substr(0, serverNameW.size()) == serverNameW)

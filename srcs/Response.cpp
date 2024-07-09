@@ -11,8 +11,17 @@ Response::~Response()
 void	Response::generateResponse(ParseRequestResult &reqRes)
 {
 	(void) reqRes;
-	// if (reqRes.outcome == FAILURE)
-	// 	generateErrorPage();
+	if (reqRes.outcome == REQUEST_FAILURE) //parsing failures
+	{
+		// predefined error page 
+		// or
+		// build error page from scratch
+	}
+	else if () // location : method not allowed
+	{
+		// idem 1
+	}
+	else if () // location : return 
 	// if CGI
 	//	do CGI
 	// Error with no page?

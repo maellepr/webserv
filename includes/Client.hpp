@@ -24,14 +24,13 @@ class Client
         
     private :
         int 						_clientfd;
-		int							_serversfd;
 		std::vector<VirtualServer*>	_vsCandidates;
-		// VirtualServer				_vs;
+		// VirtualServer			_vs;
 		Request						*_request;
 		Response					*_response;
 		std::string					_buffer;
-		// size_t 			_maxBodySize;
-		ParsingStep					_parsingStep;
+		// size_t 					_maxBodySize;
+		time_t 						_requestStartTime;
 
 };
 

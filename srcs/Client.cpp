@@ -2,7 +2,7 @@
 
 // CONSTRUCTORS / DESTRUCTORS ------------------------------------------------------ //
 
-Client::Client() : _parsingStep(IN_REQUESTLINE) {}
+Client::Client() {}
 
 Client::~Client()
 {
@@ -50,10 +50,6 @@ void	Client::setConnectedServers(int serverfd, std::map<int, std::vector<Virtual
 
 int Client::readRequest()
 {
-	(void) _serversfd; //A ENLEVER
-	(void) _parsingStep; //A ENLEVER
-	dprintf(2, "read data from socket [%d]\n", _clientfd);
-
 	char	buffer[BUFSIZ];// A MODIF
 	size_t	bytesRead;
 	ParseRequestResult	reqRes;
@@ -63,40 +59,38 @@ int Client::readRequest()
 	if (bytesRead <= 0)
 	{
 		if (bytesRead == 0)
-			printf("[%d] Client socket closed connection.\n", _clientfd);
+			std::cout << "[" << _clientfd << "]" << "Client socket closed connection.\n" << std::endl;
 		else
-			fprintf(stderr, "[Server] Recv error: %s\n", strerror(errno));
+			std::cerr << "[Server] Recv error: " << strerror(errno) << std::endl;
 		close(_clientfd);
 		return (-1);
 	}
-	else 
+	if (DEBUG)
 	{
-		size_t addBytes = bytesRead;
-		while (addBytes)
-		{
-			_buffer += std::string(buffer, addBytes);
-			memset(&buffer, '\0', sizeof(buffer));
-			addBytes = recv(_clientfd, buffer, BUFSIZ, 0);
-			if (addBytes < 0)
-			{
-				fprintf(stderr, "[Server] Recv error: %s\n", strerror(errno));
-				close(_clientfd);
-				return (-1);
-			}
-		}
-		printf("[%d] Got message: %s", _clientfd, buffer);// buffer A PARSER
-		if (_request == NULL)
-			_request = new Request(_clientfd, _vsCandidates); // A PROTEGER ?
-
+		std::cout << ORANGE << "REQUEST from client socket : " << _clientfd
+				<< "===============\n"
+				<< buffer
+				<< "\n===============" << RESET << std::endl;
+	}
+	if (_request == NULL)
+	{
+		_request = new Request(_clientfd, _vsCandidates); // new A PROTEGER ?
+		_requestStartTime = std::time(NULL);
 	}
 	_buffer += buffer;
-	reqRes = _request->parseBuffer(_buffer); // FATAL ERRORS ?
-	if (reqRes.outcome == REQUEST_PENDING) // TIMEOUT TO DO
+	reqRes = _request->parseBuffer(_buffer);
+	if (reqRes.outcome == REQUEST_PENDING)
+	{
+		if (std::difftime(std::time(NULL), _requestStartTime) > TIMEOUT)
+		{
+			reqRes.outcome = REQUEST_FAILURE;
+			reqRes.statusCode = STATUS_REQUEST_TIMEOUT;
+		}
+		else
 			return (0);
+	}
 
-	// ECRIRE RESULTAT PARSING
-
-	_response = new Response; //A PROTEGER?
+	_response = new Response; // new A PROTEGER?
 	_response->generateResponse(reqRes);
 
 	delete _request;

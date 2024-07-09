@@ -22,10 +22,24 @@
 # include <fstream>
 # include <cstdlib>
 # include <algorithm>
+# include <ctime>
+
+# define DEBUG 1
+
+# define TIMEOUT 10.0
 
 # define MAX_URI_SIZE 2048
 # define MAX_HEADER_SIZE 8192
 # define PROTOCOL_VERSION "HTTP/1.1"
+
+# define RESET	"\e[0m"
+# define BOLD	"\e[1m"
+# define ITAL	"\e[3m"
+# define RED	"\e[31m"
+# define ORANGE	"\e[38;2;234;117;26m"
+# define LIGHTGREEN	"\e[38;2;105;231;71m"
+# define LIGHTBLUE	"\e[36m"
+# define PURPLE	"\e[38;2;198;26;234m"
 
 // Functions ----------------------------------------------------------------------------- //
 
@@ -110,17 +124,18 @@ typedef enum GnlStatus
 {
 	FOUND_NL,
 	NO_NL,
-	EMPTY
+	BAD_REQUEST
 } GnlStatus;
 
 typedef enum StatusCode
 {
 	STATUS_NONE = 0,
 	STATUS_BAD_REQUEST = 404,
-	STATUS_NOT_IMPLEMENTED = 501,
+	STATUS_REQUEST_TIMEOUT = 408,
 	STATUS_PAYLOAD_TOO_LARGE = 413,
 	STATUS_URI_TOO_LONG = 414,
 	STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE = 431,
+	STATUS_NOT_IMPLEMENTED = 501,
 	STATUS_HTTP_VERSION_NOT_SUPPORTED = 505
 } StatusCode;
 
