@@ -11,7 +11,7 @@ class Server
 		Server();
 		~Server();
 		
-		bool	init(const char *filename);
+		void	init(const char *filename);
 		void	loop();
 		// void	connectVirtualServers();
 		
@@ -25,16 +25,18 @@ class Server
 		fd_set										_write_fds;
 		int											_fd_max;
 
-		void	_eraseVSIfDuplicate(std::vector<VirtualServer> &VirtualServersTemp);
+		int											_nbServers; // for parsing Maelle
 
+		void	_eraseVSIfDuplicate(std::vector<VirtualServer> &VirtualServersTemp);
+		void	_prepareVSToConnect();
 		int		_acceptNewConnection(int server_socket);
 		void	_ipIsAnyAddress(size_t i);
 		void	_ipIsSpecificAddress(size_t i);
 
 		void	_checkDuplicateDefaultServer();
+		void	_defineVSByDefault();
 
-		void	_addBindedVS(int i, std::vector<VirtualServer*> bindedVS);
-
+		void	_addBindedVS(size_t i, std::vector<VirtualServer*> &bindedVS);
 
 };
 

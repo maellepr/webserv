@@ -59,10 +59,17 @@ void	Location::parseLocation(std::istream& file)
 		{
 			parseLocationErrorPage(iss);
 		}
+		else if (keyword == "#")
+		{
+			continue ;
+		}
 		else if (keyword == "}")
 			break ;
 		else
+		{
+			std::cerr << "parseLocation keyword : " << keyword << "\n";
 			throw ErrorConfigFile("Error in the conf file : location : wrong content 5");
+		}
 	}
 	// std::cerr << "_config Location : \n"; 
     // for (std::map<std::string, std::vector<std::string> >::iterator it = _configLocation.begin(); it != _configLocation.end(); it++) 

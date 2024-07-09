@@ -12,8 +12,7 @@ int main(int argc, char **argv)
 	Server server;
 	try 
 	{
-		if (!server.init(argv[1]))
-			return 1;
+		server.init(argv[1]);
 		server.loop();
 	}
 	catch (std::exception &e)

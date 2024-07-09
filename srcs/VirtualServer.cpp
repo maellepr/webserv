@@ -10,6 +10,8 @@ VirtualServer::VirtualServer()
 	_ip = "0.0.0.0";
 	_port = 8080;
 
+	_indexOnOff = false;
+
 	_ipByDefault = true;
 	_portByDefault = true;
 
@@ -68,15 +70,20 @@ void	VirtualServer::init(std::istream& file)
 				throw ErrorConfigFile("Error in the conf file : location : wrong content1");
 			if (keyword != "{")
 			{
-				if (prefix == "=")
+				if (keyword == "=")
 				{
 					location.setEqualModifier(true);
 					if (!(iss >> keyword))
 						throw ErrorConfigFile("Error in the conf file : location : wrong content2");
+					std::cerr << "XXkeyword " << keyword << "\n";
 				}
 				prefix = keyword; // verifier contenu peut-etre
+				std::cerr << "prefix " << prefix << "\n";
 				if ((iss >> keyword) && keyword != "{")
+				{
+					std::cerr << "keyword " << keyword << "\n";
 					throw ErrorConfigFile("Error in the conf file : location : wrong content3");
+				}
 			}
 			else
 				prefix = "none";
@@ -213,21 +220,20 @@ void	VirtualServer::parseRoot(std::istringstream& iss)
 	if (!(iss >> path))
 		throw ErrorConfigFile("Error in the conf file : no root");
 	// std::cerr << "path = " << path << "\n";
-	if (path.compare(0, 8, "/var/www") == 0)
+	if (path.compare(0, 8, "/var/www") == 0 || path.compare(0, 5, "/www/") == 0)
 		_rootDir = "www";
 	else
-		throw ErrorConfigFile("Error in the conf file : root : wrong content");
+		throw ErrorConfigFile("Error in the conf file : root : wrong content1");
 	// _rootDir = path + (path[path.size() - 1] == '/' ? "" : "/");
 	// check if line ends with '/' -> if it does add nothing
 	//							   -> if it doesn't add '/'
 	if (iss >> path)
-		throw ErrorConfigFile("Error in the conf file : root : wrong content");
+		throw ErrorConfigFile("Error in the conf file : root : wrong content2");
 	if (_rootDir.empty())
-		throw ErrorConfigFile("Error in the conf file : root : wrong content");
+		throw ErrorConfigFile("Error in the conf file : root : wrong content3");
 	// std::cerr << "_rootdir = " << _rootDir << "\n"; 
-	
-    struct stat info;
 
+    struct stat info;
     if (stat(_rootDir.c_str(), &info) != 0)// cannot access path
 		throw ErrorConfigFile("Error : root : cannot access path or file");
     // if (S_ISDIR(info.st_mode) != 0)// is not a directory
@@ -275,8 +281,8 @@ void	VirtualServer::parseMaxClientBodySize(std::istringstream& iss)
 		else
 			throw ErrorConfigFile("Error in the conf file : max_client_body_size : invalid character after the unit size");
 	}
-	if (_maxBodySize < 0 || _maxBodySize > 2000000)// limite est de 2MB environ
-		throw ErrorConfigFile("Error in the conf file : max_body_client_size : size has to be between 0 and 1MB");
+	if (_maxBodySize < 0 || _maxBodySize > (3 * 1048576))// limite est de 2MB environ
+		throw ErrorConfigFile("Error in the conf file : max_body_client_size : size has to be between 0 and 3MB");
 }
 
 void	VirtualServer::parseErrorPages(std::istringstream& iss)
@@ -413,6 +419,11 @@ bool	&VirtualServer::getToErase()
 	return _toErase;
 }
 
+void	VirtualServer::setDefaultVS(bool value)
+{
+	_defaultVS = value;
+}
+
 bool	&VirtualServer::getDefaultVS()
 {
 	return _defaultVS;
@@ -422,6 +433,18 @@ int	&VirtualServer::getSocketFd()
 {
 	return _socketfd;
 }
+
+void	VirtualServer::setIndex(int i)
+{
+	_index = i;
+}
+
+int	&VirtualServer::getIndex()
+{
+	return _index;
+}
+
+
 
 void	VirtualServer::connectVirtualServers()
 {
