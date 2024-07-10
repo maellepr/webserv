@@ -5,6 +5,18 @@ Location::Location()
 	_equalModifier = false;
 }
 
+Location::Location(std::map<int, std::string>& returnPages)
+{
+	_equalModifier = false;
+	if (!(returnPages.empty()))
+	{
+		std::map<int, std::string>::iterator rp = returnPages.begin();
+		int	code = rp->first;
+		std::string	page = rp->second;
+		_returnPagesLocation[code] = page;
+	}
+}
+
 Location::~Location()
 {
 }
@@ -76,7 +88,8 @@ void	Location::parseLocation(std::istream& file)
 			throw ErrorConfigFile("Error in the conf file : location : wrong content 5");
 		}
 	}
-	// std::cerr << "_config Location : \n"; 
+	// std::cerr << "_config Location : \n";
+	// std::cerr << "prefix : " << _prefix << "\n";
     // for (std::map<std::string, std::vector<std::string> >::iterator it = _configLocation.begin(); it != _configLocation.end(); it++) 
 	// {
     //     std::cout << "Key: " << it->first << std::endl;
@@ -145,4 +158,9 @@ int	Location::parseErrorCode(std::string& code)
 	}
 	else
 		throw ErrorConfigFile("Error in the conf file : error_page : wrong code");
+}
+
+void	Location::setPrefix(std::string prefix)
+{
+	_prefix = prefix;
 }

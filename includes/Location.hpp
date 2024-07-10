@@ -7,10 +7,13 @@ class Location
 {
 	public:
 		Location();
+		Location(std::map<int, std::string>& returnPage);
 		~Location();
 
 		void	setEqualModifier(bool state);
 		bool	&getEqualModifier();
+
+		void	setPrefix(std::string prefix);
 
 		void	parseLocation(std::istream& file);
 		void	parseLocation(std::istringstream& iss, std::string keyword);
@@ -18,8 +21,10 @@ class Location
 		int		parseErrorCode(std::string& code);
 
 	private:
+		std::string					_prefix;
 		std::map<std::string, std::vector<std::string> >	_configLocation;
-		std::map<int, std::string> 			_errorPages;
+		std::map<int, std::string>	_errorPages;
+		std::map<int, std::string>	_returnPagesLocation;
 		// root
 		// methods
 		// dir-listing / default-uri
