@@ -358,6 +358,35 @@ void	VirtualServer::parseDefaultServer(std::istringstream& iss)
 		throw ErrorConfigFile("Error in the conf file : default_server : wrong content");
 }
 
+void	VirtualServer::connectVirtualServers()
+{
+
+		// struct sockaddr_in sa;
+		int socket_fd;
+		int status;
+
+		// Create the socket
+		socket_fd = socket(_address.sin_family, SOCK_STREAM, 0);
+		if (socket_fd == -1)
+			callException(-1);
+		fcntl(socket_fd, F_SETFL, O_NONBLOCK);
+		printf("[Server] Created server socket fd: %d\n", socket_fd);
+
+		// Bind socket to address and port
+		status = bind(socket_fd, (struct sockaddr *)&_address, sizeof _address);
+		if (status != 0)
+		{
+			callException(-1);
+		}
+		printf("[Server] Bound socket address ip = %s port %d\n", _ip.c_str(), _port);
+		status = listen(socket_fd, 10); // A MODIF
+		if (status != 0)
+			callException(-1);
+		_socketfd = socket_fd;
+}
+
+// GETTERS / SETTERS -------------------------------------------------------------------- //
+
 int&	VirtualServer::getPort()
 {
 	return (_port);
@@ -391,11 +420,6 @@ int	&VirtualServer::getIsBind()
 void	VirtualServer::setIsBind(int bind)
 {
 	_isBind = bind;
-}
-
-std::string	&VirtualServer::getIp()
-{
-	return _ip;
 }
 
 void		VirtualServer::setIp(std::string ip)
@@ -443,31 +467,17 @@ int	&VirtualServer::getIndex()
 	return _index;
 }
 
-
-
-void	VirtualServer::connectVirtualServers()
+std::string	&VirtualServer::getIP()
 {
+	return _ip;
+}
 
-		// struct sockaddr_in sa;
-		int socket_fd;
-		int status;
+bool	&VirtualServer::getPortByDefault()
+{
+	return _portByDefault;
+}
 
-		// Create the socket
-		socket_fd = socket(_address.sin_family, SOCK_STREAM, 0);
-		if (socket_fd == -1)
-			callException(-1);
-		fcntl(socket_fd, F_SETFL, O_NONBLOCK);
-		printf("[Server] Created server socket fd: %d\n", socket_fd);
-
-		// Bind socket to address and port
-		status = bind(socket_fd, (struct sockaddr *)&_address, sizeof _address);
-		if (status != 0)
-		{
-			callException(-1);
-		}
-		printf("[Server] Bound socket address ip = %s port %d\n", _ip.c_str(), _port);
-		status = listen(socket_fd, 10); // A MODIF
-		if (status != 0)
-			callException(-1);
-		_socketfd = socket_fd;
+std::map<std::string, Location>	&VirtualServer::getLocations()
+{
+	return _location;
 }

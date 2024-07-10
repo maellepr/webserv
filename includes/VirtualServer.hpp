@@ -14,18 +14,21 @@ class VirtualServer
 		VirtualServer();
 		~VirtualServer();
 
-		void	init(std::istream& file);
 
-		std::string	&getIp();
-		void		setIp(std::string ip);
-		
-		int		&getPort();
-		void	setPort(int port);
-		int		&getFd();
-		void	setfd(int fd);
-		size_t	getMaxBodySize();
 
-		void	connectVirtualServers();
+		int								&getPort();
+		void							setPort(int port);
+
+		int								&getFd();
+		void							setfd(int fd);
+
+		size_t							getMaxBodySize();
+
+		std::string						&getIP();
+		void							setIp(std::string ip);
+
+		bool							&getPortByDefault();
+		std::map<std::string, Location>	&getLocations();
 
 		int		&getIsBind();
 		void	setIsBind(int bind);
@@ -35,13 +38,16 @@ class VirtualServer
 		bool	&getToErase();
 		void	setToErase(bool erase);
 
-		void	setDefaultVS(bool value);
 		bool	&getDefaultVS();
+		void	setDefaultVS(bool value);
 
 		int		&getSocketFd();
 
 		void	setIndex(int i);
 		int		&getIndex();
+
+		void	init(std::istream& file);
+		void	connectVirtualServers();
 
 	private:
 		struct sockaddr_in _address;
@@ -83,6 +89,7 @@ class VirtualServer
 		// void	parsePathErrorPage(std::string& path);
 		void	parseIndex(std::istringstream& iss);
 		void	parseDefaultServer(std::istringstream& iss);
+
 };
 
 #endif

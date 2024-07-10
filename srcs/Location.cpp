@@ -14,6 +14,11 @@ void	Location::setEqualModifier(bool state)
 	_equalModifier = state;
 }
 
+bool	&Location::getEqualModifier()
+{
+	return _equalModifier;
+}
+
 void	Location::parseLocation(std::istream& file)
 {
 	std::string	line;

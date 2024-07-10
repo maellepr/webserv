@@ -8,18 +8,42 @@ Response::~Response()
 {
 }
 
-void	Response::generateResponse(ParseRequestResult &reqRes)
+void	Response::generateResponse(ParseRequestResult &request)
 {
-	(void) reqRes;
-	// if (reqRes.outcome == FAILURE)
-	// 	generateErrorPage();
-	// if CGI
-	//	do CGI
-	// Error with no page?
-	// redirection ?
+	// MODIFIER LES ELSE IF
+	if (request.outcome == REQUEST_FAILURE) //parsing failure
+	{
+		// predefined error page 
+		// or
+		// build error page from scratch
+	}
+	else if (0) // CGI
+	{
+		(void) request;
+	}
+	else if (0) // location method not allowed
+	{
+		(void) request; // idem 1
+	}
+	else if (0) // redirection return 
+	{
+		(void) request;
+	}
+	else
+	{
+		if (request.method == GET)
+			return ; // buildGet(request)
+		if (request.method == POST)
+			return ; // buildPost(request)
+		if (request.method == DELETE)
+			return ; // buildDelete(request)
+	}
 
-	// build response: line + headers (+body)
+	// build response line
+	// build headers (+body)
 }
+
+
 
 ResponseOutcome	Response::sendResponseToClient(int fd)
 {
@@ -40,7 +64,7 @@ ResponseOutcome	Response::sendResponseToClient(int fd)
 	
 	// METHOD HEAD => stop and return success
 
-	std::map<std::string, std::string>::iterator body = _headers.find("Content-Length");
+	std::map<std::string, std::string>::iterator body = _headers.find("content-length");
 	if (body != _headers.end() && strtol(body->second.c_str(), NULL, 10) > 0)
 	{
 		line = _body.substr(0, strtol(body->second.c_str(), NULL, 10) - 1); //convertir
