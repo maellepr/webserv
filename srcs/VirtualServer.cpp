@@ -354,7 +354,6 @@ void	VirtualServer::parseDefaultServer(std::istringstream& iss)
 	std::string	string;
 
 	_defaultVS = true;
-	std::cerr << "icii\n";
 	if (iss >> string)
 		throw ErrorConfigFile("Error in the conf file : default_server : wrong content");
 }
