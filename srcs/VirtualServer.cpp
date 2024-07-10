@@ -45,7 +45,23 @@ void	VirtualServer::init(std::istream& file)
 		if (keyword == "}" && empty == true)
 			throw ErrorConfigFile("Error in the config file : empty server section");
 		else if (keyword == "}" && empty == false)
+		{
+			std::cerr << "\nSERVER :\nlisten : ip  " << _ip << " port " << _port << "\n";
+			std::cerr << "server_name : " << _serverName << "\n";
+			std::cerr << "error_pages : \n";
+			for(std::map<int, std::string>::iterator ep = _errorPages.begin(); ep != _errorPages.end(); ep++)
+			{
+				std::cerr << "code: " << ep->first;
+				std::cerr << "  page: " << ep->second << "\n";
+			}
+			std::cerr << "return : \n";
+			for(std::map<int, std::string>::iterator ret = _returnPages.begin(); ret != _returnPages.end(); ret++)
+			{
+				std::cerr << "code: " << ret->first;
+				std::cerr << "  page: " << ret->second << "\n";
+			}
 			return ;
+		}
 		else if (keyword == "listen")
 			parseListen(iss);
 		else if (keyword == "server_name")
@@ -100,7 +116,9 @@ void	VirtualServer::init(std::istream& file)
 		}
 		else
 			throw ErrorConfigFile("Error in the config file : wrong keyword");
-		empty = false;
+		empty = false;	
+		
+
 	}
 	return ;
 }

@@ -5,7 +5,7 @@ Location::Location()
 	_equalModifier = false;
 }
 
-Location::Location(std::map<int, std::string>& returnPages)
+Location::Location(std::map<int, std::string>& returnPages, std::string& root)
 {
 	_equalModifier = false;
 	if (!(returnPages.empty()))
@@ -13,8 +13,9 @@ Location::Location(std::map<int, std::string>& returnPages)
 		std::map<int, std::string>::iterator rp = returnPages.begin();
 		int	code = rp->first;
 		std::string	page = rp->second;
-		_returnPagesLocation[code] = page;
+		_returnPageLocation[code] = page;
 	}
+	_root = root;
 }
 
 Location::~Location()
@@ -66,7 +67,7 @@ void	Location::parseLocation(std::istream& file)
 		}
 		else if (keyword == "return")
 		{
-			parseLocation(iss, "return");
+			parseReturnPage(iss);
 		}
 		else if (keyword == "upload_dir")
 		{
@@ -88,20 +89,24 @@ void	Location::parseLocation(std::istream& file)
 			throw ErrorConfigFile("Error in the conf file : location : wrong content 5");
 		}
 	}
-	// std::cerr << "_config Location : \n";
-	// std::cerr << "prefix : " << _prefix << "\n";
-    // for (std::map<std::string, std::vector<std::string> >::iterator it = _configLocation.begin(); it != _configLocation.end(); it++) 
-	// {
-    //     std::cout << "Key: " << it->first << std::endl;
-    //     for (std::vector<std::string>::iterator vecIt = it->second.begin(); vecIt != it->second.end(); ++vecIt) {
-    //         std::cout << "    Value: " << *vecIt << std::endl;
-    //     }
-    // }
-	// std::cerr << "_errorPage of Location :\n"; 
-    // for (std::map<int, std::string>::iterator it = _errorPages.begin(); it != _errorPages.end(); it++) {
-    //     std::cout << it->first << " => " << it->second << "\n";
-    // }
-	// std::cerr << "\n\n";
+	std::cerr << "\n_config Location : \n";
+	std::cerr << "prefix : " << _prefix << "\n";
+    for (std::map<std::string, std::vector<std::string> >::iterator it = _configLocation.begin(); it != _configLocation.end(); it++) 
+	{
+        std::cout << "Key: " << it->first << std::endl;
+        for (std::vector<std::string>::iterator vecIt = it->second.begin(); vecIt != it->second.end(); ++vecIt) {
+            std::cout << "    Value: " << *vecIt << std::endl;
+        }
+    }
+	std::cerr << "_errorPage of Location :\n"; 
+    for (std::map<int, std::string>::iterator it = _errorPages.begin(); it != _errorPages.end(); it++) {
+        std::cout << it->first << " => " << it->second << "\n";
+    }
+	std::cerr << "_returnPage of Location :\n"; 
+    for (std::map<int, std::string>::iterator ret = _returnPageLocation.begin(); ret != _returnPageLocation.end(); ret++) {
+        std::cout << ret->first << " => " << ret->second << "\n";
+    }
+	std::cerr << "\n\n";
 }
 
 void	Location::parseLocation(std::istringstream& iss, std::string keyword)
@@ -110,12 +115,46 @@ void	Location::parseLocation(std::istringstream& iss, std::string keyword)
 	std::vector<std::string>	content;
 
 	if (!(iss >> word))
-		throw ErrorConfigFile("Error in the conf file : location : root missing content");
+		throw ErrorConfigFile("Error in the conf file : location : missing content");
 	content.push_back(word);
 	while (iss >> word)
 		content.push_back(word);
 	_configLocation[keyword] = content;
 }
+
+void	Location::parseReturnPage(std::istringstream& iss)
+{
+	if (!(_returnPageLocation.empty()))
+		return ;
+	std::string	code;
+	int	c;
+	if (!(iss >> code))
+		throw ErrorConfigFile("Error in the conf file : location : return missing content");
+	c = parseReturnCode(code);
+	if (!(iss >> code))
+		throw ErrorConfigFile("Error in the conf file : location : return missing content");
+	if (code[0] != '/' && code.find("..") != std::string::npos)
+		throw ErrorConfigFile("Error in the conf file : location : return : wrong path");
+	if (iss >> code)
+		throw ErrorConfigFile("Error in the conf file : location : return : wrong content");
+	_returnPageLocation[c] = code;
+}
+
+int	Location::parseReturnCode(std::string& code)
+{
+	size_t	index = code.find_first_not_of("0123456789");
+	std::string	path;
+	if (index == std::string::npos) // pas d'autres caracteres que 0123456789
+	{
+		int errorCode = strtol(code.c_str(), NULL, 10);
+		if (errorCode < 300 || errorCode > 308)
+			throw ErrorConfigFile("Error in the conf file : location : return : wrong code");
+		return (errorCode);
+	}
+	else
+		throw ErrorConfigFile("Error in the conf file : location : return : wrong code");
+}
+
 
 void	Location::parseLocationErrorPage(std::istringstream& iss)
 {
@@ -153,11 +192,11 @@ int	Location::parseErrorCode(std::string& code)
 	{
 		int errorCode = strtol(code.c_str(), NULL, 10);
 		if (errorCode < 100 || errorCode > 599)
-			throw ErrorConfigFile("Error in the conf file : error_page : wrong code");
+			throw ErrorConfigFile("Error in the conf file : location : error_page : wrong code");
 		return (errorCode);
 	}
 	else
-		throw ErrorConfigFile("Error in the conf file : error_page : wrong code");
+		throw ErrorConfigFile("Error in the conf file : location : error_page : wrong code");
 }
 
 void	Location::setPrefix(std::string prefix)

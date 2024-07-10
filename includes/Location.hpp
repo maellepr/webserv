@@ -19,12 +19,14 @@ class Location
 		void	parseLocation(std::istringstream& iss, std::string keyword);
 		void	parseLocationErrorPage(std::istringstream& iss);
 		int		parseErrorCode(std::string& code);
+		void	parseReturnPage(std::istringstream& iss);
+		int		parseReturnCode(std::string& code);
 
 	private:
 		std::string					_prefix;
 		std::map<std::string, std::vector<std::string> >	_configLocation;
 		std::map<int, std::string>	_errorPages;
-		std::map<int, std::string>	_returnPagesLocation;
+		std::map<int, std::string>	_returnPageLocation;
 		// root
 		// methods
 		// dir-listing / default-uri

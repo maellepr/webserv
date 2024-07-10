@@ -69,7 +69,7 @@ void	Server::init(const char *filename)
     // }
 
 	_checkDuplicateDefaultServer();
-	// std::cerr << "2. Check _socketBoundVS :\n";
+	std::cerr << "2. Check _socketBoundVS :\n";
 	// for (std::map<int, std::vector<VirtualServer*> >::iterator it = _socketBoundVs.begin(); it != _socketBoundVs.end(); it++) 
 	// {
     //     std::cout << "Socket: " << it->first << std::endl;
