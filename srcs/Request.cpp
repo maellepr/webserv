@@ -6,11 +6,13 @@ Request::~Request() {}
 
 ParseRequestResult	Request::parseBuffer(std::string &buffer)
 {
+	// std::cout << LIGHTBLUE << "PARSE_BUFFER START" << RESET << std::endl;
 	StatusCode	ret;
 	GnlStatus	gnl;
 
 	if (_parsingStep == IN_REQUESTLINE)
 	{
+		// std::cout << LIGHTBLUE << "PARSE_BUFFER 1" << RESET << std::endl;
 		// buffer empty ?
 		gnl = getNextLine(buffer);
 		if (gnl != FOUND_NL)
@@ -24,6 +26,8 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 		ret = parseRequestLine(_line);
 		if (ret != STATUS_NONE)
 			return (parsingFailed(ret));
+		// std::cout << "method = " << _method << std::endl;
+		// std::cout << "URI = " << _uri << std::endl;
 		_parsingStep = IN_HEADERS;
 		_line.clear();
 	}
@@ -40,8 +44,9 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 					return (parsingFailed(STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE));
 				return (parsingPending());
 			}
+			// std::cout << PURPLE << "_line = " << _line << RESET << std::endl;
 
-			if (_line == "\r\n")
+			if (_line.empty())
 			{
 				_parsingStep = IN_BODY;
 				_line.clear();
@@ -56,19 +61,35 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 	}
 	if (_parsingStep == IN_BODY && _vs == NULL)
 	{
+		// std::cout << GREY << "<header : value>" << RESET << std::endl;
+		// for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); it++)
+		// {
+		// 	std::cout << GREY << it->first << " : " 
+		// 		 << GREY << it->second << RESET << std::endl;
+		// }
 		std::map<std::string, std::string>::iterator host = _headers.find("host");
 		if (host == _headers.end())
 			return (parsingFailed(STATUS_BAD_REQUEST));
 		ret = associateVirtualServer();
 		if (ret != STATUS_NONE)
 			return (parsingFailed(ret));
-		// A AJOUTER : 
-		// if _vs contient une return directive
-		//	return parsingSuccedeed();
+		std::cout << PURPLE << "Chosen server infos : " << RESET << std::endl;
+		std::cout << PURPLE << "IP and port : " << _vs->getIP() << ":" << _vs->getPort() << RESET << std::endl;
+		std::cout << PURPLE << "Server_name : " << _vs->getServerName() << RESET << std::endl;
 		ret = associateLocation();
 		if (ret != STATUS_NONE)
 			return (parsingFailed(ret));
+		std::cout << GREY << "Chosen location infos : " << RESET << std::endl;
+		for (std::map<std::string, Location>::iterator it = _vs->getLocations().begin(); it != _vs->getLocations().end(); it++)
+		{
+			if (&it->second == _location)
+			{
+				std::cout << GREY << "Location prefix : " << it->first << RESET << std::endl;
+				break ;
+			}
+		}
 	}
+	// std::cout << LIGHTBLUE << "AFTER ASSOCIATE SERVER" << RESET << std::endl;
 	if (_parsingStep == IN_BODY)
 	{
 		if (_contentLength == 0)
@@ -93,6 +114,7 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 		return (parsingSucceeded());
 	}
 	return (parsingPending()); // A CHECKER
+	// std::cout << LIGHTBLUE << "PARSE_BUFFER END" << RESET << std::endl;
 }
 
 GnlStatus	Request::getNextLine(std::string &buffer)
@@ -109,8 +131,10 @@ GnlStatus	Request::getNextLine(std::string &buffer)
 	}
 	if (buffer[strEnd - 1] != '\r')
 		return (BAD_REQUEST);
-	_line = buffer.substr(0, strEnd + strlen("\r\n"));
-	buffer = buffer.substr(strEnd + strlen("\r\n"), std::string::npos);
+	_line = buffer.substr(0, strEnd - 1);
+	buffer = buffer.substr(strEnd + 1, std::string::npos);
+	// std::cout << PURPLE << "_line = " << _line << RESET << std::endl;
+	// std::cout << PURPLE << "buffer = " << buffer << RESET << std::endl;
 	return (FOUND_NL);
 };
 
@@ -120,7 +144,9 @@ StatusCode	Request::parseRequestLine(std::string requestLine)
 	std::string	method, protocol, check;
 	std::istringstream	is(requestLine);
 
-	if (!(is >> method >> protocol >> _uri) || (is >> check) || _uri[0] != '/')
+	// std::cout << LIGHTBLUE << "requestline = " << requestLine << RESET << std::endl;
+
+	if (!(is >> method >> _uri >> protocol) || (is >> check) || _uri[0] != '/')
 		return (STATUS_BAD_REQUEST);
 
 	if (method == "GET")
@@ -134,8 +160,6 @@ StatusCode	Request::parseRequestLine(std::string requestLine)
 
 	if (_uri.size() > MAX_URI_SIZE)
 		return (STATUS_URI_TOO_LONG);
-	
-	// PARSE URI
 
 	if (protocol != PROTOCOL_VERSION)
 		return (STATUS_HTTP_VERSION_NOT_SUPPORTED);
@@ -149,13 +173,24 @@ StatusCode	Request::parseHeader(std::string header)
 	std::string	name, value;
 
 	std::getline(is, name, ':');
+	is.ignore();
 	std::getline(is, value);
 	
 	if (name.empty() || value.empty())
 		return (STATUS_BAD_REQUEST);
 
-	for_each(name.begin(), name.end(), tolower);
-	for_each(value.begin(), value.end(), tolower);
+	for (std::string::iterator it = name.begin(); it != name.end(); it++)
+	{
+		(*it) = tolower(*it);
+	}
+
+	for (std::string::iterator it = value.begin(); it != value.end(); it++)
+	{
+		(*it) = tolower(*it);
+	}
+
+	// for_each(name.begin(), name.end(), tolower);
+	// for_each(value.begin(), value.end(), tolower);
 
 	// DOUBLONS ?
 
@@ -215,12 +250,14 @@ StatusCode	Request::associateVirtualServer()
 {
 	StatusCode ret;
 
-	fillClientInfos();	
+	fillClientInfos();
+	// std::cout << LIGHTBLUE << "associateVirtualServer 1" << RESET << std::endl;
 	if (_vsCandidates.size() == 1)
 	{
 		_vs = _vsCandidates[0];
 		return (STATUS_NONE);
 	}
+	// std::cout << LIGHTBLUE << "associateVirtualServer 2" << RESET << std::endl;
 
 	// IP:port check
 	std::vector<VirtualServer*> matchingIpPortCombos;
@@ -230,6 +267,7 @@ StatusCode	Request::associateVirtualServer()
 		_vs = matchingIpPortCombos[0];
 		return (STATUS_NONE);
 	}
+	// std::cout << LIGHTBLUE << "associateVirtualServer 3" << RESET << std::endl;
 
 	// server_name check
 	ret = extractClientServerName();
@@ -245,6 +283,7 @@ StatusCode	Request::associateVirtualServer()
 			return (STATUS_NONE);
 		}
 	}
+	std::cout << LIGHTBLUE << "associateVirtualServer 4" << RESET << std::endl;
 
 	// activate default VirtualServer
 	for (std::vector<VirtualServer*>::iterator it = _vsCandidates.begin(); it != _vsCandidates.end(); it++)
@@ -255,6 +294,7 @@ StatusCode	Request::associateVirtualServer()
 			break ;
 		}
 	}
+	std::cout << LIGHTBLUE << "associateVirtualServer 5" << RESET << std::endl;
 	return (STATUS_NONE);
 }
 
@@ -332,7 +372,7 @@ VirtualServer*	Request::findServerNamesMatches(std::vector<VirtualServer*> match
 		{
 			std::string wServerName = serverName.substr(1, std::string::npos);
 			size_t match_pos = _hostName.find(wServerName);
-			if (match_pos != std::string::npos && (match_pos - 1 + wServerName.size()) == _hostName.size())
+			if (match_pos != std::string::npos && (match_pos + wServerName.size()) == _hostName.size())
 				leadingWildcard.push_back(*it);
 		}
 		if (leadingWildcard.empty() && serverName[serverName.size() - 1] == '*')
@@ -404,6 +444,8 @@ StatusCode	Request::associateLocation()
 			}
 		}
 	}
+
+
 
 	// REDIRECTIONS :
 		// index

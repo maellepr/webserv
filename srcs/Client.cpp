@@ -2,7 +2,7 @@
 
 // CONSTRUCTORS / DESTRUCTORS ------------------------------------------------------ //
 
-Client::Client() {}
+Client::Client() : _clientfd(-1), _request(NULL), _response(NULL), _buffer("") {}
 
 Client::~Client()
 {
@@ -28,7 +28,9 @@ void	Client::setConnectedServers(int serverfd, std::map<int, std::vector<Virtual
 {
 	std::map<int, std::vector<VirtualServer*> >::iterator it = socketBoundVs.find(serverfd);
 	if (it != socketBoundVs.end())
-		std::copy(it->second.begin(), it->second.end(), _vsCandidates.begin());
+	{
+		_vsCandidates = it->second;
+	}
 }
 
 // VirtualServer &Client::getConnectedServer()
@@ -68,9 +70,9 @@ int Client::readRequest()
 	if (DEBUG)
 	{
 		std::cout << ORANGE << "REQUEST from client socket : " << _clientfd
-				<< "===============\n"
+				<< "\n===============\n"
 				<< buffer
-				<< "\n===============" << RESET << std::endl;
+				<< "===============" << RESET << std::endl;
 	}
 	if (_request == NULL)
 	{
@@ -90,6 +92,8 @@ int Client::readRequest()
 			return (0);
 	}
 
+	std::cout << LIGHTGREEN << "REQUEST OUTCOME = " << parsedRequest.outcome << RESET << std::endl;
+
 	_response = new Response; // new A PROTEGER?
 	_response->generateResponse(parsedRequest);
 
@@ -100,16 +104,7 @@ int Client::readRequest()
 
 ResponseOutcome Client::writeResponse()
 {
-    ResponseOutcome status = RESPONSE_SUCCESS;
-	static int	i;
-
-	if (i == 0)
-	{
-		++i;
-		int stat = write(_clientfd, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!:)", strlen("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!:)"));
-		if (stat == -1)
-			return (RESPONSE_FAILURE);
-	}
+    // ResponseOutcome status;
 
 	// status = _response->sendResponseToClient(_clientfd);
 	// if (status != RESPONSE_PENDING)
@@ -117,6 +112,16 @@ ResponseOutcome Client::writeResponse()
 	// 	delete _response;
 	// 	_response = NULL;
 	// }
+	
+    // return (status);
 
-    return (status);
+	static int	i;
+	if (i == 0)
+	{
+		++i;
+		int stat = write(_clientfd, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!:)", strlen("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!:)"));
+		if (stat == -1)
+			return (RESPONSE_FAILURE);
+	}
+	return (RESPONSE_SUCCESS);
 }

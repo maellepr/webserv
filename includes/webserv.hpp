@@ -40,6 +40,8 @@
 # define LIGHTGREEN	"\e[38;2;105;231;71m"
 # define LIGHTBLUE	"\e[36m"
 # define PURPLE	"\e[38;2;198;26;234m"
+# define GREY	"\e[38;2;100;89;103m"
+# define VIOLET "\e[38;2;99;71;231m"
 
 class Location;
 
