@@ -189,6 +189,7 @@ ParseRequestResult Request::parsingFailed(StatusCode statusCode)
 
 	result.outcome = REQUEST_FAILURE;
 	result.statusCode = statusCode;
+	result.location = _location;
 	return (result);
 }
 
@@ -197,6 +198,8 @@ ParseRequestResult Request::parsingSucceeded()
 	ParseRequestResult	result;
 
 	result.outcome = REQUEST_SUCCESS;
+	result.method = _method;
+	result.location = _location;
 	return (result);
 }
 

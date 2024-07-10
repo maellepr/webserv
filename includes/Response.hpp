@@ -9,7 +9,7 @@ class Response
 		Response();
 		~Response();
 
-		void			generateResponse(ParseRequestResult &reqRes);
+		void			generateResponse(ParseRequestResult &parsedRequest);
 		ResponseOutcome	sendResponseToClient(int fd);
 		int				pushStrToClient(int fd, std::string &str);
 

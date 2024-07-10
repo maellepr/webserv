@@ -8,27 +8,42 @@ Response::~Response()
 {
 }
 
-void	Response::generateResponse(ParseRequestResult &reqRes)
+void	Response::generateResponse(ParseRequestResult &request)
 {
-	(void) reqRes;
-	if (reqRes.outcome == REQUEST_FAILURE) //parsing failures
+	// MODIFIER LES ELSE IF
+	if (request.outcome == REQUEST_FAILURE) //parsing failure
 	{
 		// predefined error page 
 		// or
 		// build error page from scratch
 	}
-	else if () // location : method not allowed
+	else if (0) // CGI
 	{
-		// idem 1
+		(void) request;
 	}
-	else if () // location : return 
-	// if CGI
-	//	do CGI
-	// Error with no page?
-	// redirection ?
+	else if (0) // location method not allowed
+	{
+		(void) request; // idem 1
+	}
+	else if (0) // redirection return 
+	{
+		(void) request;
+	}
+	else
+	{
+		if (request.method == GET)
+			return ; // buildGet(request)
+		if (request.method == POST)
+			return ; // buildPost(request)
+		if (request.method == DELETE)
+			return ; // buildDelete(request)
+	}
 
-	// build response: line + headers (+body)
+	// build response line
+	// build headers (+body)
 }
+
+
 
 ResponseOutcome	Response::sendResponseToClient(int fd)
 {

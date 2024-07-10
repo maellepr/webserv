@@ -52,7 +52,7 @@ int Client::readRequest()
 {
 	char	buffer[BUFSIZ];// A MODIF
 	size_t	bytesRead;
-	ParseRequestResult	reqRes;
+	ParseRequestResult	parsedRequest;
 
 	memset(&buffer, '\0', sizeof(buffer));
 	bytesRead = recv(_clientfd, buffer, BUFSIZ, 0);
@@ -78,20 +78,20 @@ int Client::readRequest()
 		_requestStartTime = std::time(NULL);
 	}
 	_buffer += buffer;
-	reqRes = _request->parseBuffer(_buffer);
-	if (reqRes.outcome == REQUEST_PENDING)
+	parsedRequest = _request->parseBuffer(_buffer);
+	if (parsedRequest.outcome == REQUEST_PENDING)
 	{
 		if (std::difftime(std::time(NULL), _requestStartTime) > TIMEOUT)
 		{
-			reqRes.outcome = REQUEST_FAILURE;
-			reqRes.statusCode = STATUS_REQUEST_TIMEOUT;
+			parsedRequest.outcome = REQUEST_FAILURE;
+			parsedRequest.statusCode = STATUS_REQUEST_TIMEOUT;
 		}
 		else
 			return (0);
 	}
 
 	_response = new Response; // new A PROTEGER?
-	_response->generateResponse(reqRes);
+	_response->generateResponse(parsedRequest);
 
 	delete _request;
 	_request = NULL;

@@ -41,6 +41,8 @@
 # define LIGHTBLUE	"\e[36m"
 # define PURPLE	"\e[38;2;198;26;234m"
 
+class Location;
+
 // Functions ----------------------------------------------------------------------------- //
 
 void	callException(int errorNum);
@@ -144,7 +146,9 @@ typedef enum StatusCode
 typedef struct ParseRequestResult
 {	
 	RequestOutcome	outcome;
-	StatusCode	statusCode;
+	StatusCode		statusCode;
+	Method			method;
+	Location		*location;
 } ParseRequestResult;
 
 #endif
