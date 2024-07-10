@@ -50,6 +50,7 @@ class Location;
 void	callException(int errorNum);
 void	extension(const std::string& str, const std::string& extension);
 void	isDirectory(const std::string & filename);
+bool	isPathADirectory(const std::string &path);
 
 // Exceptions ----------------------------------------------------------------------------- //
 

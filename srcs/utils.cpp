@@ -30,3 +30,12 @@ void	isDirectory(const std::string & path)
 	}
 	return ;
 }
+
+bool	isPathADirectory(const std::string &path)
+{
+	struct stat buf;
+	
+	if (stat(path.c_str(), &buf) != 0)
+		return (false);
+	return (S_ISDIR(buf.st_mode));
+}

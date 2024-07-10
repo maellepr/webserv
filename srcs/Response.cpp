@@ -32,24 +32,32 @@ void	Response::generateResponse(ParseRequestResult &request)
 	else
 	{
 		if (request.method == GET)
-			return ; // buildGet(request)
+			buildGet(request);
 		if (request.method == POST)
 			return ; // buildPost(request)
 		if (request.method == DELETE)
 			return ; // buildDelete(request)
 	}
 
-	// build response line
+	buildStatusLine();
 	// build headers (+body)
 }
 
+void			Response::buildStatusLine()
+{
 
+}
+
+void	Response::buildGet(ParseRequestResult &request)
+{
+
+}
 
 ResponseOutcome	Response::sendResponseToClient(int fd)
 {
 	std::string	line;
 
-	if (pushStrToClient(fd, _responseLine) == -1)
+	if (pushStrToClient(fd, _statusLine) == -1)
 		return RESPONSE_FAILURE;
 
 	for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); it++)

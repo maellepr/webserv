@@ -13,6 +13,8 @@ class Location
 		void	setEqualModifier(bool state);
 		bool	&getEqualModifier();
 
+		std::string	&getPrefix();
+
 		void	setPrefix(std::string prefix);
 
 		void	parseLocation(std::istream& file);

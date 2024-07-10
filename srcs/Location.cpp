@@ -31,6 +31,11 @@ bool	&Location::getEqualModifier()
 	return _equalModifier;
 }
 
+std::string	&Location::getPrefix()
+{
+	return _prefix;
+}
+
 void	Location::parseLocation(std::istream& file)
 {
 	std::string	line;

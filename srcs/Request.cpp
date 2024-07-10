@@ -80,14 +80,15 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 		if (ret != STATUS_NONE)
 			return (parsingFailed(ret));
 		std::cout << GREY << "Chosen location infos : " << RESET << std::endl;
-		for (std::map<std::string, Location>::iterator it = _vs->getLocations().begin(); it != _vs->getLocations().end(); it++)
-		{
-			if (&it->second == _location)
-			{
-				std::cout << GREY << "Location prefix : " << it->first << RESET << std::endl;
-				break ;
-			}
-		}
+		std::cout << GREY << "Location prefix : " << _location->getPrefix() << RESET << std::endl;
+		// for (std::map<std::string, Location>::iterator it = _vs->getLocations().begin(); it != _vs->getLocations().end(); it++)
+		// {
+		// 	if (&it->second == _location)
+		// 	{
+		// 		std::cout << GREY << "Location prefix : " << it->first << RESET << std::endl;
+		// 		break ;
+		// 	}
+		// }
 	}
 	// std::cout << LIGHTBLUE << "AFTER ASSOCIATE SERVER" << RESET << std::endl;
 	if (_parsingStep == IN_BODY)
@@ -424,6 +425,9 @@ StatusCode	Request::associateLocation()
 				break ; // ou RETURN ? REDIRECTION ?
 			}	
 		}
+
+		// cas tres specifique : = /directory + index ; changement de location?
+		
 	}
 
 	// longuest prefix
