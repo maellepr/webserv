@@ -311,13 +311,19 @@ void	Server::loop()
 	FD_ZERO(&_all_sockets);
 	FD_ZERO(&_read_fds);
 	FD_ZERO(&_write_fds);
-	_fd_max = 0;
-	for (size_t i = 0; i < _virtualServers.size(); i++)
+	_fd_max = -1;
+	for (std::map<int, std::vector<VirtualServer*> >::iterator it = _socketBoundVs.begin(); it != _socketBoundVs.end(); it++)
 	{
-		FD_SET(_virtualServers[i].getFd(), &_all_sockets); // Add listener socket to set
-		if (_fd_max < _virtualServers[i].getFd())
-			_fd_max = _virtualServers[i].getFd();
+		FD_SET(it->first, &_all_sockets);
+		if (_fd_max < it->first)
+			_fd_max = it->first;
 	}
+	// for (size_t i = 0; i < _virtualServers.size(); i++)
+	// {
+	// 	FD_SET(_virtualServers[i].getFd(), &_all_sockets); // Add listener socket to set
+	// 	if (_fd_max < _virtualServers[i].getFd())
+	// 		_fd_max = _virtualServers[i].getFd();
+	// }
 	dprintf(2, "fd max du debut = %d\n", _fd_max);
 	
 	while (1)
@@ -365,7 +371,9 @@ void	Server::loop()
 
 					client.setFd(_acceptNewConnection(i));
 					client.setConnectedServers(i, _socketBoundVs);
+					dprintf(2, "WHILE 5 - 3\n");
 					_clients[client.getFd()] = client;
+					dprintf(2, "WHILE 5 - 4\n");
 					// res = 0;
 				}
 				else
