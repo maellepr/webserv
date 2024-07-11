@@ -76,7 +76,7 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 		std::cout << PURPLE << "Chosen server infos : " << RESET << std::endl;
 		std::cout << PURPLE << "IP and port : " << _vs->getIP() << ":" << _vs->getPort() << RESET << std::endl;
 		std::cout << PURPLE << "Server_name : " << _vs->getServerName() << RESET << std::endl;
-		ret = associateLocation();
+		ret = associateLocationRequest();
 		if (ret != STATUS_NONE)
 			return (parsingFailed(ret));
 		std::cout << GREY << "Chosen location infos : " << RESET << std::endl;
@@ -238,6 +238,7 @@ ParseRequestResult Request::parsingSucceeded()
 	result.uri = _uri;
 	result.hostName = _hostName;
 	result.location = _location;
+	result.vs = _vs;
 	return (result);
 }
 
@@ -412,7 +413,7 @@ VirtualServer*	Request::findServerNamesMatches(std::vector<VirtualServer*> match
 	return (NULL);
 }
 
-StatusCode	Request::associateLocation()
+StatusCode	Request::associateLocationRequest()
 {
 	size_t len(0);
 

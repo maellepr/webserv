@@ -14,6 +14,7 @@ void			Response::fillStatusMsg()
 	_statusMsg[STATUS_NONE] = "OK"; // A MODIF
 	_statusMsg[STATUS_OK] = "OK"; // A MODIF
 	_statusMsg[STATUS_MOVED_PERMANENTLY] = "Moved Permanently";
+	_statusMsg[STATUS_FORBIDDEN] = "Forbidden";
 	_statusMsg[STATUS_BAD_REQUEST] = "Not Found";
 	_statusMsg[STATUS_REQUEST_TIMEOUT] = "Request Time-out";
 	_statusMsg[STATUS_PAYLOAD_TOO_LARGE] = "Request Entity Too Large";
@@ -28,7 +29,8 @@ void	Response::generateResponse(ParseRequestResult &request)
 	// MODIFIER LES ELSE IF
 	if (request.outcome == REQUEST_FAILURE) //parsing failure
 	{
-		// predefined error page 
+		buildErrorPage(request);	
+		// error_page in location 
 		// or
 		// build error page from scratch
 	}
@@ -38,7 +40,7 @@ void	Response::generateResponse(ParseRequestResult &request)
 	}
 	else if (0) // location method not allowed
 	{
-		(void) request; // idem 1
+		(void) request;
 	}
 	else if (0) // redirection return 
 	{
@@ -69,15 +71,20 @@ void			Response::buildStatusLine()
 	// std::cout << GREEN << "statusLine = " << _statusLine << RESET << std::endl;
 }
 
+void			Response::buildErrorPage(ParseRequestResult &request)
+{
+
+}
+
 void	Response::buildGet(ParseRequestResult &request)
 {
-	std::map<std::string, std::vector<std::string> >::iterator it = request.location->getConfigLocation().find("rootDir");
-	if (it != request.location->getConfigLocation().end())
-		_finalURI = it->second[0];
-	std::cout << "root = " << _finalURI << std::endl;
-	if (_finalURI.back() != '/')
-		_finalURI.pop_back();
-	_finalURI += request.uri;
+	_configLocation = request.location->getConfigLocation();
+	if (_configLocation.find("rootDir") != _configLocation.end())
+		_rootDir = _configLocation["rootDir"][0];
+	std::cout << "root = " << _rootDir << std::endl;
+	if (_rootDir.back() != '/')
+		_rootDir.pop_back();
+	_finalURI = _rootDir + request.uri;
 
 	if (isPathADirectory(_finalURI))
 	{
@@ -89,10 +96,51 @@ void	Response::buildGet(ParseRequestResult &request)
 		}
 		else
 		{
-			// index ou autoindex ?
-				// servir ressource OU errror
+			if (_configLocation.find("_indexPages") != _configLocation.end())
+			{
+				std::vector<std::string> indexPages = _configLocation["_indexPages"];
+				if (indexPages.empty() == false)
+				{
+					for (std::vector<std::string>::iterator it = indexPages.begin(); it != indexPages.end(); it++)
+					{
+						std::string index = (*it)[0] == '/' ? (*it).substr(1, std::string::npos) : (*it);
+						std::string path;
+						path = _finalURI + index;
+						if (isPathADRegularFile(path))
+						{
+							_finalURI = path;
+							break ;
+						}
+					}
+				}
+			}
+			if (_configLocation.find("autoindex") != _configLocation.end()
+					&& _configLocation["autoindex"][0] == "true")
+			{
+					buildAutoindexPage();
+			}
+			_statusCode = STATUS_FORBIDDEN;
+			buildErrorPage(request);
+			return ;
 		}
 	}
+	if (isPathADRegularFile(_finalURI))
+		buildPage();
+	else
+	{
+		_statusCode = STATUS_BAD_REQUEST;
+		buildErrorPage(request);	
+	}
+}
+
+void			Response::buildPage()
+{
+
+}
+
+void			Response::buildAutoindexPage()
+{
+
 }
 
 ResponseOutcome	Response::sendResponseToClient(int fd)
@@ -139,4 +187,41 @@ int	Response::pushStrToClient(int fd, std::string &str)
 		bytesSent += tmpSent;
 	}
 	return (0);
+}
+
+void	Response::associateLocationResponse(ParseRequestResult &request)
+{
+	size_t len(0);
+
+	// exact match
+	for (std::map<std::string, Location>::iterator it = _vs->getLocations().begin(); it != _vs->getLocations().end(); it++)
+	{
+		if (it->second.getEqualModifier() == true)
+		{
+			if (it->first == _uri)
+			{
+				_location = &(it->second);
+				break ; // ou RETURN ? REDIRECTION ?
+			}	
+		}
+	}
+
+	// longuest prefix
+	if (_location == NULL)
+	{
+		for (std::map<std::string, Location>::iterator it = _vs->getLocations().begin(); it != _vs->getLocations().end(); it++)
+		{
+			if (it->second.getEqualModifier() == false)
+			{
+				if (_uri.substr(0, it->first.size()) == it->first)
+				{
+					if (it->first.size() > len)
+					{
+						_location = &(it->second);
+						len = it->first.size();
+					}
+				}	
+			}
+		}
+	}
 }

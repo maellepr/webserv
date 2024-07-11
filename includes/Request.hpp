@@ -19,7 +19,7 @@ class Request
 		ParseRequestResult			parsingSucceeded();
 		ParseRequestResult			parsingPending();
 		StatusCode					associateVirtualServer();
-		StatusCode					associateLocation();
+		StatusCode					associateLocationRequest();
 		void						fillClientInfos();
 		std::vector<VirtualServer*>	findIpPortMatches();
 		VirtualServer*				findServerNamesMatches(std::vector<VirtualServer*> matchingIpPortCombos);

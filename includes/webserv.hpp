@@ -44,13 +44,15 @@
 # define VIOLET "\e[38;2;99;71;231m"
 
 class Location;
+class VirtualServer;
 
 // Functions ----------------------------------------------------------------------------- //
 
-void	callException(int errorNum);
-void	extension(const std::string& str, const std::string& extension);
-void	isDirectory(const std::string & filename);
-bool	isPathADirectory(const std::string &path);
+void		callException(int errorNum);
+void		extension(const std::string& str, const std::string& extension);
+void		isDirectory(const std::string & filename);
+bool		isPathADirectory(const std::string &path);
+bool		isPathADRegularFile(const std::string &path);
 
 // Exceptions ----------------------------------------------------------------------------- //
 
@@ -137,6 +139,7 @@ typedef enum StatusCode
 	STATUS_NONE = 0,
 	STATUS_OK = 200,
 	STATUS_MOVED_PERMANENTLY = 301,
+	STATUS_FORBIDDEN = 403,
 	STATUS_BAD_REQUEST = 404,
 	STATUS_REQUEST_TIMEOUT = 408,
 	STATUS_PAYLOAD_TOO_LARGE = 413,
@@ -155,6 +158,7 @@ typedef struct ParseRequestResult
 	Method			method;
 	std::string		uri;
 	std::string		hostName;
+	VirtualServer	*vs;
 	Location		*location;
 } ParseRequestResult;
 
