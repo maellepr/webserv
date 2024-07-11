@@ -235,6 +235,8 @@ ParseRequestResult Request::parsingSucceeded()
 
 	result.outcome = REQUEST_SUCCESS;
 	result.method = _method;
+	result.uri = _uri;
+	result.hostName = _hostName;
 	result.location = _location;
 	return (result);
 }

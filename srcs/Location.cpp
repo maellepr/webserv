@@ -36,6 +36,11 @@ std::string	&Location::getPrefix()
 	return _prefix;
 }
 
+std::map<std::string, std::vector<std::string> >	&Location::getConfigLocation()
+{
+	return _configLocation;	
+}
+
 void	Location::parseLocation(std::istream& file)
 {
 	std::string	line;

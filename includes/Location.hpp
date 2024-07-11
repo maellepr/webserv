@@ -17,6 +17,8 @@ class Location
 
 		void	setPrefix(std::string prefix);
 
+		std::map<std::string, std::vector<std::string> >	&getConfigLocation();
+
 		void	parseLocation(std::istream& file);
 		void	parseLocation(std::istringstream& iss, std::string keyword);
 		void	parseLocationErrorPage(std::istringstream& iss);

@@ -135,6 +135,8 @@ typedef enum GnlStatus
 typedef enum StatusCode
 {
 	STATUS_NONE = 0,
+	STATUS_OK = 200,
+	STATUS_MOVED_PERMANENTLY = 301,
 	STATUS_BAD_REQUEST = 404,
 	STATUS_REQUEST_TIMEOUT = 408,
 	STATUS_PAYLOAD_TOO_LARGE = 413,
@@ -151,6 +153,8 @@ typedef struct ParseRequestResult
 	RequestOutcome	outcome;
 	StatusCode		statusCode;
 	Method			method;
+	std::string		uri;
+	std::string		hostName;
 	Location		*location;
 } ParseRequestResult;
 
