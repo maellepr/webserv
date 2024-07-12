@@ -15,11 +15,15 @@ VirtualServer::VirtualServer()
 	_ipByDefault = true;
 	_portByDefault = true;
 
+	_maxBodySize = DEFAULT_MAXBODYSIZE;
+
 	_toErase = false;
 
 	_defaultVS = false;
 
 	_isBind = 0;
+
+	_listenState = false;
 }
 
 VirtualServer::~VirtualServer()
@@ -46,20 +50,22 @@ void	VirtualServer::init(std::istream& file)
 			throw ErrorConfigFile("Error in the config file : empty server section");
 		else if (keyword == "}" && empty == false)
 		{
-			std::cerr << "\nSERVER :\nlisten : ip  " << _ip << " port " << _port << "\n";
-			std::cerr << "server_name : " << _serverName << "\n";
-			std::cerr << "error_pages : \n";
-			for(std::map<int, std::string>::iterator ep = _errorPages.begin(); ep != _errorPages.end(); ep++)
-			{
-				std::cerr << "code: " << ep->first;
-				std::cerr << "  page: " << ep->second << "\n";
-			}
-			std::cerr << "return : \n";
-			for(std::map<int, std::string>::iterator ret = _returnPages.begin(); ret != _returnPages.end(); ret++)
-			{
-				std::cerr << "code: " << ret->first;
-				std::cerr << "  page: " << ret->second << "\n";
-			}
+			checkNecessaryLine();
+			// std::cerr << "\nSERVER :\nlisten : ip  " << _ip << " port " << _port << "\n";
+			// std::cerr << "server_name : " << _serverName << "\n";
+			// std::cerr << "root :" << _rootDir << "\n";
+			// std::cerr << "error_pages : \n";
+			// for(std::map<int, std::string>::iterator ep = _errorPages.begin(); ep != _errorPages.end(); ep++)
+			// {
+			// 	std::cerr << "code: " << ep->first;
+			// 	std::cerr << "  page: " << ep->second << "\n";
+			// }
+			// std::cerr << "return :\n";
+			// for(std::map<int, std::string>::iterator ret = _returnPages.begin(); ret != _returnPages.end(); ret++)
+			// {
+			// 	std::cerr << "code: " << ret->first;
+			// 	std::cerr << "  page: " << ret->second << "\n";
+			// }
 			return ;
 		}
 		else if (keyword == "listen")
@@ -74,14 +80,13 @@ void	VirtualServer::init(std::istream& file)
 			parseMaxClientBodySize(iss);
 		else if (keyword == "error_page")
 			parseErrorPages(iss);
-
 		else if (keyword == "index")
 			parseIndex(iss);
 		else if (keyword == "default_server")
 			parseDefaultServer(iss);
 		else if (keyword == "location")
 		{
-			Location	location(_returnPages);
+			Location	location(_returnPages, *this);
 			std::string	prefix;
 			if (!(iss >> keyword))
 				throw ErrorConfigFile("Error in the conf file : location : wrong content1");
@@ -107,8 +112,6 @@ void	VirtualServer::init(std::istream& file)
 				prefix = "none";
 			location.parseLocation(file);
 			_location[prefix] = location;
-
-
 		}
 		else if (keyword == "return")
 		{
@@ -116,9 +119,7 @@ void	VirtualServer::init(std::istream& file)
 		}
 		else
 			throw ErrorConfigFile("Error in the config file : wrong keyword");
-		empty = false;	
-		
-
+		empty = false;
 	}
 	return ;
 }
@@ -161,6 +162,7 @@ void	VirtualServer::parseListen(std::istringstream& iss)
 	}
 	if (iss >> line)
 		throw ErrorConfigFile("Error in the config file : listen : wrong content");
+	_listenState = true;
 }
 
 void	VirtualServer::parsePort(std::string& port)
@@ -237,6 +239,7 @@ void	VirtualServer::parseServerNames(std::istringstream& iss)
 	// _serverNames.push_back(serverName);
 	// while (iss >> serverName)
 	// 	_serverNames.push_back(serverName);
+	// _serverNameState = true;
 }
 
 void	VirtualServer::parseRoot(std::istringstream& iss)
@@ -384,7 +387,6 @@ void	VirtualServer::parseReturn(std::istringstream& iss)
 		throw ErrorConfigFile("Error in the conf file : return : wrong content");
 	for (size_t i = 0; i < codeList.size(); i++)
 		_returnPages[codeList[i]] = code;
-	
 }
 
 int	VirtualServer::parseCodeReturn(std::string& code)
@@ -450,6 +452,25 @@ void	VirtualServer::connectVirtualServers()
 		if (status != 0)
 			callException(-1);
 		_socketfd = socket_fd;
+}
+
+void	VirtualServer::checkNecessaryLine()
+{
+	if (_listenState == false)
+		throw ErrorConfigFile("Error in the conf file : listen is missing");
+	// bool	_listenState;
+	// bool	_serverNameState;
+	// bool	_rootState;
+	// bool	_returnState;
+	for(std::map<std::string, Location>::iterator loc = _location.begin(); loc != _location.end(); loc++)
+	{
+
+		std::map<std::string, std::vector<std::string> >::iterator configLoc = (*loc).second.getConfigLocation().find("root");
+
+		if (configLoc == (*loc).second.getConfigLocation().end() && (*loc).second.getReturn().empty() 
+		&& _returnPages.empty() && _rootDir.empty())
+			throw ErrorConfigFile("Error in the conf file : location : root missing");
+	}
 }
 
 // GETTERS / SETTERS -------------------------------------------------------------------- //
@@ -547,4 +568,29 @@ bool	&VirtualServer::getPortByDefault()
 std::map<std::string, Location>	&VirtualServer::getLocations()
 {
 	return _location;
+}
+
+std::string &VirtualServer::getRoot()
+{
+	return _rootDir;
+}
+
+std::vector<std::string> &VirtualServer::getIndexPage()
+{
+	return _indexPages;
+}
+
+bool	&VirtualServer::getAutoIndex()
+{
+	return _indexOnOff;
+}
+
+std::map<int, std::string>	&VirtualServer::getErrorPages()
+{
+	return _errorPages;
+}
+
+std::map<int, std::string>	&VirtualServer::getReturnPages()
+{
+	return _returnPages;
 }

@@ -4,10 +4,6 @@
 #include "webserv.hpp"
 #include "Location.hpp"
 
-#define KB_IN_BYTES 1024;
-#define MB_IN_BYTES 1048576;
-#define	GB_IN_BYTES 1073741824; 
-
 class VirtualServer
 {
 	public:
@@ -49,6 +45,12 @@ class VirtualServer
 		void	init(std::istream& file);
 		void	connectVirtualServers();
 
+		std::string					&getRoot();
+		std::vector<std::string>	&getIndexPage();
+		bool						&getAutoIndex();
+		std::map<int, std::string>	&getErrorPages();
+		std::map<int, std::string>	&getReturnPages();
+
 	private:
 		struct sockaddr_in _address;
 	
@@ -64,7 +66,6 @@ class VirtualServer
 		std::map<int, std::string>	_errorPages;	// error_page -> map avec int = error code, std::string = page correspondante 
 		std::map<int, std::string>	_returnPages;	// return -> map avec int = error code, std::string = page correspondante
 		std::vector<std::string>	_indexPages;	// index -> vector avec les pages
-
 		// std::vector<std::string>	_serverNames;
 		std::string	_serverName;	// server_name
 
@@ -79,7 +80,7 @@ class VirtualServer
 
 		bool	_defaultVS;			// true = default_server ecrit dans le conf file ou 1er dans la list, false = contraire
 
-		
+		bool	_listenState;
 
 		void	parseListen(std::istringstream& iss);
 		void	parsePort(std::string& port);
@@ -95,7 +96,7 @@ class VirtualServer
 		// void	parsePathErrorPage(std::string& path);
 		void	parseIndex(std::istringstream& iss);
 		void	parseDefaultServer(std::istringstream& iss);
-
+		void	checkNecessaryLine();
 };
 
 #endif

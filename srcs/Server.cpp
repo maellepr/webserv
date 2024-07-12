@@ -67,16 +67,16 @@ void	Server::init(const char *filename)
     //         std::cout << " virtual server name : " << (*vs)->getServerName() << " ip : " << (*vs)->getIP() << " port : " << (*vs)->getPort() << " vs default = " << (*vs)->getDefaultVS() << std::endl;
     //     }
     // }
-
 	_checkDuplicateDefaultServer();
+	// _checkNecessaryServerName();
 	std::cerr << "2. Check _socketBoundVS :\n";
-	// for (std::map<int, std::vector<VirtualServer*> >::iterator it = _socketBoundVs.begin(); it != _socketBoundVs.end(); it++) 
-	// {
-    //     std::cout << "Socket: " << it->first << std::endl;
-    //     for (std::vector<VirtualServer*>::iterator vs = it->second.begin(); vs != it->second.end(); ++vs) {
-    //         std::cout << " virtual server name : " << (*vs)->getServerName() << " ip : " << (*vs)->getIP() << " port : " << (*vs)->getPort() << " vs default = " << (*vs)->getDefaultVS() << std::endl;
-    //     }
-    // }
+	for (std::map<int, std::vector<VirtualServer*> >::iterator it = _socketBoundVs.begin(); it != _socketBoundVs.end(); it++) 
+	{
+        std::cout << "Socket: " << it->first << std::endl;
+        for (std::vector<VirtualServer*>::iterator vs = it->second.begin(); vs != it->second.end(); ++vs) {
+            std::cout << " virtual server name : " << (*vs)->getServerName() << " ip : " << (*vs)->getIP() << " port : " << (*vs)->getPort() << " vs default = " << (*vs)->getDefaultVS() << std::endl;
+        }
+    }
 }
 
 void	Server::_eraseVSIfDuplicate(std::vector<VirtualServer> &virtualServersTemp)
@@ -410,3 +410,11 @@ void	Server::loop()
 	}
 }
 
+// void	Server::_checkNecessaryServerName()
+// {
+// 	// std::map<int, std::vector<VirtualServer*> >	_socketBoundVs;
+// 	for(std::map<int, std::vector<VirtualServer*> >::iterator sB = _socketBoundVs.begin(); sB != _socketBoundVs.end(); sB++)
+// 	{
+		
+// 	}
+// }

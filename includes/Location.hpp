@@ -2,16 +2,22 @@
 # define LOCATION_HPP
 
 #include "webserv.hpp"
+#include "VirtualServer.hpp"
 
+class VirtualServer;
 class Location
 {
 	public:
 		Location();
-		Location(std::map<int, std::string>& returnPage);
+		Location(std::map<int, std::string>& returnPages, VirtualServer& vs);
 		~Location();
 
 		void	setEqualModifier(bool state);
 		bool	&getEqualModifier();
+		
+		std::map<std::string, std::vector<std::string> >	&getConfigLocation();
+
+		std::map<int, std::string>	&getReturn();
 
 		void	setPrefix(std::string prefix);
 

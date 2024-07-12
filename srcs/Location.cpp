@@ -5,9 +5,10 @@ Location::Location()
 	_equalModifier = false;
 }
 
-Location::Location(std::map<int, std::string>& returnPages, std::string& root)
+Location::Location(std::map<int, std::string>& returnPages, VirtualServer& vs)
 {
 	_equalModifier = false;
+
 	if (!(returnPages.empty()))
 	{
 		std::map<int, std::string>::iterator rp = returnPages.begin();
@@ -15,7 +16,28 @@ Location::Location(std::map<int, std::string>& returnPages, std::string& root)
 		std::string	page = rp->second;
 		_returnPageLocation[code] = page;
 	}
-	_root = root;
+	std::vector<std::string> root;
+	if (!(vs.getRoot().empty()))
+	{
+		root.push_back(vs.getRoot());
+		_configLocation["root"] = root;
+	}
+	std::vector<std::string> indexPages;
+	indexPages = vs.getIndexPage();
+	if (!(indexPages.empty()))
+		_configLocation["index"] = indexPages;
+
+	std::vector<std::string> autoIndex;
+	bool	aI = vs.getAutoIndex();
+	if (aI == false)
+		autoIndex.push_back("false");
+	else if (aI == true)
+		autoIndex.push_back("true");
+	_configLocation["autoindex"] = autoIndex;
+
+	_errorPages = vs.getErrorPages();
+
+	_returnPageLocation = vs.getReturnPages();
 }
 
 Location::~Location()
@@ -41,10 +63,14 @@ void	Location::parseLocation(std::istream& file)
 		// std::cerr << "line === " << line << "\n";
 		std::istringstream iss(line);
 		std::string	keyword;
-
+		if (line.empty() || line == "\t\t")
+			continue ;
 		if (!(iss >> keyword))
+		{
+			std::cerr << "keyword = " << keyword << "\n";
 			throw ErrorConfigFile("Error in the conf file : location : missing content4");
-		// std::cerr << "keyword === " << keyword << "\n";
+		}
+		
 		if (keyword == "root")
 		{
 			parseLocation(iss, "root");
@@ -89,24 +115,24 @@ void	Location::parseLocation(std::istream& file)
 			throw ErrorConfigFile("Error in the conf file : location : wrong content 5");
 		}
 	}
-	std::cerr << "\n_config Location : \n";
-	std::cerr << "prefix : " << _prefix << "\n";
-    for (std::map<std::string, std::vector<std::string> >::iterator it = _configLocation.begin(); it != _configLocation.end(); it++) 
-	{
-        std::cout << "Key: " << it->first << std::endl;
-        for (std::vector<std::string>::iterator vecIt = it->second.begin(); vecIt != it->second.end(); ++vecIt) {
-            std::cout << "    Value: " << *vecIt << std::endl;
-        }
-    }
-	std::cerr << "_errorPage of Location :\n"; 
-    for (std::map<int, std::string>::iterator it = _errorPages.begin(); it != _errorPages.end(); it++) {
-        std::cout << it->first << " => " << it->second << "\n";
-    }
-	std::cerr << "_returnPage of Location :\n"; 
-    for (std::map<int, std::string>::iterator ret = _returnPageLocation.begin(); ret != _returnPageLocation.end(); ret++) {
-        std::cout << ret->first << " => " << ret->second << "\n";
-    }
-	std::cerr << "\n\n";
+	// std::cerr << "\n_config Location : \n";
+	// std::cerr << "prefix : " << _prefix << "\n";
+    // for (std::map<std::string, std::vector<std::string> >::iterator it = _configLocation.begin(); it != _configLocation.end(); it++) 
+	// {
+    //     std::cout << "Key: " << it->first << std::endl;
+    //     for (std::vector<std::string>::iterator vecIt = it->second.begin(); vecIt != it->second.end(); ++vecIt) {
+    //         std::cout << "    Value: " << *vecIt << std::endl;
+    //     }
+    // }
+	// std::cerr << "_errorPage of Location :\n"; 
+    // for (std::map<int, std::string>::iterator it = _errorPages.begin(); it != _errorPages.end(); it++) {
+    //     std::cout << it->first << " => " << it->second << "\n";
+    // }
+	// std::cerr << "_returnPage of Location :\n"; 
+    // for (std::map<int, std::string>::iterator ret = _returnPageLocation.begin(); ret != _returnPageLocation.end(); ret++) {
+    //     std::cout << ret->first << " => " << ret->second << "\n";
+    // }
+	// std::cerr << "\n\n";
 }
 
 void	Location::parseLocation(std::istringstream& iss, std::string keyword)
@@ -116,6 +142,9 @@ void	Location::parseLocation(std::istringstream& iss, std::string keyword)
 
 	if (!(iss >> word))
 		throw ErrorConfigFile("Error in the conf file : location : missing content");
+	std::map<std::string, std::vector<std::string> >::iterator confLoc = _configLocation.find(keyword);
+	if (confLoc != _configLocation.end())// keyword existe
+		_configLocation.erase(keyword);
 	content.push_back(word);
 	while (iss >> word)
 		content.push_back(word);
@@ -164,6 +193,8 @@ void	Location::parseLocationErrorPage(std::istringstream& iss)
 
 	if (!(iss >> code))
 		throw ErrorConfigFile("Error in the conf file : location : error_page : missing informations1");
+	if (!(_errorPages.empty()))
+		_errorPages.clear();
 	errorCode = parseErrorCode(code);
 	codeList.push_back(errorCode);
 	while ((iss >> code) && code.find_first_not_of("0123456789") == std::string::npos)
@@ -202,4 +233,15 @@ int	Location::parseErrorCode(std::string& code)
 void	Location::setPrefix(std::string prefix)
 {
 	_prefix = prefix;
+}
+
+
+std::map<int, std::string>	&Location::getReturn()
+{
+	return _returnPageLocation;
+}
+
+std::map<std::string, std::vector<std::string> >	&Location::getConfigLocation()
+{
+	return _configLocation;
 }

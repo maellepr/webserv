@@ -43,6 +43,11 @@
 # define GREY	"\e[38;2;100;89;103m"
 # define VIOLET "\e[38;2;99;71;231m"
 
+#define	DEFAULT_MAXBODYSIZE 3145728;
+#define KB_IN_BYTES 1024;
+#define MB_IN_BYTES 1048576;
+#define	GB_IN_BYTES 1073741824;
+
 class Location;
 
 // Functions ----------------------------------------------------------------------------- //
@@ -147,10 +152,10 @@ typedef enum StatusCode
 
 typedef struct ParseRequestResult
 {	
-	RequestOutcome	outcome;
-	StatusCode		statusCode;
-	Method			method;
-	Location		*location;
+	RequestOutcome	outcome;		// parsing result : SUCCES PENDING FAILURE
+	StatusCode		statusCode;		// SUCCES -> code: none, FAILURE -> code: 1-500
+	Method			method;			// GET POST DELETE
+	Location		*location;		// location qui a matche a la config
 } ParseRequestResult;
 
 #endif
