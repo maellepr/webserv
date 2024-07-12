@@ -15,7 +15,8 @@ void			Response::fillStatusMsg()
 	_statusMsg[STATUS_OK] = "OK"; // A MODIF
 	_statusMsg[STATUS_MOVED_PERMANENTLY] = "Moved Permanently";
 	_statusMsg[STATUS_FORBIDDEN] = "Forbidden";
-	_statusMsg[STATUS_BAD_REQUEST] = "Not Found";
+	_statusMsg[STATUS_BAD_REQUEST] = "Bad Request";
+	_statusMsg[STATUS_NOT_FOUND] = "Not Found";
 	_statusMsg[STATUS_REQUEST_TIMEOUT] = "Request Time-out";
 	_statusMsg[STATUS_PAYLOAD_TOO_LARGE] = "Request Entity Too Large";
 	_statusMsg[STATUS_URI_TOO_LONG] = "Request-URI Too Long";
@@ -29,10 +30,7 @@ void	Response::generateResponse(ParseRequestResult &request)
 	// MODIFIER LES ELSE IF
 	if (request.outcome == REQUEST_FAILURE) //parsing failure
 	{
-		buildErrorPage(request);	
-		// error_page in location 
-		// or
-		// build error page from scratch
+		buildErrorPage(request, request.statusCode);
 	}
 	else if (0) // CGI
 	{
@@ -71,9 +69,13 @@ void			Response::buildStatusLine()
 	// std::cout << GREEN << "statusLine = " << _statusLine << RESET << std::endl;
 }
 
-void			Response::buildErrorPage(ParseRequestResult &request)
+void			Response::buildErrorPage(ParseRequestResult &request, StatusCode statusCode)
 {
-
+	// Attention, le request.statusCode n'est plus forcement valide => utilise celui envoye dans les arguments
+	_statusCode = statusCode;
+		// error_page in location 
+		// or
+		// build error page from scratch
 }
 
 void	Response::buildGet(ParseRequestResult &request)
@@ -86,10 +88,15 @@ void	Response::buildGet(ParseRequestResult &request)
 		_rootDir.pop_back();
 	_finalURI = _rootDir + request.uri;
 
+	if (isUriValid(_finalURI) == false)
+	{
+		return (buildErrorPage(request, STATUS_FORBIDDEN));
+	}
 	if (isPathADirectory(_finalURI))
 	{
 		if (_finalURI.back() != '/')
 		{
+			// request.statusCode = STATUS_MOVED_PERMANENTLY;
 			_statusCode = STATUS_MOVED_PERMANENTLY;
 			_headers["location"] = "http://" + request.hostName + request.uri + "\r\n"; //A mettre ici ou dans builHeaders ?
 			return ;
@@ -99,6 +106,7 @@ void	Response::buildGet(ParseRequestResult &request)
 			if (_configLocation.find("_indexPages") != _configLocation.end())
 			{
 				std::vector<std::string> indexPages = _configLocation["_indexPages"];
+				Location *newLocation = NULL;
 				if (indexPages.empty() == false)
 				{
 					for (std::vector<std::string>::iterator it = indexPages.begin(); it != indexPages.end(); it++)
@@ -111,7 +119,16 @@ void	Response::buildGet(ParseRequestResult &request)
 							_finalURI = path;
 							break ;
 						}
+						if (request.location->getEqualModifier() == true && newLocation == NULL)
+						{
+							newLocation = associateLocationResponse(request, index);
+						}
 					}
+				}
+				if (newLocation)
+				{
+					request.location = newLocation;
+					return (generateResponse(request));
 				}
 			}
 			if (_configLocation.find("autoindex") != _configLocation.end()
@@ -119,22 +136,27 @@ void	Response::buildGet(ParseRequestResult &request)
 			{
 					buildAutoindexPage();
 			}
-			_statusCode = STATUS_FORBIDDEN;
-			buildErrorPage(request);
+			buildErrorPage(request, STATUS_FORBIDDEN);
 			return ;
 		}
 	}
 	if (isPathADRegularFile(_finalURI))
-		buildPage();
+		buildPage(request);
 	else
-	{
-		_statusCode = STATUS_BAD_REQUEST;
-		buildErrorPage(request);	
-	}
+		buildErrorPage(request, STATUS_NOT_FOUND);	
 }
 
-void			Response::buildPage()
+void			Response::buildPage(ParseRequestResult &request)
 {
+	std::ifstream fileRequested(_finalURI.c_str());
+	if (fileRequested.good() == false)
+	{
+		return(buildErrorPage(request, STATUS_NOT_FOUND));
+	}
+	std::stringstream buffer;
+	buffer << fileRequested.rdbuf();
+	_body = buffer.str();
+
 
 }
 
@@ -189,39 +211,41 @@ int	Response::pushStrToClient(int fd, std::string &str)
 	return (0);
 }
 
-void	Response::associateLocationResponse(ParseRequestResult &request)
+Location	*Response::associateLocationResponse(ParseRequestResult &request, std::string index)
 {
 	size_t len(0);
+	std::string	newURI = request.uri + index;
+	Location *newLoc = NULL;
 
 	// exact match
-	for (std::map<std::string, Location>::iterator it = _vs->getLocations().begin(); it != _vs->getLocations().end(); it++)
+	for (std::map<std::string, Location>::iterator it = request.vs->getLocations().begin(); it != request.vs->getLocations().end(); it++)
 	{
 		if (it->second.getEqualModifier() == true)
 		{
-			if (it->first == _uri)
+			if (it->first == newURI)
 			{
-				_location = &(it->second);
-				break ; // ou RETURN ? REDIRECTION ?
+				request.uri = newURI;
+				return (&(it->second));
 			}	
 		}
 	}
 
 	// longuest prefix
-	if (_location == NULL)
+	for (std::map<std::string, Location>::iterator it = request.vs->getLocations().begin(); it != request.vs->getLocations().end(); it++)
 	{
-		for (std::map<std::string, Location>::iterator it = _vs->getLocations().begin(); it != _vs->getLocations().end(); it++)
+		if (it->second.getEqualModifier() == false)
 		{
-			if (it->second.getEqualModifier() == false)
+			if (newURI.substr(0, it->first.size()) == it->first)
 			{
-				if (_uri.substr(0, it->first.size()) == it->first)
+				if (it->first.size() > len)
 				{
-					if (it->first.size() > len)
-					{
-						_location = &(it->second);
-						len = it->first.size();
-					}
-				}	
-			}
+					request.uri = newURI;
+					newLoc = &(it->second);
+					len = it->first.size();
+				}
+			}	
 		}
 	}
+
+	return (newLoc);
 }

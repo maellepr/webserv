@@ -16,11 +16,11 @@ class Response
 		int				pushStrToClient(int fd, std::string &str);
 
 		void			buildStatusLine();
-		void			buildErrorPage(ParseRequestResult &request);
+		void			buildErrorPage(ParseRequestResult &request, StatusCode statusCode);
 		void			buildGet(ParseRequestResult &request);
-		void			buildPage();
+		void			buildPage(ParseRequestResult &request);
 		void			buildAutoindexPage();
-		void			associateLocationResponse(ParseRequestResult &request);
+		Location		*associateLocationResponse(ParseRequestResult &request, std::string index);
 
 	private:
 		std::string											_statusLine;

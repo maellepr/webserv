@@ -338,7 +338,7 @@ void	Server::loop()
         dprintf(2, "WHILE 2 - avant select\n");
         status = select(_fd_max + 1, &_read_fds, &_write_fds, NULL, &timer);
         if (status == -1)
-            callException(-2);
+            callException(-2); // A modifier car le server ne doit pas s'arreter ?
         else if (status == 0)
 		{
             printf("[Server] Waiting...\n");
@@ -346,7 +346,7 @@ void	Server::loop()
         }
         dprintf(2, "WHILE 3 - apres select\n");
         dprintf(2, "_fd_max = %d\n", _fd_max);
-        for (int i = 0; i <= _fd_max && status > 0; i++) 
+        for (int i = 0; i <= _fd_max && status > 0; i++) // 1 seule boucle ou 2 ?
         {
             if (FD_ISSET(i, &_read_fds) == 1)
 			{

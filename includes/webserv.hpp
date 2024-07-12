@@ -43,6 +43,8 @@
 # define GREY	"\e[38;2;100;89;103m"
 # define VIOLET "\e[38;2;99;71;231m"
 
+# include "VirtualServer.hpp"
+
 class Location;
 class VirtualServer;
 
@@ -53,6 +55,7 @@ void		extension(const std::string& str, const std::string& extension);
 void		isDirectory(const std::string & filename);
 bool		isPathADirectory(const std::string &path);
 bool		isPathADRegularFile(const std::string &path);
+bool		isUriValid(const std::string &uri);
 
 // Exceptions ----------------------------------------------------------------------------- //
 
@@ -140,7 +143,8 @@ typedef enum StatusCode
 	STATUS_OK = 200,
 	STATUS_MOVED_PERMANENTLY = 301,
 	STATUS_FORBIDDEN = 403,
-	STATUS_BAD_REQUEST = 404,
+	STATUS_BAD_REQUEST = 400,
+	STATUS_NOT_FOUND = 404,
 	STATUS_REQUEST_TIMEOUT = 408,
 	STATUS_PAYLOAD_TOO_LARGE = 413,
 	STATUS_URI_TOO_LONG = 414,

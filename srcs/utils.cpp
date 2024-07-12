@@ -48,3 +48,10 @@ bool	isPathADRegularFile(const std::string &path)
 		return (false);
 	return (S_ISREG(buf.st_mode));
 }
+
+bool	isUriValid(const std::string &uri)
+{
+	if (uri.empty() || uri[0] != '/' || uri.find("..") != std::string::npos)
+		return (false);
+	return true;
+}
