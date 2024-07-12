@@ -1,5 +1,10 @@
 #include "../includes/webserv.hpp"
 
+// Global Data ------------------------------------------------------------------------ //
+
+extern std::map<StatusCode, std::string>	STATUS_MESSAGES;
+extern std::map<std::string, std::string>	CONTENT_TYPES;
+
 void	fillStatusMsg()
 {
 	STATUS_MESSAGES[STATUS_NONE] = "OK"; // A MODIF

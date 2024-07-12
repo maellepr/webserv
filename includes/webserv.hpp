@@ -44,11 +44,19 @@
 # define GREY	"\e[38;2;100;89;103m"
 # define VIOLET "\e[38;2;99;71;231m"
 
-# include "Location.hpp"
-# include "VirtualServer.hpp"
 
-class VirtualServer;
 class Location;
+class VirtualServer;
+
+# include "VirtualServer.hpp"
+# include "Location.hpp"
+
+#define	DEFAULT_MAXBODYSIZE 3145728;
+#define KB_IN_BYTES 1024;
+#define MB_IN_BYTES 1048576;
+#define	GB_IN_BYTES 1073741824;
+
+
 
 // Functions ----------------------------------------------------------------------------- //
 
@@ -161,18 +169,13 @@ typedef enum StatusCode
 
 typedef struct ParseRequestResult
 {	
-	RequestOutcome	outcome;
-	StatusCode		statusCode;
-	Method			method;
+	RequestOutcome	outcome;		// parsing result : SUCCES PENDING FAILURE
+	StatusCode		statusCode;		// SUCCES -> code: none, FAILURE -> code: 1-500
+	Method			method;			// GET POST DELETE
 	std::string		uri;
 	std::string		hostName;
 	VirtualServer	*vs;
-	Location		*location;
+	Location		*location;		// location qui a matche a la config
 } ParseRequestResult;
-
-// Global Data ------------------------------------------------------------------------ //
-
-std::map<StatusCode, std::string>	STATUS_MESSAGES;
-std::map<std::string, std::string>	CONTENT_TYPES;
 
 #endif

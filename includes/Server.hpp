@@ -36,9 +36,10 @@ class Server
 		void	_checkDuplicateDefaultServer();
 		void	_defineVSByDefault(std::map<int, std::vector<VirtualServer*> >::iterator it);
 
+		// void	_checkNecessaryServerName();
+
 		void	_addBindedVS(size_t i, std::vector<VirtualServer*> &bindedVS);
 
 };
-
 
 #endif

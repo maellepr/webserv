@@ -1,6 +1,9 @@
 #include "../includes/webserv.hpp"
 #include "../includes/Server.hpp"
 
+std::map<StatusCode, std::string>	STATUS_MESSAGES;
+std::map<std::string, std::string>	CONTENT_TYPES;
+
 int main(int argc, char **argv)
 {
 	if (argc != 2)

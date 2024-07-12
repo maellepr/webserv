@@ -4,6 +4,9 @@
 # include "webserv.hpp"
 # include "Location.hpp"
 
+extern std::map<StatusCode, std::string>	STATUS_MESSAGES;
+extern std::map<std::string, std::string>	CONTENT_TYPES;
+
 class Response
 {
 	public:
