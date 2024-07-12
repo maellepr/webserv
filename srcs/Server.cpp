@@ -16,6 +16,7 @@ void	Server::init(const char *filename)
 {
 	extension(filename, ".conf");
 	isDirectory(filename);
+	fillStatusMsg();
 
 	std::ifstream file(filename);
 	if (!file.is_open())

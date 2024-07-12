@@ -2,27 +2,10 @@
 
 Response::Response()
 {
-	fillStatusMsg();
 }
 
 Response::~Response()
 {
-}
-
-void			Response::fillStatusMsg()
-{
-	_statusMsg[STATUS_NONE] = "OK"; // A MODIF
-	_statusMsg[STATUS_OK] = "OK"; // A MODIF
-	_statusMsg[STATUS_MOVED_PERMANENTLY] = "Moved Permanently";
-	_statusMsg[STATUS_FORBIDDEN] = "Forbidden";
-	_statusMsg[STATUS_BAD_REQUEST] = "Bad Request";
-	_statusMsg[STATUS_NOT_FOUND] = "Not Found";
-	_statusMsg[STATUS_REQUEST_TIMEOUT] = "Request Time-out";
-	_statusMsg[STATUS_PAYLOAD_TOO_LARGE] = "Request Entity Too Large";
-	_statusMsg[STATUS_URI_TOO_LONG] = "Request-URI Too Long";
-	_statusMsg[STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE] = "Request Header Fields Too Large";
-	_statusMsg[STATUS_NOT_IMPLEMENTED] = "Not Implemented";
-	_statusMsg[STATUS_HTTP_VERSION_NOT_SUPPORTED] = "HTTP Version not supported";
 }
 
 void	Response::generateResponse(ParseRequestResult &request)
@@ -65,12 +48,13 @@ void			Response::buildStatusLine()
 {
 	std::stringstream ss;
 	ss << _statusCode;
-	_statusLine = std::string(PROTOCOL_VERSION) + " " + ss.str() + " " + _statusMsg[_statusCode] + "\r\n";
+	_statusLine = std::string(PROTOCOL_VERSION) + " " + ss.str() + " " + STATUS_MESSAGES[_statusCode] + "\r\n";
 	// std::cout << GREEN << "statusLine = " << _statusLine << RESET << std::endl;
 }
 
 void			Response::buildErrorPage(ParseRequestResult &request, StatusCode statusCode)
 {
+	(void) request;
 	// Attention, le request.statusCode n'est plus forcement valide => utilise celui envoye dans les arguments
 	_statusCode = statusCode;
 		// error_page in location 
@@ -84,8 +68,8 @@ void	Response::buildGet(ParseRequestResult &request)
 	if (_configLocation.find("rootDir") != _configLocation.end())
 		_rootDir = _configLocation["rootDir"][0];
 	std::cout << "root = " << _rootDir << std::endl;
-	if (_rootDir.back() != '/')
-		_rootDir.pop_back();
+	if (_rootDir[_rootDir.size() -1] != '/')
+		_rootDir = _rootDir.substr(0, _rootDir.size() - 1);
 	_finalURI = _rootDir + request.uri;
 
 	if (isUriValid(_finalURI) == false)
@@ -94,7 +78,7 @@ void	Response::buildGet(ParseRequestResult &request)
 	}
 	if (isPathADirectory(_finalURI))
 	{
-		if (_finalURI.back() != '/')
+		if (_finalURI[_finalURI.size() -1] != '/')
 		{
 			// request.statusCode = STATUS_MOVED_PERMANENTLY;
 			_statusCode = STATUS_MOVED_PERMANENTLY;
@@ -146,7 +130,7 @@ void	Response::buildGet(ParseRequestResult &request)
 		buildErrorPage(request, STATUS_NOT_FOUND);	
 }
 
-void			Response::buildPage(ParseRequestResult &request)
+void	Response::buildPage(ParseRequestResult &request)
 {
 	std::ifstream fileRequested(_finalURI.c_str());
 	if (fileRequested.good() == false)
@@ -157,10 +141,25 @@ void			Response::buildPage(ParseRequestResult &request)
 	buffer << fileRequested.rdbuf();
 	_body = buffer.str();
 
+	size_t pos = _finalURI.find_last_of("/");
+	if (pos != std::string::npos && (_finalURI.begin() + pos + 1) != _finalURI.end())
+	{
+		std::string resourceName = _finalURI.substr(pos + 1);
+		pos = resourceName.find_last_of(".");
+		if (pos != std::string::npos && (resourceName.begin() + pos + 1) != resourceName.end())
+		{
+			std::string fileExtension = resourceName.substr(pos + 1);
+			if (CONTENT_TYPES.find(fileExtension) != CONTENT_TYPES.end())		
+			{
+				_headers["content-type"] = CONTENT_TYPES[fileExtension];
+				return ;
+			}
+		}
+	}
 
 }
 
-void			Response::buildAutoindexPage()
+void	Response::buildAutoindexPage()
 {
 
 }

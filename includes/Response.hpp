@@ -27,7 +27,6 @@ class Response
 		std::map<std::string, std::string>					_headers;
 		std::string											_body;
 		StatusCode											_statusCode;
-		std::map<StatusCode, std::string>					_statusMsg;
 		std::string											_finalURI;
 		std::string											_rootDir;
 		std::map<std::string, std::vector<std::string> >	_configLocation;

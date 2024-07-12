@@ -1,5 +1,26 @@
 #include "../includes/webserv.hpp"
 
+void	fillStatusMsg()
+{
+	STATUS_MESSAGES[STATUS_NONE] = "OK"; // A MODIF
+	STATUS_MESSAGES[STATUS_OK] = "OK"; // A MODIF
+	STATUS_MESSAGES[STATUS_MOVED_PERMANENTLY] = "Moved Permanently";
+	STATUS_MESSAGES[STATUS_FORBIDDEN] = "Forbidden";
+	STATUS_MESSAGES[STATUS_BAD_REQUEST] = "Bad Request";
+	STATUS_MESSAGES[STATUS_NOT_FOUND] = "Not Found";
+	STATUS_MESSAGES[STATUS_REQUEST_TIMEOUT] = "Request Time-out";
+	STATUS_MESSAGES[STATUS_PAYLOAD_TOO_LARGE] = "Request Entity Too Large";
+	STATUS_MESSAGES[STATUS_URI_TOO_LONG] = "Request-URI Too Long";
+	STATUS_MESSAGES[STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE] = "Request Header Fields Too Large";
+	STATUS_MESSAGES[STATUS_NOT_IMPLEMENTED] = "Not Implemented";
+	STATUS_MESSAGES[STATUS_HTTP_VERSION_NOT_SUPPORTED] = "HTTP Version not supported";
+}
+
+void		fillContentTypes()
+{
+	CONTENT_TYPES["html"] = "text/html";
+}
+
 void	extension(const std::string & str, const std::string & ext)
 {
     if (str.size() >= ext.size() && !str.compare(str.size() - ext.size(), ext.size(), ext))

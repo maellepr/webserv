@@ -31,6 +31,7 @@
 # define MAX_URI_SIZE 2048
 # define MAX_HEADER_SIZE 8192
 # define PROTOCOL_VERSION "HTTP/1.1"
+# define DEFAULT_CONTENT_TYPE "application/octet-stream"
 
 # define RESET	"\e[0m"
 # define BOLD	"\e[1m"
@@ -43,13 +44,16 @@
 # define GREY	"\e[38;2;100;89;103m"
 # define VIOLET "\e[38;2;99;71;231m"
 
+# include "Location.hpp"
 # include "VirtualServer.hpp"
 
-class Location;
 class VirtualServer;
+class Location;
 
 // Functions ----------------------------------------------------------------------------- //
 
+void		fillStatusMsg();
+void		fillContentTypes();
 void		callException(int errorNum);
 void		extension(const std::string& str, const std::string& extension);
 void		isDirectory(const std::string & filename);
@@ -165,5 +169,10 @@ typedef struct ParseRequestResult
 	VirtualServer	*vs;
 	Location		*location;
 } ParseRequestResult;
+
+// Global Data ------------------------------------------------------------------------ //
+
+std::map<StatusCode, std::string>	STATUS_MESSAGES;
+std::map<std::string, std::string>	CONTENT_TYPES;
 
 #endif

@@ -8,6 +8,8 @@
 #define MB_IN_BYTES 1048576;
 #define	GB_IN_BYTES 1073741824; 
 
+// class Location ;
+
 class VirtualServer
 {
 	public:
