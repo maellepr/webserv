@@ -65,7 +65,7 @@ void	Location::parseLocation(std::istream& file)
 		
 		if (keyword == "root")
 		{
-			parseLocation(iss, "root");
+			parseLocation(iss, "rootDir");
 		}
 		else if (keyword == "cgi")
 		{

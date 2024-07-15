@@ -11,9 +11,12 @@ Response::~Response()
 void	Response::generateResponse(ParseRequestResult &request)
 {
 	// MODIFIER LES ELSE IF
+	std::cerr << "generate Response 1\n";
 	if (request.outcome == REQUEST_FAILURE) //parsing failure
 	{
+		std::cerr << "generate Response 2\n";
 		buildErrorPage(request, request.statusCode);
+		std::cerr << "generate Response 3\n";
 	}
 	else if (0) // CGI
 	{
@@ -30,17 +33,22 @@ void	Response::generateResponse(ParseRequestResult &request)
 	else
 	{
 		if (request.method == GET)
+		{
+			std::cerr << "generate Response 4\n";
 			buildGet(request);
+			std::cerr << "generate Response 5\n";
+		}
 		if (request.method == POST)
 			return ; // buildPost(request)
 		if (request.method == DELETE)
 			return ; // buildDelete(request)
 	}
 
-	_statusCode = request.statusCode;
-	if (_statusCode == STATUS_NONE)
-		_statusCode = STATUS_OK; // A enlever
+	// _statusCode = request.statusCode;
+	// if (_statusCode == STATUS_NONE)
+	// 	_statusCode = STATUS_OK; // A enlever
 	buildStatusLine();
+	std::cerr << "generate Response 6\n";
 	// build headers (+body)
 }
 
@@ -54,13 +62,16 @@ void			Response::buildStatusLine()
 
 void			Response::buildErrorPage(ParseRequestResult &request, StatusCode statusCode)
 {
+	std::cerr << "build error page\n";
 	(void) request;
 	// Attention, le request.statusCode n'est plus forcement valide => utilise celui envoye dans les arguments
 	_statusCode = statusCode;
 	std::map<int, std::string>::iterator loc = request.location->getErrorPages().find(_statusCode);
 	std::string	errorPageUri = "." + _rootDir + loc->second;
+	std::cerr << "errorPageUri = " << errorPageUri << "\n";
 	if (errorPageUri.empty() || !readContent(errorPageUri, _body))
 	{
+		std::cerr << "PAS DE PAGE ERROR RECORDED\n";
 		std::map<StatusCode, std::string>::iterator it = STATUS_MESSAGES.find(_statusCode);
 		std::stringstream ss;
 		ss << _statusCode;
@@ -112,8 +123,13 @@ void			Response::buildErrorPage(ParseRequestResult &request, StatusCode statusCo
 					"</body>\n"
 					"\n"
 					"</html>";
+		// _headers["content-length"] = "1000";//TEMPORAIRE
+	
 	}
 	_headers["content-type"] = "text/html";
+	_headers["content-length"] = "1000";//TEMPORAIRE
+
+	std::cerr << "BODY =" << _body << std::endl;
 		// error_page in location 
 		// or
 		// build error page from scratch
@@ -123,18 +139,24 @@ void	Response::buildGet(ParseRequestResult &request)
 {
 	_configLocation = request.location->getConfigLocation();
 	if (_configLocation.find("rootDir") != _configLocation.end())
+	{
+		std::cout << "found rootDir\n";
 		_rootDir = _configLocation["rootDir"][0];
+	}
 	std::cout << "root = " << _rootDir << std::endl;
-	if (_rootDir[_rootDir.size() -1] != '/')
+	if (_rootDir[_rootDir.size() -1] == '/')
 		_rootDir = _rootDir.substr(0, _rootDir.size() - 1);
 	_finalURI = _rootDir + request.uri;
+	std::cout << "_finalURI = " << _finalURI << std::endl;
 
 	if (isUriValid(_finalURI) == false)
 	{
+		std::cout << "URI INVALID" << std::endl;
 		return (buildErrorPage(request, STATUS_FORBIDDEN));
 	}
 	if (isPathADirectory(_finalURI))
 	{
+		std::cerr << "Path is a directory\n";
 		if (_finalURI[_finalURI.size() -1] != '/')
 		{
 			// request.statusCode = STATUS_MOVED_PERMANENTLY;
@@ -181,17 +203,26 @@ void	Response::buildGet(ParseRequestResult &request)
 			return ;
 		}
 	}
+	std::cerr << "before build page\n";
 	if (isPathADRegularFile(_finalURI))
+	{
+		std::cerr << "build page\n";
 		buildPage(request);
+	}
 	else
+	{
+		std::cerr << "PAS build page\n";
 		buildErrorPage(request, STATUS_NOT_FOUND);	
+	}
 }
 
 void	Response::buildPage(ParseRequestResult &request)
 {
+	std::cerr << "dans build page\n";
 	std::ifstream fileRequested(_finalURI.c_str());
 	if (fileRequested.good() == false)
 	{
+		std::cerr << "file not good\n";
 		return(buildErrorPage(request, STATUS_NOT_FOUND));
 	}
 	std::stringstream buffer;
@@ -280,10 +311,13 @@ ResponseOutcome	Response::sendResponseToClient(int fd)
 	
 	// METHOD HEAD => stop and return success
 
-	std::map<std::string, std::string>::iterator body = _headers.find("content-length");
-	if (body != _headers.end() && strtol(body->second.c_str(), NULL, 10) > 0)
+	std::map<std::string, std::string>::iterator it = _headers.find("content-length");
+	if (it != _headers.end())
+		std::cerr << "FOUND CONTENT LENGTH\n";
+	if (it != _headers.end() && strtol(it->second.c_str(), NULL, 10) > 0)
 	{
-		line = _body.substr(0, strtol(body->second.c_str(), NULL, 10) - 1); //convertir
+		std::cerr << "OK THERE IS A BODY\n";
+	 	line = _body.substr(0, strtol(it->second.c_str(), NULL, 10) - 1); //convertir
 		if (pushStrToClient(fd, line) == -1)
 			return RESPONSE_FAILURE;
 		return RESPONSE_SUCCESS;
@@ -296,10 +330,12 @@ ResponseOutcome	Response::sendResponseToClient(int fd)
 int	Response::pushStrToClient(int fd, std::string &str)
 {
 	size_t	bytesSent = 0, tmpSent = 0;
-
+	std::cerr << "str = " << str << "\n";
 	while (bytesSent < str.size())
 	{
+		std::cerr << "pushstrclient 1\n";
 		tmpSent = send(fd, str.c_str() + bytesSent, str.size() - bytesSent, 0);
+		std::cerr << "pushstrclient 2\n";
 		if (tmpSent <= 0)
 			return (-1);
 		bytesSent += tmpSent;

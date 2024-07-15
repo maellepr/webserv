@@ -85,13 +85,21 @@ bool	isUriValid(const std::string &uri)
 
 bool	readContent(std::string &uri, std::string &content)
 {
+	std::cerr << "readContent 0\n";
 	if (isPathADirectory(uri))
+	{
+		std::cerr << "readContent 1\n";
 		return false;
+	}
 	std::ifstream	file(uri.c_str());
 	if (!file.good())
+	{
+		std::cerr << "readContent 2\n";
 		return false;
+	}
 	std::stringstream	buf;
 	buf << file.rdbuf();
 	content = buf.str();
+
 	return true;
 }

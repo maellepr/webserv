@@ -104,9 +104,10 @@ int Client::readRequest()
 
 ResponseOutcome Client::writeResponse()
 {
-    ResponseOutcome status;
+    ResponseOutcome status = RESPONSE_SUCCESS;
 
-	status = _response->sendResponseToClient(_clientfd);
+	if (_response)
+		status = _response->sendResponseToClient(_clientfd);
 	if (status != RESPONSE_PENDING)
 	{
 		delete _response;
