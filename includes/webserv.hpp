@@ -23,6 +23,7 @@
 # include <cstdlib>
 # include <algorithm>
 # include <ctime>
+# include <cstring>
 
 # define DEBUG 1
 
@@ -161,6 +162,7 @@ typedef enum StatusCode
 	STATUS_PAYLOAD_TOO_LARGE = 413,
 	STATUS_URI_TOO_LONG = 414,
 	STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE = 431,
+	STATUS_INTERNAL_SERVER_ERROR = 500,
 	STATUS_NOT_IMPLEMENTED = 501,
 	STATUS_HTTP_VERSION_NOT_SUPPORTED = 505
 } StatusCode;

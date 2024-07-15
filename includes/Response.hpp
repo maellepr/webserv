@@ -13,17 +13,18 @@ class Response
 		Response();
 		~Response();
 
-		void			fillStatusMsg();
-		void			generateResponse(ParseRequestResult &request);
-		ResponseOutcome	sendResponseToClient(int fd);
-		int				pushStrToClient(int fd, std::string &str);
+		void						fillStatusMsg();
+		void						generateResponse(ParseRequestResult &request);
+		ResponseOutcome				sendResponseToClient(int fd);
+		int							pushStrToClient(int fd, std::string &str);
 
-		void			buildStatusLine();
-		void			buildErrorPage(ParseRequestResult &request, StatusCode statusCode);
-		void			buildGet(ParseRequestResult &request);
-		void			buildPage(ParseRequestResult &request);
-		void			buildAutoindexPage();
-		Location		*associateLocationResponse(ParseRequestResult &request, std::string index);
+		void						buildStatusLine();
+		void						buildErrorPage(ParseRequestResult &request, StatusCode statusCode);
+		void						buildGet(ParseRequestResult &request);
+		void						buildPage(ParseRequestResult &request);
+		std::vector<std::string>	doDirListing(DIR *dir);
+		void						buildAutoindexPage(ParseRequestResult &request);
+		Location					*associateLocationResponse(ParseRequestResult &request, std::string index);
 
 	private:
 		std::string											_statusLine;

@@ -118,7 +118,7 @@ void	Response::buildGet(ParseRequestResult &request)
 			if (_configLocation.find("autoindex") != _configLocation.end()
 					&& _configLocation["autoindex"][0] == "true")
 			{
-					buildAutoindexPage();
+					buildAutoindexPage(request);
 			}
 			buildErrorPage(request, STATUS_FORBIDDEN);
 			return ;
@@ -159,9 +159,49 @@ void	Response::buildPage(ParseRequestResult &request)
 
 }
 
-void	Response::buildAutoindexPage()
+std::vector<std::string> Response::doDirListing(DIR *dir)
 {
+	std::vector<std::string> filesList;
+	struct dirent *fileRead;
+	while ((fileRead = readdir(dir)) != NULL)
+	{
+		if (strcmp(fileRead->d_name, ".") != 0 || (strcmp(fileRead->d_name, "..") != 0 && _finalURI != "/"))
+			filesList.push_back(fileRead->d_name);
+		//directory : a-t-on bien le slash de fin?
+	}
+	return (filesList);
+}
 
+void	Response::buildAutoindexPage(ParseRequestResult &request)
+{
+	std::vector<std::string> filesList;
+	DIR *dir = opendir(_finalURI.c_str());
+	if (!dir)
+		buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR);
+	filesList = doDirListing(dir);
+
+	_headers["content-type"] = "text/html";
+	_body += "<!DOCTYPE html>\n";
+	_body += "<html>\n";
+	_body += "<body>\n";
+	_body += "<h1>Index of " + _finalURI + "</h1>";
+
+	for (std::vector<std::string>::iterator it = filesList.begin(); it != filesList.end(); it++)
+	{
+		std::string hyperlink("");
+		std::string filename("");
+		if (*it == "..")
+			filename = "<< go back";
+		else
+			filename = (*it);
+		hyperlink = _finalURI + (*it);
+		_body += "<p><a href=" + hyperlink + ">" + filename + "</a></p>\n";
+	}
+
+	_body += "</body>\n";
+	_body += "</html>\n";
+
+	closedir(dir);
 }
 
 ResponseOutcome	Response::sendResponseToClient(int fd)
