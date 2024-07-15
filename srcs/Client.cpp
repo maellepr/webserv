@@ -104,24 +104,24 @@ int Client::readRequest()
 
 ResponseOutcome Client::writeResponse()
 {
-    // ResponseOutcome status;
+    ResponseOutcome status;
 
-	// status = _response->sendResponseToClient(_clientfd);
-	// if (status != RESPONSE_PENDING)
-	// {
-	// 	delete _response;
-	// 	_response = NULL;
-	// }
-	
-    // return (status);
-
-	static int	i;
-	if (i == 0)
+	status = _response->sendResponseToClient(_clientfd);
+	if (status != RESPONSE_PENDING)
 	{
-		++i;
-		int stat = write(_clientfd, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!:)", strlen("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!:)"));
-		if (stat == -1)
-			return (RESPONSE_FAILURE);
+		delete _response;
+		_response = NULL;
 	}
-	return (RESPONSE_SUCCESS);
+	
+    return (status);
+
+	// static int	i;
+	// if (i == 0)
+	// {
+	// 	++i;
+	// 	int stat = write(_clientfd, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!:)", strlen("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!:)"));
+	// 	if (stat == -1)
+	// 		return (RESPONSE_FAILURE);
+	// }
+	// return (RESPONSE_SUCCESS);
 }
