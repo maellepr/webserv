@@ -57,6 +57,63 @@ void			Response::buildErrorPage(ParseRequestResult &request, StatusCode statusCo
 	(void) request;
 	// Attention, le request.statusCode n'est plus forcement valide => utilise celui envoye dans les arguments
 	_statusCode = statusCode;
+	std::map<int, std::string>::iterator loc = request.location->getErrorPages().find(_statusCode);
+	std::string	errorPageUri = "." + _rootDir + loc->second;
+	if (errorPageUri.empty() || !readContent(errorPageUri, _body))
+	{
+		std::map<StatusCode, std::string>::iterator it = STATUS_MESSAGES.find(_statusCode);
+		std::stringstream ss;
+		ss << _statusCode;
+		std::string	codeStr = ss.str(); 
+		std::string	title;
+		if (it != STATUS_MESSAGES.end())
+			"Unknown error " + codeStr;
+		else
+			codeStr + " " + it->second;
+		_body = "<!DOCTYPE html>\n"
+					"<html lang=\"en\">\n"
+					"\n"
+					"<head>\n"
+					"\t<meta charset=\"UTF-8\">\n"
+					"\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
+					"\t<title>" +
+					title +
+					"</title>\n"
+					"\t<style>\n"
+					"\t\tbody {\n"
+					"\t\t\tbackground-color: #f0f0f0;\n"
+					"\t\t\tfont-family: Arial, sans-serif;\n"
+					"\t\t}\n"
+					"\n"
+					"\t\t.container {\n"
+					"\t\t\twidth: 80%;\n"
+					"\t\t\tmargin: auto;\n"
+					"\t\t\ttext-align: center;\n"
+					"\t\t\tpadding-top: 20%;\n"
+					"\t\t}\n"
+					"\n"
+					"\t\th1 {\n"
+					"\t\t\tcolor: #333;\n"
+					"\t\t}\n"
+					"\n"
+					"\t\tp {\n"
+					"\t\t\tcolor: #666;\n"
+					"\t\t}\n"
+					"\t</style>\n"
+					"</head>\n"
+					"\n"
+					"<body>\n"
+					"\t<div class=\"container\">\n"
+					"\t\t<h1>" +
+					title +
+					"</h1>\n"
+					"\t\t<a href=\"/\">Go back to root.</a>\n"
+					"\t</div>\n"
+					"</body>\n"
+					"\n"
+					"</html>";
+	}
+	_headers["content-type"] = "text/html";
 		// error_page in location 
 		// or
 		// build error page from scratch

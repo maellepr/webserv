@@ -23,6 +23,8 @@ class Location
 
 		std::map<std::string, std::vector<std::string> >	&getConfigLocation();
 
+		std::map<int, std::string>	&getErrorPages();
+
 		void	parseLocation(std::istream& file);
 		void	parseLocation(std::istringstream& iss, std::string keyword);
 		void	parseLocationErrorPage(std::istringstream& iss);

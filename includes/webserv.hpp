@@ -68,6 +68,7 @@ void		isDirectory(const std::string & filename);
 bool		isPathADirectory(const std::string &path);
 bool		isPathADRegularFile(const std::string &path);
 bool		isUriValid(const std::string &uri);
+bool		readContent(std::string &uri, std::string &content);
 
 // Exceptions ----------------------------------------------------------------------------- //
 

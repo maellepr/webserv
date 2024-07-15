@@ -251,3 +251,8 @@ std::map<std::string, std::vector<std::string> >	&Location::getConfigLocation()
 {
 	return _configLocation;
 }
+
+std::map<int, std::string> &Location::getErrorPages()
+{
+	return _errorPages;
+}
