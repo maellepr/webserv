@@ -63,7 +63,11 @@ bool	isPathADirectory(const std::string &path)
 	struct stat buf;
 	
 	if (stat(path.c_str(), &buf) != 0)
+	{
+		std::cerr << "STAT FAILED : \n";
+		std::cerr << strerror(errno) << std::endl;
 		return (false);
+	}
 	return (S_ISDIR(buf.st_mode));
 }
 
@@ -76,12 +80,12 @@ bool	isPathADRegularFile(const std::string &path)
 	return (S_ISREG(buf.st_mode));
 }
 
-bool	isUriValid(const std::string &uri)
-{
-	if (uri.empty() || uri[0] != '/' || uri.find("..") != std::string::npos)
-		return (false);
-	return true;
-}
+// bool	isUriValid(const std::string &uri)
+// {
+// 	if (uri.empty() || uri[0] != '/' || uri.find("..") != std::string::npos)
+// 		return (false);
+// 	return true;
+// }
 
 bool	readContent(std::string &uri, std::string &content)
 {

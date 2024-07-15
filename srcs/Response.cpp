@@ -1,6 +1,6 @@
 #include "../includes/Response.hpp"
 
-Response::Response()
+Response::Response() : _statusCode(STATUS_OK)
 {
 }
 
@@ -44,19 +44,18 @@ void	Response::generateResponse(ParseRequestResult &request)
 			return ; // buildDelete(request)
 	}
 
-	// _statusCode = request.statusCode;
-	// if (_statusCode == STATUS_NONE)
-	// 	_statusCode = STATUS_OK; // A enlever
 	buildStatusLine();
+	std::cerr << "_body = " << _body << std::endl;
 	std::cerr << "generate Response 6\n";
 	// build headers (+body)
 }
 
 void			Response::buildStatusLine()
 {
-	std::stringstream ss;
-	ss << _statusCode;
-	_statusLine = std::string(PROTOCOL_VERSION) + " " + ss.str() + " " + STATUS_MESSAGES[_statusCode] + "\r\n";
+	// std::stringstream ss;
+	// ss << _statusCode;
+	// _statusLine = std::string(PROTOCOL_VERSION) + " " + ss.str() + " " + STATUS_MESSAGES[_statusCode] + "\r\n";
+	_statusLine = std::string(PROTOCOL_VERSION) + " " + convertToStr(_statusCode) + " " + STATUS_MESSAGES[_statusCode] + "\r\n";
 	// std::cout << GREEN << "statusLine = " << _statusLine << RESET << std::endl;
 }
 
@@ -139,21 +138,20 @@ void	Response::buildGet(ParseRequestResult &request)
 {
 	_configLocation = request.location->getConfigLocation();
 	if (_configLocation.find("rootDir") != _configLocation.end())
-	{
-		std::cout << "found rootDir\n";
 		_rootDir = _configLocation["rootDir"][0];
-	}
 	std::cout << "root = " << _rootDir << std::endl;
+	if (_rootDir[0] == '/')
+		_rootDir = _rootDir.substr(1, _rootDir.size() - 1);
 	if (_rootDir[_rootDir.size() -1] == '/')
 		_rootDir = _rootDir.substr(0, _rootDir.size() - 1);
 	_finalURI = _rootDir + request.uri;
 	std::cout << "_finalURI = " << _finalURI << std::endl;
 
-	if (isUriValid(_finalURI) == false)
-	{
-		std::cout << "URI INVALID" << std::endl;
-		return (buildErrorPage(request, STATUS_FORBIDDEN));
-	}
+	// if (isUriValid(_finalURI) == false)
+	// {
+	// 	std::cout << "URI INVALID" << std::endl;
+	// 	return (buildErrorPage(request, STATUS_FORBIDDEN));
+	// }
 	if (isPathADirectory(_finalURI))
 	{
 		std::cerr << "Path is a directory\n";
@@ -166,22 +164,28 @@ void	Response::buildGet(ParseRequestResult &request)
 		}
 		else
 		{
-			if (_configLocation.find("_indexPages") != _configLocation.end())
+			std::cerr << "CASE 0\n";
+			if (_configLocation.find("index") != _configLocation.end())
 			{
-				std::vector<std::string> indexPages = _configLocation["_indexPages"];
+				std::cerr << "CASE 1\n";
+				std::vector<std::string> indexPages = _configLocation["index"];
 				Location *newLocation = NULL;
 				if (indexPages.empty() == false)
 				{
+					std::cerr << "CASE 1.1\n";
 					for (std::vector<std::string>::iterator it = indexPages.begin(); it != indexPages.end(); it++)
 					{
 						std::string index = (*it)[0] == '/' ? (*it).substr(1, std::string::npos) : (*it);
 						std::string path;
 						path = _finalURI + index;
+						std::cout << "path = " << path << std::endl;
 						if (isPathADRegularFile(path))
 						{
+							std::cout << "path regular"<< std::endl;
 							_finalURI = path;
-							break ;
+							return (buildPage(request));
 						}
+						std::cerr << "CASE 1.2\n";
 						if (request.location->getEqualModifier() == true && newLocation == NULL)
 						{
 							newLocation = associateLocationResponse(request, index);
@@ -190,12 +194,14 @@ void	Response::buildGet(ParseRequestResult &request)
 				}
 				if (newLocation)
 				{
+					std::cerr << "CASE 1.3\n";
 					request.location = newLocation;
 					return (generateResponse(request));
 				}
+				std::cerr << "CASE 1.4\n";
 			}
-			if (_configLocation.find("autoindex") != _configLocation.end()
-					&& _configLocation["autoindex"][0] == "true")
+			if (_configLocation.find("auto_index") != _configLocation.end()
+					&& _configLocation["auto_index"][0] == "true")
 			{
 					buildAutoindexPage(request);
 			}
@@ -228,6 +234,7 @@ void	Response::buildPage(ParseRequestResult &request)
 	std::stringstream buffer;
 	buffer << fileRequested.rdbuf();
 	_body = buffer.str();
+	_headers["content-length"] = convertToStr(_body.size());
 
 	size_t pos = _finalURI.find_last_of("/");
 	if (pos != std::string::npos && (_finalURI.begin() + pos + 1) != _finalURI.end())

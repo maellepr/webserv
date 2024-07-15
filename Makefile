@@ -11,7 +11,7 @@ SRC = main.cpp webserv.cpp Server.cpp VirtualServer.cpp Client.cpp utils.cpp \
 	Location.cpp Request.cpp Response.cpp 
 SRCS = $(addprefix $(SRCS_PATH), $(SRC))
 
-OBJS_PATH = ./objects/
+OBJS_PATH = .objects/
 OBJ = $(SRC:.cpp=.o)
 OBJS = $(addprefix $(OBJS_PATH), $(OBJ))
 
