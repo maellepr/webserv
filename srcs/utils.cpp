@@ -51,7 +51,7 @@ void	isDirectory(const std::string & path)
 	}
     if (S_ISDIR(info.st_mode) != 0)// is not a directory
 	{
-		throw ErrorConfigFile("Error the path is not a directory");
+		throw ErrorConfigFile("Error the path is a directory");
 		// std::cerr << "Error : " << path << " is not a directory\n";
 		// return false;
 	}
@@ -80,5 +80,18 @@ bool	isUriValid(const std::string &uri)
 {
 	if (uri.empty() || uri[0] != '/' || uri.find("..") != std::string::npos)
 		return (false);
+	return true;
+}
+
+bool	readContent(std::string &uri, std::string &content)
+{
+	if (isPathADirectory(uri))
+		return false;
+	std::ifstream	file(uri.c_str());
+	if (!file.good())
+		return false;
+	std::stringstream	buf;
+	buf << file.rdbuf();
+	content = buf.str();
 	return true;
 }
