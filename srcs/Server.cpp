@@ -89,7 +89,7 @@ void	Server::init(const char *filename)
 	{
         std::cout << "Socket: " << it->first << std::endl;
         for (std::vector<VirtualServer*>::iterator vs = it->second.begin(); vs != it->second.end(); ++vs) {
-            std::cout << " virtual server name : " << (*vs)->getServerName() << " ip : " << (*vs)->getIP() << " port : " << (*vs)->getPort() << " vs default = " << (*vs)->getDefaultVS() << std::endl;
+            std::cout << " virtual server name : " << (*vs)->getServerName() << " ip : " << (*vs)->getIP() << " port : " << (*vs)->getPort() << " vs default = " << (*vs)->getDefaultVS() << " Isbind = " << (*vs)->getIsBind() << std::endl;
         }
     }
 }
@@ -165,10 +165,14 @@ void	Server::_ipIsAnyAddress(size_t i)
 				if (_virtualServers[i].getServerName() == _virtualServers[j].getServerName())
 					throw ErrorConfigFile("Error : two blocks server have same port, ip address and server_name");
 				if (_virtualServers[i].getIsBind() == 0)
+				{
 					_virtualServers[j].setIsBind(1);
+				}
 			}
 			else if (_virtualServers[i].getPort() == _virtualServers[j].getPort())
+			{
 				_virtualServers[j].setIsBind(1);
+			}
 		}
 	}
 }
@@ -237,17 +241,36 @@ void	Server::_checkDuplicateDefaultServer()
 void	Server::_defineVSByDefault(std::map<int, std::vector<VirtualServer*> >::iterator it)
 {
 	int	minServer = _nbServers;
+	// std::cerr << "_ndServers = " << _nbServers << "\n";
 	for (std::vector<VirtualServer*>::iterator vs = it->second.begin(); vs != it->second.end(); vs++)
 	{
-		if ((*vs)->getIndex() < minServer)
+		if ((*vs)->getIndex() < minServer && (*vs)->getIP() == "0.0.0.0")
 		{
 			minServer = (*vs)->getIndex();
 		}
 	}
-	for (std::vector<VirtualServer*>::iterator vs = it->second.begin(); vs != it->second.end(); vs++)
+	if (minServer != _nbServers)
 	{
-		if ((*vs)->getIndex() == minServer)
-			(*vs)->setDefaultVS(true);
+		for (std::vector<VirtualServer*>::iterator vs = it->second.begin(); vs != it->second.end(); vs++)
+		{
+			if ((*vs)->getIndex() == minServer)
+				(*vs)->setDefaultVS(true);
+		}
+	}
+	else 
+	{
+		for (std::vector<VirtualServer*>::iterator vs = it->second.begin(); vs != it->second.end(); vs++)
+		{
+			if ((*vs)->getIndex() < minServer && (*vs)->getIP() == "0.0.0.0")
+			{
+				minServer = (*vs)->getIndex();
+			}
+		}
+		for (std::vector<VirtualServer*>::iterator vs = it->second.begin(); vs != it->second.end(); vs++)
+		{
+			if ((*vs)->getIndex() == minServer)
+				(*vs)->setDefaultVS(true);
+		}
 	}
 }
 

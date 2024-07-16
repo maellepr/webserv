@@ -24,6 +24,7 @@ VirtualServer::VirtualServer()
 	_isBind = 0;
 
 	_listenState = false;
+	_rootState = false;
 }
 
 VirtualServer::~VirtualServer()
@@ -51,21 +52,21 @@ void	VirtualServer::init(std::istream& file)
 		else if (keyword == "}" && empty == false)
 		{
 			checkNecessaryLine();
-			// std::cerr << "\nSERVER :\nlisten : ip  " << _ip << " port " << _port << "\n";
-			// std::cerr << "server_name : " << _serverName << "\n";
-			// std::cerr << "root :" << _rootDir << "\n";
-			// std::cerr << "error_pages : \n";
-			// for(std::map<int, std::string>::iterator ep = _errorPages.begin(); ep != _errorPages.end(); ep++)
-			// {
-			// 	std::cerr << "code: " << ep->first;
-			// 	std::cerr << "  page: " << ep->second << "\n";
-			// }
-			// std::cerr << "return :\n";
-			// for(std::map<int, std::string>::iterator ret = _returnPages.begin(); ret != _returnPages.end(); ret++)
-			// {
-			// 	std::cerr << "code: " << ret->first;
-			// 	std::cerr << "  page: " << ret->second << "\n";
-			// }
+			std::cerr << "\nSERVER :\nlisten : ip  " << _ip << " port " << _port << "\n";
+			std::cerr << "server_name : " << _serverName << "\n";
+			std::cerr << "root :" << _rootDir << "\n";
+			std::cerr << "error_pages : \n";
+			for(std::map<int, std::string>::iterator ep = _errorPages.begin(); ep != _errorPages.end(); ep++)
+			{
+				std::cerr << "code: " << ep->first;
+				std::cerr << "  page: " << ep->second << "\n";
+			}
+			std::cerr << "return :\n";
+			for(std::map<int, std::string>::iterator ret = _returnPages.begin(); ret != _returnPages.end(); ret++)
+			{
+				std::cerr << "code: " << ret->first;
+				std::cerr << "  page: " << ret->second << "\n";
+			}
 			return ;
 		}
 		else if (keyword == "listen")
@@ -267,6 +268,7 @@ void	VirtualServer::parseRoot(std::istringstream& iss)
 		throw ErrorConfigFile("Error : root : cannot access path or file");
     // if (S_ISDIR(info.st_mode) != 0)// is not a directory
 	// 	throw ErrorConfigFile("Error : root : the path is not a directory");
+	_rootState = true;
 }
 
 void	VirtualServer::parseAutoIndex(std::istringstream& iss)
@@ -460,6 +462,8 @@ void	VirtualServer::checkNecessaryLine()
 {
 	if (_listenState == false)
 		throw ErrorConfigFile("Error in the conf file : listen is missing");
+	if (_rootState == false)
+		throw ErrorConfigFile("Error in the conf file: root is missing");
 	// bool	_listenState;
 	// bool	_serverNameState;
 	// bool	_rootState;
