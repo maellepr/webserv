@@ -5,9 +5,10 @@ Location::Location()
 	_equalModifier = false;
 }
 
-Location::Location(std::map<int, std::string>& returnPages, VirtualServer& vs)
+Location::Location(std::map<int, std::string>& returnPages, VirtualServer& vs, bool serverActAsLocation)
 {
 	_equalModifier = false;
+	_serverActAsLocation = serverActAsLocation;
 
 	if (!(returnPages.empty()))
 	{
@@ -20,7 +21,7 @@ Location::Location(std::map<int, std::string>& returnPages, VirtualServer& vs)
 	if (!(vs.getRoot().empty()))
 	{
 		root.push_back(vs.getRoot());
-		_configLocation["root"] = root;
+		_configLocation["rootDir"] = root;
 	}
 	std::vector<std::string> indexPages;
 	indexPages = vs.getIndexPage();
@@ -255,4 +256,9 @@ std::map<std::string, std::vector<std::string> >	&Location::getConfigLocation()
 std::map<int, std::string> &Location::getErrorPages()
 {
 	return _errorPages;
+}
+
+bool	&Location::getServerActAsLocation()
+{
+	return _serverActAsLocation;
 }

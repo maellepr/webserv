@@ -323,11 +323,11 @@ ResponseOutcome	Response::sendResponseToClient(int fd)
 
 	std::map<std::string, std::string>::iterator it = _headers.find("content-length");
 	if (it != _headers.end())
-		std::cerr << "FOUND CONTENT LENGTH\n";
+		std::cerr << "FOUND CONTENT LENGTH of " << strtol(it->second.c_str(), NULL, 10) << "\n";
 	if (it != _headers.end() && strtol(it->second.c_str(), NULL, 10) > 0)
 	{
 		std::cerr << "OK THERE IS A BODY\n";
-	 	line = _body.substr(0, strtol(it->second.c_str(), NULL, 10) - 1); //convertir
+	 	line = _body.substr(0, strtol(it->second.c_str(), NULL, 10)); //convertir
 		if (pushStrToClient(fd, line) == -1)
 			return RESPONSE_FAILURE;
 		return RESPONSE_SUCCESS;
@@ -341,6 +341,7 @@ int	Response::pushStrToClient(int fd, std::string &str)
 {
 	size_t	bytesSent = 0, tmpSent = 0;
 	std::cerr << "str = " << str << "\n";
+	std::cerr << "str size = " << str.size() << "\n";
 	while (bytesSent < str.size())
 	{
 		std::cerr << "pushstrclient 1\n";

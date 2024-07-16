@@ -9,7 +9,7 @@ class Location
 {
 	public:
 		Location();
-		Location(std::map<int, std::string>& returnPages, VirtualServer& vs);
+		Location(std::map<int, std::string>& returnPages, VirtualServer& vs, bool serverActAsLocation);
 		~Location();
 
 		void	setEqualModifier(bool state);
@@ -25,6 +25,8 @@ class Location
 
 		std::map<int, std::string>	&getErrorPages();
 
+		bool						&getServerActAsLocation();
+
 		void	parseLocation(std::istream& file);
 		void	parseLocation(std::istringstream& iss, std::string keyword);
 		void	parseLocationErrorPage(std::istringstream& iss);
@@ -37,6 +39,7 @@ class Location
 		std::map<std::string, std::vector<std::string> >	_configLocation;
 		std::map<int, std::string>	_errorPages;
 		std::map<int, std::string>	_returnPageLocation;
+		bool						_serverActAsLocation;
 		// root
 		// methods
 		// dir-listing / default-uri

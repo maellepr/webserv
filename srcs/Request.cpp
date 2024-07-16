@@ -81,6 +81,7 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 			return (parsingFailed(ret));
 		std::cout << GREY << "Chosen location infos : " << RESET << std::endl;
 		std::cout << GREY << "Location prefix : " << _location->getPrefix() << RESET << std::endl;
+		std::cout << GREY << "Server acting as location (0: false, 1:true) : " << _location->getServerActAsLocation() << RESET << std::endl;
 		// for (std::map<std::string, Location>::iterator it = _vs->getLocations().begin(); it != _vs->getLocations().end(); it++)
 		// {
 		// 	if (&it->second == _location)
@@ -106,12 +107,10 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 			unsigned char c;
 			while ((is >> c) && (_body.size() + 1 <= _contentLength))
 				_body += c;
+			buffer = "";
 		}
 		if (_body.size() < _contentLength)
-		{
-			buffer = "";
 			return (parsingPending()); //CHECKER SI BAD REQUEST SI > _contentLength
-		}
 		return (parsingSucceeded());
 	}
 	return (parsingPending()); // A CHECKER
@@ -416,7 +415,15 @@ VirtualServer*	Request::findServerNamesMatches(std::vector<VirtualServer*> match
 
 StatusCode	Request::associateLocationRequest()
 {
-	size_t len(0);
+	// no location available => server acts as location
+	if (_vs->getLocations().empty())
+	{
+		Location	location(_vs->getReturnPages(), *_vs, true);
+		location.setPrefix("/");
+		_vs->getLocations()["/"] = location;
+		_location = &_vs->getLocations()["/"];
+		return (STATUS_NONE);
+	}
 
 	// exact match
 	for (std::map<std::string, Location>::iterator it = _vs->getLocations().begin(); it != _vs->getLocations().end(); it++)
@@ -426,40 +433,32 @@ StatusCode	Request::associateLocationRequest()
 			if (it->first == _uri)
 			{
 				_location = &(it->second);
-				break ; // ou RETURN ? REDIRECTION ?
+				return (STATUS_NONE);
 			}	
 		}
-
-		// cas tres specifique : = /directory + index ; changement de location?
-		
 	}
 
 	// longuest prefix
-	if (_location == NULL)
+	size_t len(0);
+	for (std::map<std::string, Location>::iterator it = _vs->getLocations().begin(); it != _vs->getLocations().end(); it++)
 	{
-		for (std::map<std::string, Location>::iterator it = _vs->getLocations().begin(); it != _vs->getLocations().end(); it++)
+		if (it->second.getEqualModifier() == false)
 		{
-			if (it->second.getEqualModifier() == false)
+			if (_uri.substr(0, it->first.size()) == it->first)
 			{
-				if (_uri.substr(0, it->first.size()) == it->first)
+				if (it->first.size() > len)
 				{
-					if (it->first.size() > len)
-					{
-						_location = &(it->second);
-						len = it->first.size();
-					}
-				}	
-			}
+					_location = &(it->second);
+					len = it->first.size();
+				}
+			}	
 		}
 	}
+	return (STATUS_NONE);
 
-
-
-	// REDIRECTIONS :
-		// index
+	// REDIRECTIONS ??
+		// index : OK
 		// try files
 		// rewrite
-		// error page
-
-	return (STATUS_NONE);
+		// error page : OK
 }
