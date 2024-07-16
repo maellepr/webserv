@@ -9,7 +9,21 @@ Server::Server()
 
 Server::~Server()
 {
+	for (std::map<int, std::vector<VirtualServer*> >::iterator it = _socketBoundVs.begin(); it != _socketBoundVs.end(); it++)
+	{
+		// for (std::vector<VirtualServer*>::iterator vsIt = it->second.begin(); vsIt != it->second.end(); vsIt++)
+		// {
+		// 	close((*vsIt)->getSocketFd());
+		// }
+		std::cerr << "close socket server :" << it->first << "\n";
+		close(it->first);
+	}
 
+	for(std::map<int, Client>::iterator it = _clients.begin(); it != _clients.end(); it++)
+	{
+		std::cerr << "close socket client :" << it->second.getFd() << "\n";
+		close(it->second.getFd());
+	}
 }
 
 void	Server::init(const char *filename)
@@ -327,7 +341,7 @@ void	Server::loop()
 	// }
 	dprintf(2, "fd max du debut = %d\n", _fd_max);
 	
-	while (1)
+	while (noSignal)
 	{
     	dprintf(2, "WHILE 1 - before sleep\n");
         sleep(2); // A ENLEVER

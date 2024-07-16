@@ -24,6 +24,7 @@
 # include <algorithm>
 # include <ctime>
 # include <cstring>
+# include <csignal>
 
 # define DEBUG 1
 
@@ -45,7 +46,7 @@
 # define GREY	"\e[38;2;100;89;103m"
 # define VIOLET "\e[38;2;99;71;231m"
 
-
+extern bool noSignal;
 class Location;
 class VirtualServer;
 
@@ -70,6 +71,7 @@ bool		isPathADirectory(const std::string &path);
 bool		isPathADRegularFile(const std::string &path);
 // bool		isUriValid(const std::string &uri);
 bool		readContent(std::string &uri, std::string &content);
+void		handleSignal(int signum);
 
 // Templates must be in header
 

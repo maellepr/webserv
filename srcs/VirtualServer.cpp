@@ -442,6 +442,8 @@ void	VirtualServer::connectVirtualServers()
 		printf("[Server] Created server socket fd: %d\n", socket_fd);
 
 		// Bind socket to address and port
+		int opt = 1;
+		setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, 4);
 		status = bind(socket_fd, (struct sockaddr *)&_address, sizeof _address);
 		if (status != 0)
 		{

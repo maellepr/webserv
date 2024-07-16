@@ -4,6 +4,7 @@
 
 extern std::map<StatusCode, std::string>	STATUS_MESSAGES;
 extern std::map<std::string, std::string>	CONTENT_TYPES;
+extern bool noSignal;
 
 void	fillStatusMsg()
 {
@@ -106,4 +107,10 @@ bool	readContent(std::string &uri, std::string &content)
 	content = buf.str();
 
 	return true;
+}
+
+void	handleSignal(int signum)
+{
+	(void)signum;
+	noSignal = false;
 }
