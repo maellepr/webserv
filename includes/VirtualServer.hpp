@@ -82,6 +82,7 @@ class VirtualServer
 		bool	_defaultVS;			// true = default_server ecrit dans le conf file ou 1er dans la list, false = contraire
 
 		bool	_listenState;
+		bool	_rootState;
 
 		void	parseListen(std::istringstream& iss);
 		void	parsePort(std::string& port);
