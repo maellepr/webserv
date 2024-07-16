@@ -167,7 +167,7 @@ void	Server::_ipIsAnyAddress(size_t i)
 				if (_virtualServers[i].getIsBind() == 0)
 					_virtualServers[j].setIsBind(1);
 			}
-			if (_virtualServers[i].getPort() == _virtualServers[j].getPort())
+			else if (_virtualServers[i].getPort() == _virtualServers[j].getPort())
 				_virtualServers[j].setIsBind(1);
 		}
 	}

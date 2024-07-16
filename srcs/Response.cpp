@@ -45,7 +45,7 @@ void	Response::generateResponse(ParseRequestResult &request)
 	}
 
 	buildStatusLine();
-	std::cerr << "_body = " << _body << std::endl;
+	// std::cerr << "_body = " << _body << std::endl;
 	std::cerr << "generate Response 6\n";
 	// build headers (+body)
 }
@@ -61,13 +61,16 @@ void			Response::buildStatusLine()
 
 void			Response::buildErrorPage(ParseRequestResult &request, StatusCode statusCode)
 {
-	std::cerr << "build error page\n";
-	(void) request;
 	// Attention, le request.statusCode n'est plus forcement valide => utilise celui envoye dans les arguments
+	std::cerr << "build error page\n";
+	std::string	errorPageUri("");
 	_statusCode = statusCode;
 	std::map<int, std::string>::iterator loc = request.location->getErrorPages().find(_statusCode);
-	std::string	errorPageUri = "." + _rootDir + loc->second;
-	std::cerr << "errorPageUri = " << errorPageUri << "\n";
+	if (loc != request.location->getErrorPages().end())
+	{
+		errorPageUri = "." + _rootDir + loc->second;
+		std::cerr << "errorPageUri = " << errorPageUri << "\n";
+	}
 	if (errorPageUri.empty() || !readContent(errorPageUri, _body))
 	{
 		std::cerr << "PAS DE PAGE ERROR RECORDED\n";
@@ -128,7 +131,7 @@ void			Response::buildErrorPage(ParseRequestResult &request, StatusCode statusCo
 	_headers["content-type"] = "text/html";
 	_headers["content-length"] = "1000";//TEMPORAIRE
 
-	std::cerr << "BODY =" << _body << std::endl;
+	// std::cerr << "BODY =" << _body << std::endl;
 		// error_page in location 
 		// or
 		// build error page from scratch

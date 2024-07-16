@@ -467,7 +467,7 @@ void	VirtualServer::checkNecessaryLine()
 	for(std::map<std::string, Location>::iterator loc = _location.begin(); loc != _location.end(); loc++)
 	{
 
-		std::map<std::string, std::vector<std::string> >::iterator configLoc = (*loc).second.getConfigLocation().find("root");
+		std::map<std::string, std::vector<std::string> >::iterator configLoc = (*loc).second.getConfigLocation().find("rootDir");
 
 		if (configLoc == (*loc).second.getConfigLocation().end() && (*loc).second.getReturn().empty() 
 		&& _returnPages.empty() && _rootDir.empty())

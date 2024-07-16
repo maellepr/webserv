@@ -328,9 +328,9 @@ std::vector<VirtualServer*>	Request::findIpPortMatches()
 	for (std::vector<VirtualServer*>::iterator it = _vsCandidates.begin(); it != _vsCandidates.end(); it++)
 	{
 		if ((*it)->getPort() != _clientport)
-			_vsCandidates.erase(it);
+			continue;
 		if ((*it)->getIP() != _clientip && (*it)->getIP() != "0.0.0.0")
-			_vsCandidates.erase(it);
+			continue;
 		if ((*it)->getIP() == "0.0.0.0" || ((*it)->getPort() == 8080 && (*it)->getPortByDefault()))
 			generalMatch.push_back(*it);
 		else
@@ -340,6 +340,7 @@ std::vector<VirtualServer*>	Request::findIpPortMatches()
 		return (perfectMatch);
 	else
 		return (generalMatch);
+
 }
 
 StatusCode	Request::extractClientServerName()
