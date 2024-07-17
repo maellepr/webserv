@@ -271,7 +271,7 @@ void	Server::_defineVSByDefault(std::map<int, std::vector<VirtualServer*> >::ite
 	{
 		for (std::vector<VirtualServer*>::iterator vs = it->second.begin(); vs != it->second.end(); vs++)
 		{
-			if ((*vs)->getIndex() < minServer && (*vs)->getIP() == "0.0.0.0")
+			if ((*vs)->getIndex() < minServer)
 			{
 				minServer = (*vs)->getIndex();
 			}

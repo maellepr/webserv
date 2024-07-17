@@ -295,11 +295,11 @@ StatusCode	Request::associateVirtualServer()
 		if ((*it)->getDefaultVS() == true)
 		{
 			_vs = *it;
-			break ;
+			return (STATUS_NONE);
 		}
 	}
 	std::cout << LIGHTBLUE << "associateVirtualServer 5" << RESET << std::endl;
-	return (STATUS_NONE);
+	return (STATUS_INTERNAL_SERVER_ERROR);
 }
 
 void	Request::fillClientInfos()
@@ -372,37 +372,51 @@ VirtualServer*	Request::findServerNamesMatches(std::vector<VirtualServer*> match
 		std::string serverName = (*it)->getServerName();
 		if (serverName == _hostName)
 				return (*it);
+		if (count(serverName.begin(), serverName.end(), '*') != 1)
+			continue;
 		// leading or trailing wildcards : *server_name or server_name*
+		std::cout << "servername = " << serverName << std::endl;
 		if (serverName[0] == '*')
 		{
+			std::cout << "leading" << std::endl;
 			std::string wServerName = serverName.substr(1, std::string::npos);
 			size_t match_pos = _hostName.find(wServerName);
 			if (match_pos != std::string::npos && (match_pos + wServerName.size()) == _hostName.size())
+			{
+				std::cout << "push" << std::endl;
 				leadingWildcard.push_back(*it);
+			}
 		}
 		if (leadingWildcard.empty() && serverName[serverName.size() - 1] == '*')
 		{
+			std::cout << "trailing" << std::endl;
 			std::string serverNameW = serverName.substr(0, serverName.size() - 1);
 			if (_hostName.substr(0, serverNameW.size()) == serverNameW)
+			{
+				std::cout << "push" << std::endl;
 				trailingWildcard.push_back(*it);
+			}
 		}
 	}
 	if (leadingWildcard.empty() == false)
 	{
+		VirtualServer *leadvs = NULL;
+		size_t len = 0;
 		for (std::vector<VirtualServer*>::iterator it = leadingWildcard.begin(); it != leadingWildcard.end(); it++)
 		{
-			if ((it + 1) != leadingWildcard.end() \
-				&& (*it)->getServerName().size() > (*(it + 1))->getServerName().size())
-				leadingWildcard.erase(it + 1);
+			if (len < (*it)->getServerName().size())
+			{
+				leadvs = (*it);
+				len = (*it)->getServerName().size();
+			}
 		}
-		if (leadingWildcard.size() == 1)
-			return (leadingWildcard[0]);
-		return (NULL);
+		return (leadvs);
 	}
 	if (trailingWildcard.empty() == false)
 	{
 		for (std::vector<VirtualServer*>::iterator it = trailingWildcard.begin(); it != trailingWildcard.end(); it++)
 		{
+			std::cout << (*it)->getServerName() << std::endl;
 			if ((it + 1) != trailingWildcard.end() \
 				&& (*it)->getServerName().size() > (*(it + 1))->getServerName().size())
 				trailingWildcard.erase(it + 1);
