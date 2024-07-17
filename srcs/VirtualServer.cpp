@@ -110,7 +110,7 @@ void	VirtualServer::init(std::istream& file)
 				}
 			}
 			else
-				prefix = "none";
+				throw ErrorConfigFile("Error in the conf file : location : no prefix");
 			location.parseLocation(file);
 			_location[prefix] = location;
 		}
@@ -468,15 +468,15 @@ void	VirtualServer::checkNecessaryLine()
 	// bool	_serverNameState;
 	// bool	_rootState;
 	// bool	_returnState;
-	for(std::map<std::string, Location>::iterator loc = _location.begin(); loc != _location.end(); loc++)
-	{
+	// for(std::map<std::string, Location>::iterator loc = _location.begin(); loc != _location.end(); loc++)
+	// {
 
-		std::map<std::string, std::vector<std::string> >::iterator configLoc = (*loc).second.getConfigLocation().find("rootDir");
+	// 	std::map<std::string, std::vector<std::string> >::iterator configLoc = (*loc).second.getConfigLocation().find("rootDir");
 
-		if (configLoc == (*loc).second.getConfigLocation().end() && (*loc).second.getReturn().empty() 
-		&& _returnPages.empty() && _rootDir.empty())
-			throw ErrorConfigFile("Error in the conf file : location : root missing");
-	}
+	// 	if (configLoc == (*loc).second.getConfigLocation().end() && (*loc).second.getReturn().empty() 
+	// 	&& _returnPages.empty() && _rootDir.empty())
+	// 		throw ErrorConfigFile("Error in the conf file : location : root missing");
+	// }
 }
 
 // GETTERS / SETTERS -------------------------------------------------------------------- //

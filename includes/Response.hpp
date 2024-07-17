@@ -18,6 +18,8 @@ class Response
 		ResponseOutcome				sendResponseToClient(int fd);
 		int							pushStrToClient(int fd, std::string &str);
 
+		void						buildCgi(ParseRequestResult &request);
+		std::string					findUri();
 		void						buildStatusLine();
 		void						buildErrorPage(ParseRequestResult &request, StatusCode statusCode);
 		void						buildGet(ParseRequestResult &request);
