@@ -110,7 +110,7 @@ void	VirtualServer::init(std::istream& file)
 				}
 			}
 			else
-				prefix = "none";
+				throw ErrorConfigFile("Error in the conf file : location : no prefix");
 			location.parseLocation(file);
 			if (location.getEqualModifier() == true)
 			{

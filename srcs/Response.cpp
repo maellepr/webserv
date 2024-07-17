@@ -18,8 +18,10 @@ void	Response::generateResponse(ParseRequestResult &request)
 		buildErrorPage(request, request.statusCode);
 		std::cerr << "generate Response 3\n";
 	}
-	else if (0) // CGI
+	else if (request.location->getConfigLocation().find("cgi") != request.location->getConfigLocation().end()) // CGI
 	{
+		std::cerr << ">> CGI <<\n";
+		// buildCgi(request);
 		(void) request;
 	}
 	else if (0) // location method not allowed
@@ -49,6 +51,42 @@ void	Response::generateResponse(ParseRequestResult &request)
 	std::cerr << "generate Response 6\n";
 	// build headers (+body)
 }
+
+void	Response::buildCgi(ParseRequestResult &request)
+{
+	(void)request;
+	// _configLocation = request.location->getConfigLocation();
+	// std::map<std::string, std::vector<std::string> >::iterator it = _configLocation.find("cgi");
+	// char	*pathCgi = const_cast<char*>(it->second[0].c_str());// dans cgiTest : usr/bin/python-3
+	// std::cerr << "path = " << pathCgi << "\n";
+
+	// // (void)path;
+
+	// // std::cerr << "_rootDir = " << _rootDir << "\n";
+	// // std::cerr << "location uri = " << request.uri << "\n"; // = test.com
+	// // // std::cerr << "location->getUri = " << request.location
+	// // std::string uri = _rootDir + request.uri;
+	
+	// if (_configLocation.find("rootDir") != _configLocation.end())
+	// 	_rootDir = _configLocation["rootDir"][0];// rootDir : www/cgiTest/cgi-bin
+	// std::cout << "root = " << _rootDir << std::endl;
+	// if (_rootDir[0] == '/')
+	// 	_rootDir = _rootDir.substr(1, _rootDir.size() - 1);
+	// if (_rootDir[_rootDir.size() -1] == '/')
+	// 	_rootDir = _rootDir.substr(0, _rootDir.size() - 1);
+	// std::cerr << "request-uri = " << request.uri << "\n";// page demandee : /index
+	// _finalURI = _rootDir + request.uri;// www/cgiTest/cgi-bin/index
+	// std::cout << "_finalURI = " << _finalURI << std::endl;
+	// char	*finalUri = const_cast<char*>(_finalURI.c_str());
+	// if (access(finalUri, F_OK) != 0)
+	// 	return (buildErrorPage(request, ))
+
+}
+
+// std::string	Response::findUri()
+// {
+
+// }
 
 void			Response::buildStatusLine()
 {

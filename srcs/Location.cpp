@@ -56,7 +56,7 @@ void	Location::parseLocation(std::istream& file)
 		// std::cerr << "line === " << line << "\n";
 		std::istringstream iss(line);
 		std::string	keyword;
-		if (line.empty() || line == "\t\t")
+		if (line.empty() || line == "\t\t")//
 			continue ;
 		if (!(iss >> keyword))
 		{
@@ -140,6 +140,11 @@ void	Location::parseLocation(std::istringstream& iss, std::string keyword)
 	if (confLoc != _configLocation.end())// keyword existe
 		_configLocation.erase(keyword);
 	content.push_back(word);
+	if (keyword == "cgi" || keyword == "rootDir" || keyword == "auto_index")
+	{
+		if (iss >> word)
+			throw ErrorConfigFile("Error in the conf file : location : wrong content");
+	}
 	while (iss >> word)
 		content.push_back(word);
 	_configLocation[keyword] = content;
