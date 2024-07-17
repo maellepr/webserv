@@ -108,25 +108,25 @@ void	Location::parseLocation(std::istream& file)
 			throw ErrorConfigFile("Error in the conf file : location : wrong content 5");
 		}
 	}
-	std::cerr << "\n_config Location : \n";
-	std::cerr << "prefix : " << _prefix << "\n";
-    for (std::map<std::string, std::vector<std::string> >::iterator it = _configLocation.begin(); it != _configLocation.end(); it++) 
-	{
-        std::cout << "Key: " << it->first << std::endl;
-        for (std::vector<std::string>::iterator vecIt = it->second.begin(); vecIt != it->second.end(); ++vecIt) {
-            std::cout << "    Value: " << *vecIt << std::endl;
-        }
-    }
-	std::cerr << "_errorPage of Location :\n"; 
-    for (std::map<int, std::string>::iterator it = _errorPages.begin(); it != _errorPages.end(); it++) {
-        std::cout << it->first << " => " << it->second << "\n";
-    }
-	std::cerr << "_returnPage of Location :\n"; 
-    for (std::map<int, std::string>::iterator ret = _returnPageLocation.begin(); ret != _returnPageLocation.end(); ret++) {
-        std::cout << ret->first << " => " << ret->second << "\n";
-    }
-	std::cerr << "equalmodifier = " << _equalModifier << "\n"; 
-	std::cerr << "\n\n";
+	// std::cerr << "\n_config Location : \n";
+	// std::cerr << "prefix : " << _prefix << "\n";
+    // for (std::map<std::string, std::vector<std::string> >::iterator it = _configLocation.begin(); it != _configLocation.end(); it++) 
+	// {
+    //     std::cout << "Key: " << it->first << std::endl;
+    //     for (std::vector<std::string>::iterator vecIt = it->second.begin(); vecIt != it->second.end(); ++vecIt) {
+    //         std::cout << "    Value: " << *vecIt << std::endl;
+    //     }
+    // }
+	// std::cerr << "_errorPage of Location :\n"; 
+    // for (std::map<int, std::string>::iterator it = _errorPages.begin(); it != _errorPages.end(); it++) {
+    //     std::cout << it->first << " => " << it->second << "\n";
+    // }
+	// std::cerr << "_returnPage of Location :\n"; 
+    // for (std::map<int, std::string>::iterator ret = _returnPageLocation.begin(); ret != _returnPageLocation.end(); ret++) {
+    //     std::cout << ret->first << " => " << ret->second << "\n";
+    // }
+	// std::cerr << "equalmodifier = " << _equalModifier << "\n"; 
+	// std::cerr << "\n\n";
 }
 
 void	Location::parseLocation(std::istringstream& iss, std::string keyword)
