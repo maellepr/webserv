@@ -112,7 +112,16 @@ void	VirtualServer::init(std::istream& file)
 			else
 				prefix = "none";
 			location.parseLocation(file);
-			_location[prefix] = location;
+			if (location.getEqualModifier() == true)
+			{
+				if (_locationEqual.find(prefix) == _locationEqual.end())
+					_locationEqual[prefix] = location;
+			}
+			else
+			{
+				if (_location.find(prefix) == _location.end())
+					_location[prefix] = location;
+			}
 		}
 		else if (keyword == "return")
 		{
@@ -575,6 +584,12 @@ std::map<std::string, Location>	&VirtualServer::getLocations()
 {
 	return _location;
 }
+
+std::map<std::string, Location>	&VirtualServer::getLocationsEqual()
+{
+	return _locationEqual;
+}
+
 
 std::string &VirtualServer::getRoot()
 {

@@ -81,6 +81,7 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 			return (parsingFailed(ret));
 		std::cout << GREY << "Chosen location infos : " << RESET << std::endl;
 		std::cout << GREY << "Location prefix : " << _location->getPrefix() << RESET << std::endl;
+		std::cout << GREY << "Location root : " << _location->getConfigLocation()["rootDir"][0] << RESET << std::endl;
 		std::cout << GREY << "Server acting as location (0: false, 1:true) : " << _location->getServerActAsLocation() << RESET << std::endl;
 		// for (std::map<std::string, Location>::iterator it = _vs->getLocations().begin(); it != _vs->getLocations().end(); it++)
 		// {
@@ -416,7 +417,7 @@ VirtualServer*	Request::findServerNamesMatches(std::vector<VirtualServer*> match
 StatusCode	Request::associateLocationRequest()
 {
 	// no location available => server acts as location
-	if (_vs->getLocations().empty())
+	if (_vs->getLocations().empty() && _vs->getLocationsEqual().empty())
 	{
 		Location	location(_vs->getReturnPages(), *_vs, true);
 		location.setPrefix("/");
@@ -425,35 +426,51 @@ StatusCode	Request::associateLocationRequest()
 		return (STATUS_NONE);
 	}
 
+	// for (std::map<std::string, Location>::iterator it = _vs->getLocations().begin(); it != _vs->getLocations().end(); it++)
+	// {
+	// 	std::cout << RED << "equal it = <" << it->first << ">" << RESET << std::endl;
+	// 	std::cout << RED << "equalmodif = " << it->second.getEqualModifier() << RESET << std::endl;
+	// }
+
 	// exact match
-	for (std::map<std::string, Location>::iterator it = _vs->getLocations().begin(); it != _vs->getLocations().end(); it++)
+	for (std::map<std::string, Location>::iterator it = _vs->getLocationsEqual().begin(); it != _vs->getLocationsEqual().end(); it++)
 	{
-		if (it->second.getEqualModifier() == true)
+		// if (it->second.getEqualModifier() == true)
+		// {
+		if (it->first == _uri)
 		{
-			if (it->first == _uri)
-			{
-				_location = &(it->second);
-				return (STATUS_NONE);
-			}	
-		}
+			_location = &(it->second);
+			return (STATUS_NONE);
+		}	
+		// }
 	}
 
 	// longuest prefix
 	size_t len(0);
 	for (std::map<std::string, Location>::iterator it = _vs->getLocations().begin(); it != _vs->getLocations().end(); it++)
 	{
-		if (it->second.getEqualModifier() == false)
+		// if (it->second.getEqualModifier() == false)
+		// {
+		if (_uri.substr(0, it->first.size()) == it->first)
 		{
-			if (_uri.substr(0, it->first.size()) == it->first)
+			if (it->first.size() > len)
 			{
-				if (it->first.size() > len)
-				{
-					_location = &(it->second);
-					len = it->first.size();
-				}
-			}	
-		}
+				_location = &(it->second);
+				len = it->first.size();
+			}
+		}	
+		// }
 	}
+
+	// no location available => server acts as location
+	if (_location == NULL)
+	{
+		Location	location(_vs->getReturnPages(), *_vs, true);
+		location.setPrefix("/");
+		_vs->getLocations()["/"] = location;
+		_location = &_vs->getLocations()["/"];
+	}
+
 	return (STATUS_NONE);
 
 	// REDIRECTIONS ??

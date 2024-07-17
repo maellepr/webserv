@@ -92,6 +92,16 @@ void	Server::init(const char *filename)
             std::cout << " virtual server name : " << (*vs)->getServerName() << " ip : " << (*vs)->getIP() << " port : " << (*vs)->getPort() << " vs default = " << (*vs)->getDefaultVS() << " Isbind = " << (*vs)->getIsBind() << std::endl;
         }
     }
+	// for(std::vector<VirtualServer>::iterator it = _virtualServers.begin(); it != _virtualServers.end(); it++)
+	// {
+	// 	std::map<std::string, Location>	locs = (*it).getLocations();
+	// 	for (std::map<std::string, Location>::iterator locIt = locs.begin(); locIt != locs.end(); locIt++)
+	// 	{
+	// 		std::cout << RED << "LOC = " << locIt->first << RESET << std::endl;
+	// 		std::cout << "equalmod = " << locIt->second.getEqualModifier() << std::endl;
+	// 	}
+		
+	// }
 }
 
 void	Server::_eraseVSIfDuplicate(std::vector<VirtualServer> &virtualServersTemp)
@@ -341,7 +351,6 @@ void	Server::_addBindedVS(size_t i, std::vector<VirtualServer*> &bindedVS)
 
 void	Server::loop()
 {
-
 	int			status;
 	// int			res = 0;
 	struct timeval timer;

@@ -26,6 +26,7 @@ class VirtualServer
 
 		bool							&getPortByDefault();
 		std::map<std::string, Location>	&getLocations();
+		std::map<std::string, Location>	&getLocationsEqual();
 
 		int		&getIsBind();
 		void	setIsBind(int bind);
@@ -70,7 +71,8 @@ class VirtualServer
 		// std::vector<std::string>	_serverNames;
 		std::string	_serverName;	// server_name
 
-		std::map<std::string, Location> _location;	// location -> map avec string = prefix, Location = un obj Location 
+		std::map<std::string, Location> _location;	// location -> map avec string = prefix, Location = un obj Location
+		std::map<std::string, Location> _locationEqual; // location = prefix {}
 
 		int		_isBind;			// FOR PARSING 0 not bind but should be bind / 1 bind
 

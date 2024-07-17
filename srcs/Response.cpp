@@ -361,33 +361,42 @@ Location	*Response::associateLocationResponse(ParseRequestResult &request, std::
 	Location *newLoc = NULL;
 
 	// exact match
-	for (std::map<std::string, Location>::iterator it = request.vs->getLocations().begin(); it != request.vs->getLocations().end(); it++)
+	for (std::map<std::string, Location>::iterator it = request.vs->getLocationsEqual().begin(); it != request.vs->getLocationsEqual().end(); it++)
 	{
-		if (it->second.getEqualModifier() == true)
+		// if (it->second.getEqualModifier() == true)
+		// {
+		if (it->first == newURI)
 		{
-			if (it->first == newURI)
-			{
-				request.uri = newURI;
-				return (&(it->second));
-			}	
-		}
+			request.uri = newURI;
+			return (&(it->second));
+		}	
+		// }
 	}
 
 	// longuest prefix
 	for (std::map<std::string, Location>::iterator it = request.vs->getLocations().begin(); it != request.vs->getLocations().end(); it++)
 	{
-		if (it->second.getEqualModifier() == false)
+		// if (it->second.getEqualModifier() == false)
+		// {
+		if (newURI.substr(0, it->first.size()) == it->first)
 		{
-			if (newURI.substr(0, it->first.size()) == it->first)
+			if (it->first.size() > len)
 			{
-				if (it->first.size() > len)
-				{
-					request.uri = newURI;
-					newLoc = &(it->second);
-					len = it->first.size();
-				}
-			}	
+				request.uri = newURI;
+				newLoc = &(it->second);
+				len = it->first.size();
+			}
 		}
+		// }
+	}
+
+	// no location available => server acts as location
+	if (newLoc == NULL)
+	{
+		Location	location(request.vs->getReturnPages(), *request.vs, true);
+		location.setPrefix("/");
+		request.vs->getLocations()["/"] = location;
+		newLoc = &request.vs->getLocations()["/"];
 	}
 
 	return (newLoc);

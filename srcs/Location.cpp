@@ -2,7 +2,7 @@
 
 Location::Location()
 {
-	_equalModifier = false;
+	// _equalModifier = false;
 }
 
 Location::Location(std::map<int, std::string>& returnPages, VirtualServer& vs, bool serverActAsLocation)
@@ -125,6 +125,7 @@ void	Location::parseLocation(std::istream& file)
     for (std::map<int, std::string>::iterator ret = _returnPageLocation.begin(); ret != _returnPageLocation.end(); ret++) {
         std::cout << ret->first << " => " << ret->second << "\n";
     }
+	std::cerr << "equalmodifier = " << _equalModifier << "\n"; 
 	std::cerr << "\n\n";
 }
 
