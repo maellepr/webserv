@@ -2,7 +2,7 @@
 
 // CONSTRUCTORS / DESTRUCTORS ------------------------------------------------------ //
 
-Client::Client() : _clientfd(-1), _request(NULL), _response(NULL), _buffer("") {}
+Client::Client() : _clientfd(-1), _request(NULL), _response(NULL), _buffer(""), _clientStatus(NONE) {}
 
 Client::~Client()
 {
@@ -33,6 +33,11 @@ void	Client::setConnectedServers(int serverfd, std::map<int, std::vector<Virtual
 	}
 }
 
+ClientStatus	&Client::getClientStatus()
+{
+	return _clientStatus;
+}
+
 // VirtualServer &Client::getConnectedServer()
 // {
 //     return ;
@@ -50,36 +55,41 @@ void	Client::setConnectedServers(int serverfd, std::map<int, std::vector<Virtual
 
 // FUNCTIONS --------------------------------------------------------------------- //
 
-int Client::readRequest()
+int Client::readRequest(int isInReadSet)
 {
-	char	buffer[BUFSIZ];// A MODIF
-	size_t	bytesRead;
 	ParseRequestResult	parsedRequest;
+	if (isInReadSet)
+	{
+		// std::cout << "USE RECV\n";
+		char	buffer[BUFSIZ];// A MODIF
+		size_t	bytesRead;
 
-	memset(&buffer, '\0', sizeof(buffer));
-	bytesRead = recv(_clientfd, buffer, BUFSIZ, 0);
-	if (bytesRead <= 0)
-	{
-		if (bytesRead == 0)
-			std::cout << "[" << _clientfd << "]" << "Client socket closed connection.\n" << std::endl;
-		else
-			std::cerr << "[Server] Recv error: " << strerror(errno) << std::endl;
-		close(_clientfd);
-		return (-1);
+		memset(&buffer, '\0', sizeof(buffer));
+		bytesRead = recv(_clientfd, buffer, BUFSIZ, 0);
+		if (bytesRead <= 0)
+		{
+			if (bytesRead == 0)
+				std::cout << "[" << _clientfd << "]" << "Client socket closed connection.\n" << std::endl;
+			else
+				std::cerr << "[Server] Recv error: " << strerror(errno) << std::endl;
+			close(_clientfd);
+			return (-1);
+		}
+		if (DEBUG)
+		{
+			std::cout << ORANGE << "REQUEST from client socket : " << _clientfd
+					<< "\n===============\n"
+					<< buffer
+					<< "===============" << RESET << std::endl;
+		}
+		if (_request == NULL)
+		{
+			_request = new Request(_clientfd, _vsCandidates); // new A PROTEGER ?
+			_requestStartTime = std::time(NULL);
+			_clientStatus = REQUEST_ONGOING;
+		}
+		_buffer += buffer;
 	}
-	if (DEBUG)
-	{
-		std::cout << ORANGE << "REQUEST from client socket : " << _clientfd
-				<< "\n===============\n"
-				<< buffer
-				<< "===============" << RESET << std::endl;
-	}
-	if (_request == NULL)
-	{
-		_request = new Request(_clientfd, _vsCandidates); // new A PROTEGER ?
-		_requestStartTime = std::time(NULL);
-	}
-	_buffer += buffer;
 	parsedRequest = _request->parseBuffer(_buffer);
 	if (parsedRequest.outcome == REQUEST_PENDING)
 	{
@@ -87,12 +97,15 @@ int Client::readRequest()
 		{
 			parsedRequest.outcome = REQUEST_FAILURE;
 			parsedRequest.statusCode = STATUS_REQUEST_TIMEOUT;
+			_clientStatus = NONE;
 		}
 		else
 			return (0);
 	}
 
 	std::cout << LIGHTGREEN << "REQUEST OUTCOME = " << parsedRequest.outcome << RESET << std::endl;
+	
+	_clientStatus = NONE;
 
 	_response = new Response; // new A PROTEGER?
 	_response->generateResponse(parsedRequest);

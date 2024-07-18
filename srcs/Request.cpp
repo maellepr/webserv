@@ -6,13 +6,13 @@ Request::~Request() {}
 
 ParseRequestResult	Request::parseBuffer(std::string &buffer)
 {
-	// std::cout << LIGHTBLUE << "PARSE_BUFFER START" << RESET << std::endl;
+	// std::cout << LIGHTBLUE << "PARSE_BUFFER" << RESET << std::endl;
 	StatusCode	ret;
 	GnlStatus	gnl;
 
 	if (_parsingStep == IN_REQUESTLINE)
 	{
-		// std::cout << LIGHTBLUE << "PARSE_BUFFER 1" << RESET << std::endl;
+		// std::cout << LIGHTBLUE << "REQUESTLINE" << RESET << std::endl;
 		// buffer empty ?
 		gnl = getNextLine(buffer);
 		if (gnl != FOUND_NL)
@@ -33,6 +33,7 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 	}
 	if (_parsingStep == IN_HEADERS)
 	{
+		// std::cout << LIGHTBLUE << "HEADERS" << RESET << std::endl;
 		while (buffer.empty() == false)
 		{
 			gnl = getNextLine(buffer);
@@ -61,6 +62,7 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 	}
 	if (_parsingStep == IN_BODY && _vs == NULL)
 	{
+		// std::cout << LIGHTBLUE << "BODY => vs" << RESET << std::endl;
 		// std::cout << GREY << "<header : value>" << RESET << std::endl;
 		// for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); it++)
 		// {
@@ -95,27 +97,36 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 	// std::cout << LIGHTBLUE << "AFTER ASSOCIATE SERVER" << RESET << std::endl;
 	if (_parsingStep == IN_BODY)
 	{
+		// std::cout << LIGHTBLUE << "BODY" << RESET << std::endl;
 		if (_contentLength == 0)
 			ret = checkIfBody();
 		if (ret != STATUS_NONE)
 			return (parsingFailed(ret));
 	
 		if (_contentLength == 0)
+		{
+			if (buffer.empty() == false)
+				return (parsingFailed(STATUS_BAD_REQUEST));
 			return (parsingSucceeded());
+		}
 		else
 		{
 			std::istringstream	is(buffer);
 			unsigned char c;
 			while ((is >> c) && (_body.size() + 1 <= _contentLength))
 				_body += c;
-			buffer = "";
 		}
 		if (_body.size() < _contentLength)
-			return (parsingPending()); //CHECKER SI BAD REQUEST SI > _contentLength
+		{
+			buffer = "";
+			return (parsingPending());
+		}
+		if (buffer.empty() == false)
+			return (parsingFailed(STATUS_BAD_REQUEST));
 		return (parsingSucceeded());
 	}
 	return (parsingPending()); // A CHECKER
-	// std::cout << LIGHTBLUE << "PARSE_BUFFER END" << RESET << std::endl;
+	std::cout << LIGHTBLUE << "PARSE_BUFFER END" << RESET << std::endl;
 }
 
 GnlStatus	Request::getNextLine(std::string &buffer)
@@ -219,33 +230,43 @@ StatusCode	Request::checkIfBody()
 	return (STATUS_NONE);
 }
 
-ParseRequestResult Request::parsingFailed(StatusCode statusCode)
+void	Request::fillParseRequestResult(ParseRequestResult &result)
 {
-	ParseRequestResult	result;
-
-	result.outcome = REQUEST_FAILURE;
-	result.statusCode = statusCode;
-	result.location = _location;
-	return (result);
-}
-
-ParseRequestResult Request::parsingSucceeded()
-{
-	ParseRequestResult	result;
-
-	result.outcome = REQUEST_SUCCESS;
+	result.statusCode = STATUS_NONE;
 	result.method = _method;
 	result.uri = _uri;
 	result.hostName = _hostName;
 	result.location = _location;
 	result.vs = _vs;
+}
+
+ParseRequestResult Request::parsingFailed(StatusCode statusCode)
+{
+	std::cout << "PARSING FAILED\n";
+	ParseRequestResult	result;
+
+	fillParseRequestResult(result);
+	result.outcome = REQUEST_FAILURE;
+	result.statusCode = statusCode;
+	return (result);
+}
+
+ParseRequestResult Request::parsingSucceeded()
+{
+	std::cout << "PARSING SUCCEEDED\n";
+	ParseRequestResult	result;
+
+	fillParseRequestResult(result);
+	result.outcome = REQUEST_SUCCESS;
 	return (result);
 }
 
 ParseRequestResult Request::parsingPending()
 {
+	std::cout << "PARSING PENDING\n";
 	ParseRequestResult	result;
 
+	fillParseRequestResult(result);
 	result.outcome = REQUEST_PENDING;
 	return (result);
 }
@@ -255,6 +276,10 @@ StatusCode	Request::associateVirtualServer()
 	StatusCode ret;
 
 	fillClientInfos();
+	ret = extractClientServerName();
+	if (ret != STATUS_NONE)
+		return (ret);
+
 	// std::cout << LIGHTBLUE << "associateVirtualServer 1" << RESET << std::endl;
 	if (_vsCandidates.size() == 1)
 	{
@@ -274,9 +299,6 @@ StatusCode	Request::associateVirtualServer()
 	// std::cout << LIGHTBLUE << "associateVirtualServer 3" << RESET << std::endl;
 
 	// server_name check
-	ret = extractClientServerName();
-	if (ret != STATUS_NONE)
-		return (ret);
 	if (_hostNameDefined == true)
 	{
 		VirtualServer *matchingServerName;

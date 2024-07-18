@@ -28,7 +28,7 @@
 
 # define DEBUG 1
 
-# define TIMEOUT 10.0
+# define TIMEOUT 3.0
 
 # define MAX_URI_SIZE 2048
 # define MAX_HEADER_SIZE 8192
@@ -133,6 +133,13 @@ typedef enum Method
 	POST,
 	DELETE
 } Method;
+
+typedef enum ClientStatus
+{
+	NONE,
+	REQUEST_ONGOING,
+	RESPONSE_ONGOING
+} ClientStatus;
 
 typedef enum RequestOutcome
 {

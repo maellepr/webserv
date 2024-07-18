@@ -395,7 +395,9 @@ void	Server::loop()
         dprintf(2, "_fd_max = %d\n", _fd_max);
         for (int i = 0; i <= _fd_max && status > 0; i++) // 1 seule boucle ou 2 ?
         {
-            if (FD_ISSET(i, &_read_fds) == 1)
+            if (FD_ISSET(i, &_read_fds) == 1
+				|| (_clients.find(i) != _clients.end()
+					&& _clients[i].getClientStatus() == REQUEST_ONGOING))
 			{
 				dprintf(2, "WHILE 4 - debut boucle read set\n");
 				status--;
@@ -428,7 +430,7 @@ void	Server::loop()
 					dprintf(2, "WHILE 6 - read socket is a client\n");
 					Client&	client = _clients[i]; 
 					
-					if (client.readRequest() == -1)
+					if (client.readRequest(FD_ISSET(i, &_read_fds)) == -1)
 					{
 						FD_CLR(i, &_all_sockets); // Remove socket from the set
 						_clients.erase(i);

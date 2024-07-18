@@ -10,6 +10,7 @@ Response::~Response()
 
 void	Response::generateResponse(ParseRequestResult &request)
 {
+	std::cout << "request.hostName = " << request.hostName << std::endl;
 	// MODIFIER LES ELSE IF
 	std::cerr << "generate Response 1\n";
 	if (request.outcome == REQUEST_FAILURE) //parsing failure
@@ -103,71 +104,85 @@ void			Response::buildErrorPage(ParseRequestResult &request, StatusCode statusCo
 	std::cerr << "build error page\n";
 	std::string	errorPageUri("");
 	_statusCode = statusCode;
-	std::map<int, std::string>::iterator loc = request.location->getErrorPages().find(_statusCode);
-	if (loc != request.location->getErrorPages().end())
+	if (request.location)
 	{
-		errorPageUri = "." + _rootDir + loc->second;
-		std::cerr << "errorPageUri = " << errorPageUri << "\n";
+		std::map<int, std::string>::iterator loc = request.location->getErrorPages().find(_statusCode);
+		if (loc != request.location->getErrorPages().end())
+		{
+			errorPageUri = "." + _rootDir + loc->second;
+			std::cerr << "errorPageUri = " << errorPageUri << "\n";
+		}
 	}
 	if (errorPageUri.empty() || !readContent(errorPageUri, _body))
 	{
 		std::cerr << "PAS DE PAGE ERROR RECORDED\n";
+		std::string errorMsg;
 		std::map<StatusCode, std::string>::iterator it = STATUS_MESSAGES.find(_statusCode);
-		std::stringstream ss;
-		ss << _statusCode;
-		std::string	codeStr = ss.str(); 
-		std::string	title;
 		if (it != STATUS_MESSAGES.end())
-			"Unknown error " + codeStr;
+			errorMsg = convertToStr(_statusCode) + " " + STATUS_MESSAGES[_statusCode];
 		else
-			codeStr + " " + it->second;
-		_body = "<!DOCTYPE html>\n"
-					"<html lang=\"en\">\n"
-					"\n"
-					"<head>\n"
-					"\t<meta charset=\"UTF-8\">\n"
-					"\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
-					"\t<title>" +
-					title +
-					"</title>\n"
-					"\t<style>\n"
-					"\t\tbody {\n"
-					"\t\t\tbackground-color: #f0f0f0;\n"
-					"\t\t\tfont-family: Arial, sans-serif;\n"
-					"\t\t}\n"
-					"\n"
-					"\t\t.container {\n"
-					"\t\t\twidth: 80%;\n"
-					"\t\t\tmargin: auto;\n"
-					"\t\t\ttext-align: center;\n"
-					"\t\t\tpadding-top: 20%;\n"
-					"\t\t}\n"
-					"\n"
-					"\t\th1 {\n"
-					"\t\t\tcolor: #333;\n"
-					"\t\t}\n"
-					"\n"
-					"\t\tp {\n"
-					"\t\t\tcolor: #666;\n"
-					"\t\t}\n"
-					"\t</style>\n"
-					"</head>\n"
-					"\n"
-					"<body>\n"
-					"\t<div class=\"container\">\n"
-					"\t\t<h1>" +
-					title +
-					"</h1>\n"
-					"\t\t<a href=\"/\">Go back to root.</a>\n"
-					"\t</div>\n"
-					"</body>\n"
-					"\n"
-					"</html>";
-		// _headers["content-length"] = "1000";//TEMPORAIRE
+			errorMsg = "Unknown error " + convertToStr(_statusCode);
+		// std::stringstream ss;
+		// ss << _statusCode;
+		// std::string	codeStr = ss.str(); 
+		// std::string	title;
+		// if (it != STATUS_MESSAGES.end())
+		// 	"Unknown error " + codeStr;
+		// else
+		// 	codeStr + " " + it->second;
+		// _body = "<!DOCTYPE html>\n"
+		// 			"<html lang=\"en\">\n"
+		// 			"\n"
+		// 			"<head>\n"
+		// 			"\t<meta charset=\"UTF-8\">\n"
+		// 			"\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
+		// 			"\t<title>" +
+		// 			title +
+		// 			"</title>\n"
+		// 			"\t<style>\n"
+		// 			"\t\tbody {\n"
+		// 			"\t\t\tbackground-color: #f0f0f0;\n"
+		// 			"\t\t\tfont-family: Arial, sans-serif;\n"
+		// 			"\t\t}\n"
+		// 			"\n"
+		// 			"\t\t.container {\n"
+		// 			"\t\t\twidth: 80%;\n"
+		// 			"\t\t\tmargin: auto;\n"
+		// 			"\t\t\ttext-align: center;\n"
+		// 			"\t\t\tpadding-top: 20%;\n"
+		// 			"\t\t}\n"
+		// 			"\n"
+		// 			"\t\th1 {\n"
+		// 			"\t\t\tcolor: #333;\n"
+		// 			"\t\t}\n"
+		// 			"\n"
+		// 			"\t\tp {\n"
+		// 			"\t\t\tcolor: #666;\n"
+		// 			"\t\t}\n"
+		// 			"\t</style>\n"
+		// 			"</head>\n"
+		// 			"\n"
+		// 			"<body>\n"
+		// 			"\t<div class=\"container\">\n"
+		// 			"\t\t<h1>" +
+		// 			title +
+		// 			"</h1>\n"
+		// 			"\t\t<a href=\"/\">Go back to root.</a>\n"
+		// 			"\t</div>\n"
+		// 			"</body>\n"
+		// 			"\n"
+		// 			"</html>";
+
+	_body += "<!DOCTYPE html>\n";
+	_body += "<html>\n";
+	_body += "<body>\n";
+	_body += "<h1>" + errorMsg + "</h1>";
+	_body += "</body>\n";
+	_body += "</html>";
 	
 	}
 	_headers["content-type"] = "text/html";
-	_headers["content-length"] = "1000";//TEMPORAIRE
+	_headers["content-length"] = convertToStr(_body.size());
 
 	// std::cerr << "BODY =" << _body << std::endl;
 		// error_page in location 
@@ -200,7 +215,12 @@ void	Response::buildGet(ParseRequestResult &request)
 		{
 			// request.statusCode = STATUS_MOVED_PERMANENTLY;
 			_statusCode = STATUS_MOVED_PERMANENTLY;
-			_headers["location"] = "http://" + request.hostName + request.uri + "\r\n"; //A mettre ici ou dans builHeaders ?
+			std::string serverName(request.hostName);
+			if (serverName.empty())
+				serverName = request.vs->getIP() + ":" + convertToStr(request.vs->getPort());
+			else
+				serverName += ":" + convertToStr(request.vs->getPort());
+			_headers["location"] = "http://" + serverName + request.uri + "/" + "\r\n"; //A mettre ici ou dans builHeaders ?
 			return ;
 		}
 		else
@@ -241,25 +261,26 @@ void	Response::buildGet(ParseRequestResult &request)
 				}
 				std::cerr << "CASE 1.4\n";
 			}
-			if (_configLocation.find("auto_index") != _configLocation.end()
-					&& _configLocation["auto_index"][0] == "true")
+			if (_configLocation.find("autoindex") != _configLocation.end()
+					&& _configLocation["autoindex"][0] == "true")
 			{
-					buildAutoindexPage(request);
+					std::cerr << "CASE 1.5\n";
+					return(buildAutoindexPage(request));
 			}
-			buildErrorPage(request, STATUS_FORBIDDEN);
-			return ;
+			std::cerr << "CASE 1.6\n";
+			return (buildErrorPage(request, STATUS_FORBIDDEN));
 		}
 	}
 	std::cerr << "before build page\n";
 	if (isPathADRegularFile(_finalURI))
 	{
 		std::cerr << "build page\n";
-		buildPage(request);
+		return (buildPage(request));
 	}
 	else
 	{
 		std::cerr << "PAS build page\n";
-		buildErrorPage(request, STATUS_NOT_FOUND);	
+		return (buildErrorPage(request, STATUS_NOT_FOUND));
 	}
 }
 
@@ -324,20 +345,26 @@ void	Response::buildAutoindexPage(ParseRequestResult &request)
 
 	for (std::vector<std::string>::iterator it = filesList.begin(); it != filesList.end(); it++)
 	{
+		if (*it == ".")
+			continue ;
 		std::string hyperlink("");
 		std::string filename("");
 		if (*it == "..")
 			filename = "<< go back";
 		else
 			filename = (*it);
-		hyperlink = _finalURI + (*it);
+		// hyperlink = _finalURI + (*it);
+		hyperlink = (*it);
+		std::cout << "hyperlink = " << hyperlink << std::endl;
 		_body += "<p><a href=" + hyperlink + ">" + filename + "</a></p>\n";
 	}
 
 	_body += "</body>\n";
-	_body += "</html>\n";
+	_body += "</html>";
 
 	closedir(dir);
+
+	_headers["content-length"] = convertToStr(_body.size());
 }
 
 ResponseOutcome	Response::sendResponseToClient(int fd)

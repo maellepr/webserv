@@ -15,11 +15,12 @@ class Client
         void			setFd(int fd);
         int    			getFd();
 		void			setConnectedServers(int serverfd, std::map<int, std::vector<VirtualServer*> >	&socketBoundVs);
+		ClientStatus	&getClientStatus();
 		// VirtualServer	&getConnectedServer();
 		// void			setMaxBodySize(size_t maxBodySize);
 		// size_t			getMaxBodySize();
 
-        int readRequest();
+        int 			readRequest(int isInReadSet);
         ResponseOutcome writeResponse();
         
     private :
@@ -29,6 +30,7 @@ class Client
 		Response					*_response;
 		std::string					_buffer;
 		time_t 						_requestStartTime;
+		ClientStatus				_clientStatus;
 
 };
 
