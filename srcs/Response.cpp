@@ -106,10 +106,13 @@ void			Response::buildErrorPage(ParseRequestResult &request, StatusCode statusCo
 	_statusCode = statusCode;
 	if (request.location)
 	{
+		std::cout << "STATUSCODE = " << _statusCode << std::endl;
 		std::map<int, std::string>::iterator loc = request.location->getErrorPages().find(_statusCode);
 		if (loc != request.location->getErrorPages().end())
 		{
-			errorPageUri = "." + _rootDir + loc->second;
+			std::cout << "Found StatusCode\n";
+			errorPageUri = loc->second;
+			// errorPageUri = "." + _rootDir + loc->second;
 			std::cerr << "errorPageUri = " << errorPageUri << "\n";
 		}
 	}
