@@ -84,14 +84,14 @@ void	Server::init(const char *filename)
     // }
 	_checkDuplicateDefaultServer();
 	// _checkNecessaryServerName();
-	std::cerr << "2. Check _socketBoundVS :\n";
-	for (std::map<int, std::vector<VirtualServer*> >::iterator it = _socketBoundVs.begin(); it != _socketBoundVs.end(); it++) 
-	{
-        std::cout << "Socket: " << it->first << std::endl;
-        for (std::vector<VirtualServer*>::iterator vs = it->second.begin(); vs != it->second.end(); ++vs) {
-            std::cout << " virtual server name : " << (*vs)->getServerName() << " ip : " << (*vs)->getIP() << " port : " << (*vs)->getPort() << " vs default = " << (*vs)->getDefaultVS() << " Isbind = " << (*vs)->getIsBind() << std::endl;
-        }
-    }
+	// std::cerr << "2. Check _socketBoundVS :\n";
+	// for (std::map<int, std::vector<VirtualServer*> >::iterator it = _socketBoundVs.begin(); it != _socketBoundVs.end(); it++) 
+	// {
+    //     std::cout << "Socket: " << it->first << std::endl;
+    //     for (std::vector<VirtualServer*>::iterator vs = it->second.begin(); vs != it->second.end(); ++vs) {
+    //         std::cout << " virtual server name : " << (*vs)->getServerName() << " ip : " << (*vs)->getIP() << " port : " << (*vs)->getPort() << " vs default = " << (*vs)->getDefaultVS() << " Isbind = " << (*vs)->getIsBind() << std::endl;
+    //     }
+    // }
 	// for(std::vector<VirtualServer>::iterator it = _virtualServers.begin(); it != _virtualServers.end(); it++)
 	// {
 	// 	std::map<std::string, Location>	locs = (*it).getLocations();
@@ -99,8 +99,7 @@ void	Server::init(const char *filename)
 	// 	{
 	// 		std::cout << RED << "LOC = " << locIt->first << RESET << std::endl;
 	// 		std::cout << "equalmod = " << locIt->second.getEqualModifier() << std::endl;
-	// 	}
-		
+	// 	}	
 	// }
 }
 
@@ -228,16 +227,17 @@ void	Server::_checkDuplicateDefaultServer()
 				nbDefaultVS++;
 			}
 		}
-		// std::cerr << "nbDefaultVS = " << nbDefaultVS << "\n";
+		std::cerr << "nbDefaultVS = " << nbDefaultVS << "\n";
 		if (nbDefaultVS > 1)
 			throw ErrorConfigFile("Error in the conf file : several servers set up as server by default (in the same bind)");
-		
 		if (nbDefaultVS == 0)
 		{
 			_defineVSByDefault(it);
 		}
 
 	}
+
+
 
 	// for (size_t i = 0; i < _virtualServers.size(); i++)
 	// {
@@ -271,7 +271,7 @@ void	Server::_defineVSByDefault(std::map<int, std::vector<VirtualServer*> >::ite
 	{
 		for (std::vector<VirtualServer*>::iterator vs = it->second.begin(); vs != it->second.end(); vs++)
 		{
-			if ((*vs)->getIndex() < minServer && (*vs)->getIP() == "0.0.0.0")
+			if ((*vs)->getIndex() < minServer)
 			{
 				minServer = (*vs)->getIndex();
 			}

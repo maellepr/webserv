@@ -21,7 +21,7 @@ void	Response::generateResponse(ParseRequestResult &request)
 	else if (request.location->getConfigLocation().find("cgi") != request.location->getConfigLocation().end()) // CGI
 	{
 		std::cerr << ">> CGI <<\n";
-		// buildCgi(request);
+		buildCgi(request);
 		(void) request;
 	}
 	else if (0) // location method not allowed
@@ -55,38 +55,125 @@ void	Response::generateResponse(ParseRequestResult &request)
 void	Response::buildCgi(ParseRequestResult &request)
 {
 	(void)request;
-	// _configLocation = request.location->getConfigLocation();
-	// std::map<std::string, std::vector<std::string> >::iterator it = _configLocation.find("cgi");
-	// char	*pathCgi = const_cast<char*>(it->second[0].c_str());// dans cgiTest : usr/bin/python-3
-	// std::cerr << "path = " << pathCgi << "\n";
+	_configLocation = request.location->getConfigLocation();
+	std::map<std::string, std::vector<std::string> >::iterator it = _configLocation.find("cgi");
+	char	*pathCgi = const_cast<char*>(it->second[0].c_str());// dans cgiTest : usr/bin/python-3
+	std::cerr << "path = " << pathCgi << "\n";
 
-	// // (void)path;
+	// (void)path;
 
-	// // std::cerr << "_rootDir = " << _rootDir << "\n";
-	// // std::cerr << "location uri = " << request.uri << "\n"; // = test.com
-	// // // std::cerr << "location->getUri = " << request.location
-	// // std::string uri = _rootDir + request.uri;
+	// std::cerr << "_rootDir = " << _rootDir << "\n";
+	// std::cerr << "location uri = " << request.uri << "\n"; // = test.com
+	// // std::cerr << "location->getUri = " << request.location
+	// std::string uri = _rootDir + request.uri;
 	
-	// if (_configLocation.find("rootDir") != _configLocation.end())
-	// 	_rootDir = _configLocation["rootDir"][0];// rootDir : www/cgiTest/cgi-bin
-	// std::cout << "root = " << _rootDir << std::endl;
-	// if (_rootDir[0] == '/')
-	// 	_rootDir = _rootDir.substr(1, _rootDir.size() - 1);
-	// if (_rootDir[_rootDir.size() -1] == '/')
-	// 	_rootDir = _rootDir.substr(0, _rootDir.size() - 1);
-	// std::cerr << "request-uri = " << request.uri << "\n";// page demandee : /index
-	// _finalURI = _rootDir + request.uri;// www/cgiTest/cgi-bin/index
-	// std::cout << "_finalURI = " << _finalURI << std::endl;
-	// char	*finalUri = const_cast<char*>(_finalURI.c_str());
-	// if (access(finalUri, F_OK) != 0)
-	// 	return (buildErrorPage(request, ))
+	if (_configLocation.find("rootDir") != _configLocation.end())
+		_rootDir = _configLocation["rootDir"][0];// rootDir : www/cgiTest/cgi-bin
+	std::cout << "root = " << _rootDir << std::endl;
+	if (_rootDir[0] == '/')
+		_rootDir = _rootDir.substr(1, _rootDir.size() - 1);
+	if (_rootDir[_rootDir.size() -1] == '/')
+		_rootDir = _rootDir.substr(0, _rootDir.size() - 1);
+	std::cerr << "request-uri = " << request.uri << "\n";// page demandee : /index
+	_finalURI = _rootDir + request.uri;// www/cgiTest/cgi-bin/index
+	std::cout << "_finalURI = " << _finalURI << std::endl;
+	char	*finalUri = const_cast<char*>(_finalURI.c_str());
+	std::cerr << "ici\n";
+	if (access(finalUri, F_OK) != 0)
+		return (buildErrorPage(request, STATUS_BAD_GATEWAY));
+	// A COMPLETER
+
+	std::cerr << "Response headers = \n";
+	for (std::map<std::string, std::string>::iterator it = request.headers.begin(); it != request.headers.end(); it++)
+	{
+		std::cerr << "KEY = " << it->first << "\n";
+		std::cerr << "VALUE = " << it->second << "\n"; 
+	}
+
+	int	pipe[2];
+	pid_t	pid = fork();
+	if (pid == 0)//child
+	{
+		dup2(pipe[0], STDIN_FILENO);
+		dup2(pipe[1], STDOUT_FILENO);
+		close(pipe[0]);
+		close(pipe[1]);
+		char *av[] = {pathCgi, finalUri, NULL};
+		std::vector<std::string> vecEnv = doEnvCgi(request);
+		char **env = vectorStringToChar(vecEnv);
+		execve(pathCgi, av, env);
+		// if execve didn't work :
+		perror("execve");
+		freeChar(env);
+		exit(EXIT_FAILURE);
+		// peut-etre faire exit
+	}
+	std::cerr << "PID = " << pid << " script = " << finalUri << "\n";
+	write(pipe[1], _body.c_str(), _body.size());
+	close(pipe[1]);
+	std::string	response = readResponse(pipe[0]);
+	close(pipe[0]);
+
 
 }
 
-// std::string	Response::findUri()
-// {
+std::vector<std::string>	Response::doEnvCgi(ParseRequestResult &request)
+{
+	std::vector<std::string> env;
 
-// }
+	std::stringstream ss;
+	ss << request.contentLenght;
+	// std::cerr << "content lenght = " << ss.str() << "\n";
+	exportToEnv(env, "CONTENT_LENGHT", ss.str());// a remplir avec POST
+	std::map<std::string, std::string>::iterator it = request.headers.find("content-type");
+	if (it == request.headers.end())
+		exportToEnv(env, "CONTENT_TYPE", DEFAULT_CONTENT_TYPE);
+	else
+		exportToEnv(env, "CONTENT_TYPE", it->second);
+	exportToEnv(env, "DOCUMENT_ROOT", request.vs->getRoot());
+	//faut-il prendre root du vs ou root de la location
+	//a demander a Claire : est-ce que location a forcement une rootDir? 
+	exportToEnv(env, "GATEWAY_INTERFACE", CGI_VERSION);
+	// CGI_NO_TRANSMSSION peut etre a ajouter ?
+	std::string absPath = getAbsPath(_finalURI);
+	std::cerr << "absPath == " << absPath << "\n";
+	exportToEnv(env, "PATH_INFO", absPath);
+
+	exportToEnv(env, "QUERY_STRING", "");
+	// The query string portion of the URL (the part after ? in the URL) A REMPLIR
+	exportToEnv(env, "REDIRECT_STATUS", "200");// 200 to indicate the requesst was hande correctly
+	std::stringstream ss2;
+	ss2 << request.method;
+	exportToEnv(env, "REQUEST_METHOD", ss2.str());
+	exportToEnv(env, "SCRIPT_NAME", request.uri);
+	exportToEnv(env, "SCRIPT_FILENAME", absPath);
+	exportToEnv(env, "SERVER_PROTOCOL", PROTOCOL_VERSION);
+	exportToEnv(env, "SERVER_SOFTWARE", SERVER_SOFTWARE);
+
+	// std::cerr << "Response headers = \n";
+	// for (std::map<std::string, std::string>::iterator it = request.headers.begin(); it != request.headers.end(); it++)
+	// {
+	// 	std::cerr << it->first << "\n";
+	// 	std::cerr << it->second << "\n"; 
+	// }
+	// std::cerr << "ENV =\n";
+	// for (std::vector<std::string>::iterator it = env.begin(); it != env.end(); it++)
+	// {
+	// 	std::cerr << (*it) << "\n";
+	// }
+	return (env);
+}
+
+std::string	Response::readResponse(int fd)
+{
+	char buffer[];
+	
+}
+
+void	Response::exportToEnv(std::vector<std::string> &env, const std::string &key, const std::string &value)
+{
+	env.push_back(key + "=" + value);
+}
 
 void			Response::buildStatusLine()
 {

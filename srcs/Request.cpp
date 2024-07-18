@@ -239,6 +239,9 @@ ParseRequestResult Request::parsingSucceeded()
 	result.hostName = _hostName;
 	result.location = _location;
 	result.vs = _vs;
+	for(std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); it++)
+		result.headers[it->first] = it->second;
+	result.contentLenght = _contentLength;
 	return (result);
 }
 
