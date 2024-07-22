@@ -34,6 +34,8 @@
 # define MAX_HEADER_SIZE 8192
 # define PROTOCOL_VERSION "HTTP/1.1"
 # define DEFAULT_CONTENT_TYPE "application/octet-stream"
+# define CGI_VERSION "CGI/1.1"
+# define SERVER_SOFTWARE "webserv/1"
 
 # define RESET	"\e[0m"
 # define BOLD	"\e[1m"
@@ -72,6 +74,9 @@ bool		isPathADRegularFile(const std::string &path);
 // bool		isUriValid(const std::string &uri);
 bool		readContent(std::string &uri, std::string &content);
 void		handleSignal(int signum);
+std::string	getAbsPath(std::string &path);
+char		**vectorStringToChar(std::vector<std::string> &vector);
+void		freeChar(char **tab);
 
 // Templates must be in header
 
@@ -184,6 +189,7 @@ typedef enum StatusCode
 	STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE = 431,
 	STATUS_INTERNAL_SERVER_ERROR = 500,
 	STATUS_NOT_IMPLEMENTED = 501,
+	STATUS_BAD_GATEWAY = 502,
 	STATUS_HTTP_VERSION_NOT_SUPPORTED = 505
 } StatusCode;
 
@@ -198,6 +204,9 @@ typedef struct ParseRequestResult
 	std::string		hostName;
 	VirtualServer	*vs;
 	Location		*location;		// location qui a matche a la config
+
+	std::map<std::string, std::string>		headers;
+	size_t			contentLenght;
 } ParseRequestResult;
 
 #endif

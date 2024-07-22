@@ -114,3 +114,38 @@ void	handleSignal(int signum)
 	(void)signum;
 	noSignal = false;
 }
+
+std::string	getAbsPath(std::string &path)
+{
+	// on compare le debut de path si c'est pas ./ on renvoie /
+	if (!(path.size() >= 2 && path.compare(0,  2, "./")))
+		return ("/");
+	char	buffer[PATH_MAX];
+	char *buf = getcwd(buffer, sizeof(buffer));
+	if (buf)
+		return (buf);
+	return ("/");
+}
+
+char	**vectorStringToChar(std::vector<std::string> &vector)
+{
+	char** tab = new char*[vector.size() + 1];
+	for (size_t i = 0; i < vector.size(); i++)
+	{
+		tab[i] = new char[vector[i].size() + 1];
+		std::copy(vector[i].begin(), vector[i].end(), tab[i]);
+		tab[i][vector[i].size()] = '\0';
+	}
+	tab[vector.size()] = NULL;
+	return (tab);
+}
+
+void	freeChar(char **tab)
+{
+	for (size_t i = 0; tab[i]; i++)
+	{
+		if (tab[i])
+			delete tab[i];
+	}
+	delete tab;
+}

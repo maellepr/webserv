@@ -19,7 +19,9 @@ class Response
 		int							pushStrToClient(int fd, std::string &str);
 
 		void						buildCgi(ParseRequestResult &request);
-		std::string					findUri();
+		std::vector<std::string>	doEnvCgi(ParseRequestResult &request);
+		void						exportToEnv(std::vector<std::string> &env, const std::string &key, const std::string &value);
+		std::string					readResponse(int fd);
 		void						buildStatusLine();
 		void						buildErrorPage(ParseRequestResult &request, StatusCode statusCode);
 		void						buildGet(ParseRequestResult &request);
@@ -36,6 +38,8 @@ class Response
 		std::string											_finalURI;
 		std::string											_rootDir;
 		std::map<std::string, std::vector<std::string> >	_configLocation;
+
+		
 
 };
 

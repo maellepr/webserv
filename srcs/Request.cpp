@@ -238,6 +238,7 @@ void	Request::fillParseRequestResult(ParseRequestResult &result)
 	result.hostName = _hostName;
 	result.location = _location;
 	result.vs = _vs;
+
 }
 
 ParseRequestResult Request::parsingFailed(StatusCode statusCode)
@@ -258,6 +259,12 @@ ParseRequestResult Request::parsingSucceeded()
 
 	fillParseRequestResult(result);
 	result.outcome = REQUEST_SUCCESS;
+
+	//peut etre a bouger de place (dans fillParseRequestResult)
+	for(std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); it++)
+		result.headers[it->first] = it->second;
+	result.contentLenght = _contentLength;
+
 	return (result);
 }
 
