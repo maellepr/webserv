@@ -29,7 +29,7 @@ void	Response::generateResponse(ParseRequestResult &request)
 	{
 		(void) request;
 	}
-	else if (0) // redirection return 
+	else if (0) // redirection return + gere les infinite loop !
 	{
 		(void) request;
 	}
