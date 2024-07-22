@@ -94,8 +94,8 @@ void	Response::buildCgi(ParseRequestResult &request)
 	pid_t	pid = fork();
 	if (pid == 0)//child
 	{
-		dup2(pipe[0], STDIN_FILENO);
-		dup2(pipe[1], STDOUT_FILENO);
+		dup2(pipe[0], STDIN_FILENO);// pipe[0] devient stdin
+		dup2(pipe[1], STDOUT_FILENO);//pipe[1] devient stdout
 		close(pipe[0]);
 		close(pipe[1]);
 		char *av[] = {pathCgi, finalUri, NULL};
@@ -109,8 +109,12 @@ void	Response::buildCgi(ParseRequestResult &request)
 		// peut-etre faire exit
 	}
 	std::cerr << "PID = " << pid << " script = " << finalUri << "\n";
+
+	// on ecrit dans pipe[1] le body
 	write(pipe[1], _body.c_str(), _body.size());
 	close(pipe[1]);
+
+	// on lit la reponse depuis pipe[0]
 	std::string	response = readResponse(pipe[0]);
 	close(pipe[0]);
 
@@ -166,8 +170,18 @@ std::vector<std::string>	Response::doEnvCgi(ParseRequestResult &request)
 
 std::string	Response::readResponse(int fd)
 {
-	char buffer[];
+	char buffer[16384];//BUFFER_SIZE?
+	size_t length;
+	std::string response;
 	
+	while (1)
+	{
+		length = read(fd, buffer, 16384 - 1);
+		buffer[length] = '\0';
+		response += buffer;
+		if (length < 16384 - 1)
+			return response ;
+	}
 }
 
 void	Response::exportToEnv(std::vector<std::string> &env, const std::string &key, const std::string &value)
