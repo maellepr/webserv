@@ -176,11 +176,14 @@ StatusCode	Request::parseRequestLine(std::string requestLine)
 	if (protocol != PROTOCOL_VERSION)
 		return (STATUS_HTTP_VERSION_NOT_SUPPORTED);
 
-	size_t queryBegin = _uri.find('?');
-	if (queryBegin != std::string::npos)
+	if (_method == GET)
 	{
-		_query = _uri.substr(queryBegin + 1);
-		_uri = _uri.substr(0, queryBegin);
+		size_t queryBegin = _uri.find('?');
+		if (queryBegin != std::string::npos)
+		{
+			_query = _uri.substr(queryBegin + 1);
+			_uri = _uri.substr(0, queryBegin);
+		}
 	}
 	return (STATUS_NONE);
 }
@@ -242,6 +245,7 @@ void	Request::fillParseRequestResult(ParseRequestResult &result)
 	result.method = _method;
 	result.uri = _uri;
 	result.query = _query;
+	result.body = _body;
 	result.contentLenght = _contentLength;
 	result.hostName = _hostName;
 	result.location = _location;

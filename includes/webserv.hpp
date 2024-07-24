@@ -215,6 +215,7 @@ typedef struct ParseRequestResult
 	Method			method;			// GET POST DELETE
 	std::string		uri;
 	std::string		query;
+	std::string		body;
 	std::string		hostName;
 	VirtualServer	*vs;
 	Location		*location;		// location qui a matche a la config

@@ -55,6 +55,8 @@ void	Response::generateResponse(ParseRequestResult &request)
 
 void	Response::buildCgi(ParseRequestResult &request)
 {
+	if (request.query.empty())
+		request.query = request.body;
 	_configLocation = request.location->getConfigLocation();
 	std::map<std::string, std::vector<std::string> >::iterator it = _configLocation.find("cgi");
 	std::string path = it->second[0];
@@ -95,8 +97,8 @@ void	Response::buildCgi(ParseRequestResult &request)
 	// 	std::cerr << "VALUE = " << it->second << "\n"; 
 	// }
 
-	int	pipes[2];
-	if (pipe(pipes) == - 1)
+	int	fd[2];
+	if (pipe(fd) == - 1)
 		throw ErrorResponse("Error in Response : pipe()");
 	pid_t	pid = fork();
 	if (pid == -1)
@@ -105,10 +107,10 @@ void	Response::buildCgi(ParseRequestResult &request)
 	std::cerr << "finalUri = " << finalUri << "\n";
 	if (pid == 0)//child
 	{
-		dup2(pipes[0], STDIN_FILENO);// pipe[0] devient stdin
-		dup2(pipes[1], STDOUT_FILENO);//pipe[1] devient stdout
-		close(pipes[0]);
-		close(pipes[1]);
+		dup2(fd[0], STDIN_FILENO);// pipe[0] devient stdin
+		dup2(fd[1], STDOUT_FILENO);//pipe[1] devient stdout
+		close(fd[0]);
+		close(fd[1]);
 		char cgi[14] = "/usr/bin/php";
 		char *av[] = {cgi, finalUri, NULL};
 		std::vector<std::string> vecEnv = doEnvCgi(request);
@@ -136,14 +138,23 @@ void	Response::buildCgi(ParseRequestResult &request)
 	}
 	std::cerr << "PID = " << pid << " script = " << finalUri << "\n";
 
-	// on ecrit dans pipe[1] le body
+	// on ecrit le body dans pipe[1] (stdout)
 	std::cerr << "_body_size = " << _body.size() << "\n";
-	write(pipes[1], _body.c_str(), _body.size());// A REMPLACER
-	close(pipes[1]);
+
+	// FILE* file = fdopen(fd[1], "w");
+
+	// std::ofstream ofs(file);
+	
+	// ofs << _body;
+	// fclose(file);
+
+	write(fd[1], _body.c_str(), _body.size());// A REMPLACER
+	
+	close(fd[1]);
 
 	// on lit la reponse depuis pipe[0]
-	std::string	response = readResponse(pipes[0]);
-	close(pipes[0]);
+	std::string	response = readResponse(fd[0]);
+	close(fd[0]);
 
 	_body = response;
 	_headers["content-length"] = convertToStr(_body.size());
@@ -163,9 +174,8 @@ void	Response::buildCgi(ParseRequestResult &request)
 			}
 		}
 	}
-
-	// faut-il appeler build page pour afficher le result du l'exec du script ?
 }
+
 
 std::vector<std::string>	Response::doEnvCgi(ParseRequestResult &request)
 {
