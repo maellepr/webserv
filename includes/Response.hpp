@@ -25,6 +25,7 @@ class Response
 		void						buildStatusLine();
 		void						buildErrorPage(ParseRequestResult &request, StatusCode statusCode);
 		void						buildGet(ParseRequestResult &request);
+		void						buildPost(ParseRequestResult &request);
 		void						buildPage(ParseRequestResult &request);
 		std::vector<std::string>	doDirListing(DIR *dir);
 		void						buildAutoindexPage(ParseRequestResult &request);

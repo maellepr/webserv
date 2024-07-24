@@ -222,6 +222,8 @@ typedef struct ParseRequestResult
 	std::string		hostName;
 	VirtualServer	*vs;
 	Location		*location;		// location qui a matche a la config
+	bool			isUpload;
+	std::string		boundary;
 
 	std::map<std::string, std::string>		headers;
 	size_t			contentLenght;

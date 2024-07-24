@@ -1,0 +1,63 @@
+Claire : rajouter le boundary + isUpload dans la request
+
+######### TO DO #########
+
+- buildResponse():
+    gerer les return -> attention aux loop infinies =>Maelle
+    gerer les methods not accepted					=>Maelle
+
+- buildErrorPage():
+  URI relatives ou absolues ?
+  Refaire le html de la page d'erreur par defaut =>Maelle
+
+- buildPost():
+    finir buildPost() = upload (creer les fichiers)
+    tester le binaire (si on peut afficher les images par ex)
+    a voir si remplacer les strings par vector<unsigned char>
+    redirections -> attention aux loop infinies
+
+- buildDelete():
+    faire buildDelete() (suppr fichier)				=>Maelle
+
+- Server.loop():
+    gerer correctement les fermetures de sockets (headers close et keep-alive)
+    mettre en place des try catch pour eviter le shutdown du server
+    gerer correctement fd_max
+    gerer le nnombre de clients acceptes par socket server
+
+- chunked requests:
+    to do
+
+- CGI:												=>Maelle
+    cas d'erreur dans les scripts (voir avec TIMEOUT?)
+    tester queries
+    tester nom fichier (?)
+
+- BONUS:
+    cache to do
+    CGI x2 to do
+
+- OTHER:
+    Tester et retester erreurs de configs, de parsing....
+    nettoyer le code et les commentaires
+    faire des jolies pages HTML						=>Maelle
+
+
+######### VARIABLES A REVOIR #########
+- revoir les statuscodes
+- max body size
+- timeout
+
+######### PENDING QUESTIONS #########
+- User-agent -> faut-il en faire qqc? (ex si =/= firefox ou curl, interdire?)
+- Headers obligatoires ? (host)
+- URI relatives et absolues?
+- go back (..) dans les dosssiers ?
+- URI vs *
+- try_files et rewrite a  gerer??
+- CTRL+SHIFT vs CTRL+SHIFT+R pour rafraichir avec le cache ou non
+
+######### RESOLVED #########
+- plusieurs server-names ->non accepte 
+- plusieurs locations pareilles -> OK on prend la premiere
+

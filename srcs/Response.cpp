@@ -43,8 +43,9 @@ void	Response::generateResponse(ParseRequestResult &request)
 		}
 		if (request.method == POST)
 		{
-			std::cout << "GO TO BUILDPOST\n";
-			return ; // buildPost(request)
+			std::cerr << "generate Response 6\n";
+			buildPost(request);
+			std::cerr << "generate Response 7\n";
 		}
 		if (request.method == DELETE)
 			return ; // buildDelete(request)
@@ -469,6 +470,13 @@ void	Response::buildGet(ParseRequestResult &request)
 		std::cerr << "PAS build page\n";
 		return (buildErrorPage(request, STATUS_NOT_FOUND));
 	}
+}
+
+void	Response::buildPost(ParseRequestResult &request)
+{
+	(void)request;
+	std::cout << "BUILDPOST\n";
+	return ;
 }
 
 void	Response::buildPage(ParseRequestResult &request)
