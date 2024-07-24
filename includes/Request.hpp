@@ -43,6 +43,8 @@ class Request
 		std::string									_body;
 		size_t										_contentLength;
 		ParsingStep									_parsingStep;
+		bool										_isUpload;
+		std::string									_boundary;
 
 };
 

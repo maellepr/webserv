@@ -28,7 +28,7 @@
 
 # define DEBUG 1
 
-# define TIMEOUT 3.0
+# define TIMEOUT 100.0
 
 # define MAX_URI_SIZE 2048
 # define MAX_HEADER_SIZE 8192
@@ -47,6 +47,8 @@
 # define PURPLE	"\e[38;2;198;26;234m"
 # define GREY	"\e[38;2;100;89;103m"
 # define VIOLET "\e[38;2;99;71;231m"
+# define DARKBLUE "\e[38;2;42;62;244m"
+# define DARKYELLOW "\e[38;2;244;232;42m"
 
 extern bool noSignal;
 class Location;
@@ -186,6 +188,7 @@ typedef enum StatusCode
 	STATUS_REQUEST_TIMEOUT = 408,
 	STATUS_PAYLOAD_TOO_LARGE = 413,
 	STATUS_URI_TOO_LONG = 414,
+	STATUS_UNSUPPORTED_MEDIA_TYPE = 415,
 	STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE = 431,
 	STATUS_INTERNAL_SERVER_ERROR = 500,
 	STATUS_NOT_IMPLEMENTED = 501,

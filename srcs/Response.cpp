@@ -10,7 +10,7 @@ Response::~Response()
 
 void	Response::generateResponse(ParseRequestResult &request)
 {
-	std::cout << "request.hostName = " << request.hostName << std::endl;
+	// std::cout << "request.hostName = " << request.hostName << std::endl;
 	// MODIFIER LES ELSE IF
 	std::cerr << "generate Response 1\n";
 	if (request.outcome == REQUEST_FAILURE) //parsing failure
@@ -42,7 +42,10 @@ void	Response::generateResponse(ParseRequestResult &request)
 			std::cerr << "generate Response 5\n";
 		}
 		if (request.method == POST)
+		{
+			std::cout << "GO TO BUILDPOST\n";
 			return ; // buildPost(request)
+		}
 		if (request.method == DELETE)
 			return ; // buildDelete(request)
 	}

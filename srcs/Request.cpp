@@ -1,19 +1,18 @@
 #include "../includes/Request.hpp"
 
-Request::Request(int clientfd, std::vector<VirtualServer*> &vsCandidates) : _clientfd(clientfd), _hostNameDefined(false), _vsCandidates(vsCandidates), _vs(NULL), _location(NULL), _contentLength(0), _parsingStep(IN_REQUESTLINE) {}
+Request::Request(int clientfd, std::vector<VirtualServer*> &vsCandidates) : _clientfd(clientfd), _hostNameDefined(false), _vsCandidates(vsCandidates), _vs(NULL), _location(NULL), _contentLength(0), _parsingStep(IN_REQUESTLINE), _isUpload(false) {}
 
 Request::~Request() {}
 
 ParseRequestResult	Request::parseBuffer(std::string &buffer)
 {
-	// std::cout << LIGHTBLUE << "PARSE_BUFFER" << RESET << std::endl;
-	StatusCode	ret;
+	std::cout << LIGHTBLUE << "PARSE_BUFFER" << RESET << std::endl;
+	StatusCode	ret(STATUS_NONE);
 	GnlStatus	gnl;
 
 	if (_parsingStep == IN_REQUESTLINE)
 	{
-		// std::cout << LIGHTBLUE << "REQUESTLINE" << RESET << std::endl;
-		// buffer empty ?
+		std::cout << LIGHTBLUE << "REQUESTLINE" << RESET << std::endl;
 		gnl = getNextLine(buffer);
 		if (gnl != FOUND_NL)
 		{
@@ -26,14 +25,12 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 		ret = parseRequestLine(_line);
 		if (ret != STATUS_NONE)
 			return (parsingFailed(ret));
-		// std::cout << "method = " << _method << std::endl;
-		// std::cout << "URI = " << _uri << std::endl;
 		_parsingStep = IN_HEADERS;
 		_line.clear();
 	}
 	if (_parsingStep == IN_HEADERS)
 	{
-		// std::cout << LIGHTBLUE << "HEADERS" << RESET << std::endl;
+		std::cout << LIGHTBLUE << "HEADERS" << RESET << std::endl;
 		while (buffer.empty() == false)
 		{
 			gnl = getNextLine(buffer);
@@ -45,8 +42,6 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 					return (parsingFailed(STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE));
 				return (parsingPending());
 			}
-			// std::cout << PURPLE << "_line = " << _line << RESET << std::endl;
-
 			if (_line.empty())
 			{
 				_parsingStep = IN_BODY;
@@ -62,13 +57,7 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 	}
 	if (_parsingStep == IN_BODY && _vs == NULL)
 	{
-		// std::cout << LIGHTBLUE << "BODY => vs" << RESET << std::endl;
-		// std::cout << GREY << "<header : value>" << RESET << std::endl;
-		// for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); it++)
-		// {
-		// 	std::cout << GREY << it->first << " : " 
-		// 		 << GREY << it->second << RESET << std::endl;
-		// }
+		std::cout << LIGHTBLUE << "BODY => vs" << RESET << std::endl;
 		std::map<std::string, std::string>::iterator host = _headers.find("host");
 		if (host == _headers.end())
 			return (parsingFailed(STATUS_BAD_REQUEST));
@@ -85,45 +74,88 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 		std::cout << GREY << "Location prefix : " << _location->getPrefix() << RESET << std::endl;
 		std::cout << GREY << "Location root : " << _location->getConfigLocation()["rootDir"][0] << RESET << std::endl;
 		std::cout << GREY << "Server acting as location (0: false, 1:true) : " << _location->getServerActAsLocation() << RESET << std::endl;
-		// for (std::map<std::string, Location>::iterator it = _vs->getLocations().begin(); it != _vs->getLocations().end(); it++)
-		// {
-		// 	if (&it->second == _location)
-		// 	{
-		// 		std::cout << GREY << "Location prefix : " << it->first << RESET << std::endl;
-		// 		break ;
-		// 	}
-		// }
 	}
 	// std::cout << LIGHTBLUE << "AFTER ASSOCIATE SERVER" << RESET << std::endl;
 	if (_parsingStep == IN_BODY)
 	{
-		// std::cout << LIGHTBLUE << "BODY" << RESET << std::endl;
+		std::cout << LIGHTBLUE << "BODY" << RESET << std::endl;
 		if (_contentLength == 0)
 			ret = checkIfBody();
+		// std::cout << LIGHTBLUE << "BODY 0" << RESET << std::endl;
 		if (ret != STATUS_NONE)
 			return (parsingFailed(ret));
+		// std::cout << LIGHTBLUE << "BODY 1" << RESET << std::endl;
 	
 		if (_contentLength == 0)
 		{
+			// std::cout << LIGHTBLUE << "BODY 2" << RESET << std::endl;
 			if (buffer.empty() == false)
 				return (parsingFailed(STATUS_BAD_REQUEST));
 			return (parsingSucceeded());
 		}
 		else
 		{
-			std::istringstream	is(buffer);
-			unsigned char c;
-			while ((is >> c) && (_body.size() + 1 <= _contentLength))
-				_body += c;
+			// std::cout << LIGHTBLUE << "BODY 3" << RESET << std::endl;
+			if (_isUpload)
+			{
+				_isUpload = false;
+				std::stringstream ss(buffer);
+				std::string	line;
+				while (getline(ss, line, '\n'))
+				{
+					_body.append(line + "\n");
+					if (line[line.size() - 1] == '\r')
+					{
+						if (line.substr(0, line.size() - 1) == _boundary + "--")
+						{
+							_isUpload = true;
+							line = "";
+							if (getline(ss, line, '\n'))
+								return (parsingFailed(STATUS_BAD_REQUEST));
+							break ;
+						}
+					}
+					line = "";
+				}
+				// std::cout << DARKBLUE << "_BODY = " << _body << RESET << std::endl;
+				buffer = "";
+				if (_isUpload == false)
+				{
+					_isUpload = true;
+					return (parsingPending());
+				}
+				else if (_isUpload == true && line.empty() == false)
+				{
+					// std::cout << "line = " << line << std::endl;
+					return (parsingFailed(STATUS_BAD_REQUEST));
+				}
+				return (parsingSucceeded());
+			}
+			else
+			{
+				while (buffer.empty() == false && (_body.size() + 1 <= _contentLength))
+				{
+					_body.push_back(buffer[0]);
+					buffer = buffer.substr(1, std::string::npos);
+				}
+				// std::cout << LIGHTBLUE << "BODY 4" << RESET << std::endl;
+				std::cout << DARKBLUE << "_body.size() = " << _body.size() << std::endl;
+				std::cout << DARKBLUE << "_contentLength = " << _contentLength << std::endl;
+				// std::cout << DARKBLUE << "_BODY = " << _body << RESET << std::endl;
+				if (_body.size() < _contentLength)
+				{
+					// std::cout << LIGHTBLUE << "BODY 5" << RESET << std::endl;
+					buffer = "";
+					return (parsingPending());
+				}
+				// std::cout << LIGHTBLUE << "BODY 6" << RESET << std::endl;
+				if (buffer.empty() == false)
+					return (parsingFailed(STATUS_BAD_REQUEST));
+				return (parsingSucceeded());
+				// std::cout << LIGHTBLUE << "BODY 7" << RESET << std::endl;
+			}
+			// std::cout << DARKBLUE << "_BODY = " << _body << RESET << std::endl;
 		}
-		if (_body.size() < _contentLength)
-		{
-			buffer = "";
-			return (parsingPending());
-		}
-		if (buffer.empty() == false)
-			return (parsingFailed(STATUS_BAD_REQUEST));
-		return (parsingSucceeded());
 	}
 	return (parsingPending()); // A CHECKER
 	std::cout << LIGHTBLUE << "PARSE_BUFFER END" << RESET << std::endl;
@@ -212,18 +244,40 @@ StatusCode	Request::parseHeader(std::string header)
 
 StatusCode	Request::checkIfBody()
 {
+	std::cout << "Check if body\n";
 	if (_method == POST)
 	{
-		std::map<std::string, std::string>::iterator itContentLength = _headers.find("content-length");
-		if (itContentLength == _headers.end())
+		std::map<std::string, std::string>::iterator it = _headers.find("content-length");
+		if (it == _headers.end())
+		{
 			_contentLength = 0;
+		}
 		else
 		{
-			if (itContentLength->second.find_first_not_of("0123456789", 0) != std::string::npos)
+			if (it->second.find_first_not_of("0123456789", 0) != std::string::npos)
 				return (STATUS_BAD_REQUEST);
-			_contentLength = strtol(itContentLength->second.c_str(), NULL, 10);
+			_contentLength = strtol(it->second.c_str(), NULL, 10);
 			if (_contentLength > _vs->getMaxBodySize())
 				return (STATUS_PAYLOAD_TOO_LARGE);
+
+			std::map<std::string, std::string>::iterator it = _headers.find("content-type");
+			if (it == _headers.end())
+				return (STATUS_BAD_REQUEST);
+			else
+			{
+				if (it->second.substr(0, strlen("application/x-www-form-urlencoded")) == "application/x-www-form-urlencoded"
+						|| it->second.substr(0, strlen("text/plain")) == "text/plain")
+					return (STATUS_UNSUPPORTED_MEDIA_TYPE); // A CHECKER
+				else if (it->second.substr(0, strlen("multipart/form-data")) == "multipart/form-data")
+				{
+					_isUpload = true;
+					size_t pos = it->second.find("boundary=");
+					if (pos == std::string::npos)
+						return (STATUS_BAD_REQUEST);
+					else
+						_boundary = "--" + it->second.substr(pos + 9);
+				}
+			}
 		}
 			
 	}

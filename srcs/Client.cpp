@@ -75,12 +75,25 @@ int Client::readRequest(int isInReadSet)
 			close(_clientfd);
 			return (-1);
 		}
+		// buffer[bytesRead] = '\0';
 		if (DEBUG)
 		{
 			std::cout << ORANGE << "REQUEST from client socket : " << _clientfd
-					<< "\n===============\n"
-					<< buffer
-					<< "===============" << RESET << std::endl;
+					// << "\n===============\n"
+					// << buffer
+					// << "===============" << RESET << std::endl;
+					<< "\n===============\n";
+					std::string buf(buffer, bytesRead);
+					for (std::string::iterator it = buf.begin(); it != buf.end(); it++)
+					{
+						if ((*it) == '\r')
+							std::cout << ORANGE << "CR";
+						else if ((*it) == '\n')
+							std::cout << ORANGE << "LF" << std::endl;
+						else
+							std::cout << ORANGE << (*it);
+					}
+					std::cout << ORANGE << "===============" << RESET << std::endl;
 		}
 		if (_request == NULL)
 		{
@@ -88,8 +101,14 @@ int Client::readRequest(int isInReadSet)
 			_requestStartTime = std::time(NULL);
 			_clientStatus = REQUEST_ONGOING;
 		}
-		_buffer += buffer;
+		_buffer.append(buffer, bytesRead);
+		// std::string buf(buffer, bytesRead);
+		// _buffer += buf;
+		// _buffer.append(buf);
+		// std::cout << buffer << std::endl;
+		// _buffer += buffer;
 	}
+	// std::cout << "_buffer = " << _buffer << std::endl;
 	parsedRequest = _request->parseBuffer(_buffer);
 	if (parsedRequest.outcome == REQUEST_PENDING)
 	{
