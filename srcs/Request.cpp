@@ -274,8 +274,7 @@ StatusCode	Request::checkIfBody()
 				return (STATUS_BAD_REQUEST);
 			else
 			{
-				if (it->second.substr(0, strlen("application/x-www-form-urlencoded")) == "application/x-www-form-urlencoded"
-						|| it->second.substr(0, strlen("text/plain")) == "text/plain")
+				if (it->second.substr(0, strlen("text/plain")) == "text/plain")
 					return (STATUS_UNSUPPORTED_MEDIA_TYPE); // A CHECKER
 				else if (it->second.substr(0, strlen("multipart/form-data")) == "multipart/form-data")
 				{
