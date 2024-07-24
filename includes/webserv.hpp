@@ -130,6 +130,19 @@ class ErrorAcceptNewC : public std::exception
 		}
 };
 
+class ErrorResponse : public std::exception
+{
+	public:
+		ErrorResponse(std::string errorMsg) throw();
+		~ErrorResponse() throw();
+
+		virtual const char* what() const throw();
+		// std::string	errorMsg;
+		
+	private:
+		std::string	_errorMsg;
+};
+
 // Enums ----------------------------------------------------------------------------- //
 
 typedef enum Method
@@ -201,6 +214,7 @@ typedef struct ParseRequestResult
 	StatusCode		statusCode;		// SUCCES -> code: none, FAILURE -> code: 1-500
 	Method			method;			// GET POST DELETE
 	std::string		uri;
+	std::string		query;
 	std::string		hostName;
 	VirtualServer	*vs;
 	Location		*location;		// location qui a matche a la config

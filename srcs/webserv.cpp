@@ -17,3 +17,11 @@ const char *ErrorConfigFile::what() const throw()
 {
 	return _errorMsg.c_str();
 }
+
+ErrorResponse::ErrorResponse(std::string msg) throw() : _errorMsg(msg) {}
+ErrorResponse::~ErrorResponse() throw() {}
+
+const char *ErrorResponse::what() const throw()
+{
+	return _errorMsg.c_str();
+}
