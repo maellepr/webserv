@@ -2,14 +2,13 @@
 <html lang="en">
     <head>
 		<meta charset="UTF-8">
-        <link href="/style/style.css" rel="stylesheet">
-        <link href="/style/form.css" rel="stylesheet">
-        <script src="/cleanForm.js"></script>
+        <link href="../style/style.css" rel="stylesheet">
+        <link href="../style/form.css" rel="stylesheet">
         <title>Form</title>
     </head>
 	<body>
         <h1 class="pagesTitle">Form</h1>
-        <form id="form" action="../cgi-bin/response.php" method="GET">
+        <form id="form" action="../cgi/response.php" method="POST">
             <div id="etiquete">
                 <div class="nfl">
                     <label for="name">Name</label>
@@ -23,7 +22,6 @@
                     <label for="login">Login</label>
                     <input type="text" name="login" id="login" maxlength="25" value="login" required/>
                 </div>
-                <button id="erase" type="button" onclick="cleanForm()">Erase</button>
             </div>
             <input id="sendButton" type="submit" value="Send"/>
         </form>

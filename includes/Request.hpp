@@ -39,6 +39,7 @@ class Request
 		Location									*_location;
 		Method										_method;
 		std::string									_uri;
+		std::string									_query;
 		std::map<std::string, std::string>			_headers;
 		std::string									_body;
 		size_t										_contentLength;

@@ -50,7 +50,7 @@ int main(void)
     while (1)
     {
         dprintf(2, "while 1\n");
-        sleep(2);
+        // sleep(2);
         read_fds = all_sockets;
         write_fds = all_sockets;
         // 2 second timeout for select()
