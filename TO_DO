@@ -16,6 +16,7 @@ Claire : rajouter le boundary + isUpload dans la request
     a voir si remplacer les strings par vector<unsigned char>
     redirections -> attention aux loop infinies
 	  gerer plusieurs uploads => boundary
+    POST continue de refresh ?
 
 - buildDelete():
     faire buildDelete() (suppr fichier)				=>Maelle

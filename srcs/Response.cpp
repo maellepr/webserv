@@ -274,7 +274,7 @@ void	Response::exportToEnv(std::vector<std::string> &env, const std::string &key
 	env.push_back(key + "=" + value);
 }
 
-void			Response::buildStatusLine()
+void	Response::buildStatusLine()
 {
 	// std::stringstream ss;
 	// ss << _statusCode;
@@ -283,7 +283,7 @@ void			Response::buildStatusLine()
 	// std::cout << GREEN << "statusLine = " << _statusLine << RESET << std::endl;
 }
 
-void			Response::buildErrorPage(ParseRequestResult &request, StatusCode statusCode)
+void	Response::buildErrorPage(ParseRequestResult &request, StatusCode statusCode)
 {
 	// Attention, le request.statusCode n'est plus forcement valide => utilise celui envoye dans les arguments
 	std::cerr << "build error page\n";
@@ -474,10 +474,34 @@ void	Response::buildGet(ParseRequestResult &request)
 
 void	Response::buildPost(ParseRequestResult &request)
 {
-	// std::cout << DARKYELLOW << "boundary = " << request.boundary << RESET << std::endl;
-	(void)request;
 	std::cout << LIGHTBLUE << "BUILDPOST\n" << RESET;
-	std::map<std::string, std::string> uploads;
+	listUploadFiles(request);
+	if (_uploads.empty())
+	{
+		_statusCode = STATUS_NO_CONTENT;
+		return ;
+	}
+	for (std::map<std::string, std::string>::iterator it = _uploads.begin(); it != _uploads.end(); it++)
+	{
+		std::string filename = "./www/uploads/" + it->first;
+		if (access(filename.c_str(), F_OK) != 0)
+		{
+			std::ofstream fileToUpload;
+			fileToUpload.open(filename.c_str(), std::ofstream::binary);
+			fileToUpload << it->second;
+			fileToUpload.close();
+			_statusCode = STATUS_CREATED;
+		}
+		else
+		{
+			std::cout << RED << "FILE ALREADY EXISTS" << RESET << std::endl;
+		}
+	}
+	return ;
+}
+
+void	Response::listUploadFiles(ParseRequestResult &request)
+{
 	std::size_t boundaryPos = request.body.find(request.boundary + "\r\n", 0);
 	if (boundaryPos != 0)
 		return(buildErrorPage(request, STATUS_BAD_REQUEST));
@@ -523,10 +547,11 @@ void	Response::buildPost(ParseRequestResult &request)
 		std::string uploadData = subBody.substr(dataStart, dataEnd - dataStart);
 
 		// add new file contents (name + data) to the map
-		uploads[filename] = uploadData;
+		if (uploadData.empty() == false)
+			_uploads[filename] = uploadData;
 		// std::cout << LIGHTBLUE << "BUILDPOST 8\n" << RESET;
 	}
-	for (std::map<std::string, std::string>::iterator it = uploads.begin(); it != uploads.end(); it++)
+	for (std::map<std::string, std::string>::iterator it = _uploads.begin(); it != _uploads.end(); it++)
 	{
 		std::cout << DARKYELLOW << "[ " << it->first << " ] : \n" << it->second << RESET << std::endl;
 	}

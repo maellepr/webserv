@@ -30,6 +30,7 @@ class Response
 		std::vector<std::string>	doDirListing(DIR *dir);
 		void						buildAutoindexPage(ParseRequestResult &request);
 		Location					*associateLocationResponse(ParseRequestResult &request, std::string index);
+		void						listUploadFiles(ParseRequestResult &request);
 
 	private:
 		std::string											_statusLine;
@@ -39,7 +40,7 @@ class Response
 		std::string											_finalURI;
 		std::string											_rootDir;
 		std::map<std::string, std::vector<std::string> >	_configLocation;
-
+		std::map<std::string, std::string> 					_uploads;
 		
 
 };
