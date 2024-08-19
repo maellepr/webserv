@@ -15,6 +15,7 @@ Claire : rajouter le boundary + isUpload dans la request
     tester le binaire (si on peut afficher les images par ex)
     a voir si remplacer les strings par vector<unsigned char>
     redirections -> attention aux loop infinies
+	  gerer plusieurs uploads => boundary
 
 - buildDelete():
     faire buildDelete() (suppr fichier)				=>Maelle

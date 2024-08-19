@@ -104,7 +104,20 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 				while (getline(ss, line, '\n'))
 				{
 					_body.append(line + "\n");
-					if (line[line.size() - 1] == '\r')
+					// // ******************************
+					// std::cout << DARKBLUE << "===============" << RESET << std::endl;
+					// for (std::string::iterator it = line.begin(); it != line.end(); it++)
+					// {
+					// 	if ((*it) == '\r')
+					// 		std::cout << DARKBLUE << "CR";
+					// 	else if ((*it) == '\n')
+					// 		std::cout << DARKBLUE << "LF" << std::endl;
+					// 	else
+					// 		std::cout << DARKBLUE << (*it);
+					// }
+					// std::cout << DARKBLUE << "\n===============" << RESET << std::endl;
+					// // ******************************
+					if (line.size() > 1 && line[line.size() - 1] == '\r')
 					{
 						if (line.substr(0, line.size() - 1) == _boundary + "--")
 						{
@@ -117,6 +130,7 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 					}
 					line = "";
 				}
+				// std::cout << LIGHTBLUE << "BODY 4" << RESET << std::endl;
 				// std::cout << DARKBLUE << "_BODY = " << _body << RESET << std::endl;
 				buffer = "";
 				if (_isUpload == false)
@@ -129,6 +143,7 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 					// std::cout << "line = " << line << std::endl;
 					return (parsingFailed(STATUS_BAD_REQUEST));
 				}
+				// std::cout << LIGHTBLUE << "BODY 5" << RESET << std::endl;
 				return (parsingSucceeded());
 			}
 			else
@@ -303,6 +318,8 @@ void	Request::fillParseRequestResult(ParseRequestResult &result)
 	result.hostName = _hostName;
 	result.location = _location;
 	result.vs = _vs;
+	if (_isUpload)
+		result.boundary = _boundary;
 
 }
 

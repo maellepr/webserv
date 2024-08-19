@@ -474,8 +474,62 @@ void	Response::buildGet(ParseRequestResult &request)
 
 void	Response::buildPost(ParseRequestResult &request)
 {
+	// std::cout << DARKYELLOW << "boundary = " << request.boundary << RESET << std::endl;
 	(void)request;
-	std::cout << "BUILDPOST\n";
+	std::cout << LIGHTBLUE << "BUILDPOST\n" << RESET;
+	std::map<std::string, std::string> uploads;
+	std::size_t boundaryPos = request.body.find(request.boundary + "\r\n", 0);
+	if (boundaryPos != 0)
+		return(buildErrorPage(request, STATUS_BAD_REQUEST));
+	// std::cout << LIGHTBLUE << "BUILDPOST 1\n" << RESET;
+	std::size_t beginPos = boundaryPos + request.boundary.size() + strlen("\r\n");
+	// std::cout << DARKYELLOW << "REQBODY :\n" << request.body << RESET << std::endl;
+	while (boundaryPos != std::string::npos)
+	{
+		// std::cout << LIGHTBLUE << "BUILDPOST 2\n" << RESET;
+		// find next upload
+		boundaryPos = request.body.find(request.boundary, beginPos);
+		if (boundaryPos == std::string::npos)
+			break ;
+		// std::cout << DARKYELLOW << "beginPos = " << beginPos << RESET << std::endl;
+		// std::cout << DARKYELLOW << "boundaryPos = " << boundaryPos << RESET << std::endl;
+		std::string subBody = request.body.substr(beginPos, boundaryPos - beginPos);
+		beginPos = boundaryPos + request.boundary.size();
+		// std::cout << DARKYELLOW << "SUBBODY :\n" << subBody << RESET << std::endl;
+		// std::cout << LIGHTBLUE << "BUILDPOST 3\n" << RESET;
+
+		// find filename
+		std::size_t filenameStart = subBody.find("filename=", 0);
+		if (filenameStart == std::string::npos)
+			return(buildErrorPage(request, STATUS_BAD_REQUEST));
+		// std::cout << LIGHTBLUE << "BUILDPOST 4\n" << RESET;
+		filenameStart += strlen("filename=") + 1;
+		std::size_t filenameEnd = subBody.find("\"", filenameStart);
+		if (filenameEnd == std::string::npos)
+			return(buildErrorPage(request, STATUS_BAD_REQUEST));
+		// std::cout << LIGHTBLUE << "BUILDPOST 5\n" << RESET;
+		std::string filename = subBody.substr(filenameStart, filenameEnd - filenameStart);
+
+		// find upload data
+		std::size_t dataStart = subBody.find("\r\n\r\n", 0);
+		if (dataStart == std::string::npos)
+			return(buildErrorPage(request, STATUS_BAD_REQUEST));
+		// std::cout << LIGHTBLUE << "BUILDPOST 6\n" << RESET;
+		dataStart += strlen("\r\n\r\n");
+		std::size_t dataEnd = subBody.find("\r\n", dataStart);
+		if (dataEnd == std::string::npos)
+			return(buildErrorPage(request, STATUS_BAD_REQUEST));
+		// std::cout << LIGHTBLUE << "BUILDPOST 7\n" << RESET;
+		std::string uploadData = subBody.substr(dataStart, dataEnd - dataStart);
+
+		// add new file contents (name + data) to the map
+		uploads[filename] = uploadData;
+		// std::cout << LIGHTBLUE << "BUILDPOST 8\n" << RESET;
+	}
+	for (std::map<std::string, std::string>::iterator it = uploads.begin(); it != uploads.end(); it++)
+	{
+		std::cout << DARKYELLOW << "[ " << it->first << " ] : \n" << it->second << RESET << std::endl;
+	}
 	return ;
 }
 
