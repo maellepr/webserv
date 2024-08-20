@@ -9,6 +9,7 @@ Server::Server()
 
 Server::~Server()
 {
+	// close server sockets
 	for (std::map<int, std::vector<VirtualServer*> >::iterator it = _socketBoundVs.begin(); it != _socketBoundVs.end(); it++)
 	{
 		// for (std::vector<VirtualServer*>::iterator vsIt = it->second.begin(); vsIt != it->second.end(); vsIt++)
@@ -19,6 +20,7 @@ Server::~Server()
 		close(it->first);
 	}
 
+	// close client sockets
 	for(std::map<int, Client>::iterator it = _clients.begin(); it != _clients.end(); it++)
 	{
 		std::cerr << "close socket client :" << it->second.getFd() << "\n";
@@ -326,6 +328,7 @@ int	Server::_acceptNewConnection(int server_socket)
     if (client_fd == -1)
 		callException(-3);
     FD_SET(client_fd, &_all_sockets); // Add the new client socket to the set
+	_socketMax.push_back(client_fd);
     if (client_fd > _fd_max) {
         _fd_max = client_fd; // Update the highest socket
     }
@@ -362,6 +365,7 @@ void	Server::loop()
 	for (std::map<int, std::vector<VirtualServer*> >::iterator it = _socketBoundVs.begin(); it != _socketBoundVs.end(); it++)
 	{
 		FD_SET(it->first, &_all_sockets);
+		_socketMax.push_back(it->first);
 		if (_fd_max < it->first)
 			_fd_max = it->first;
 	}
@@ -395,6 +399,8 @@ void	Server::loop()
         dprintf(2, "_fd_max = %d\n", _fd_max);
         for (int i = 0; i <= _fd_max && status > 0; i++) // 1 seule boucle ou 2 ?
         {
+			if (FD_ISSET(i, &_all_sockets) != 1)
+				continue;
             if (FD_ISSET(i, &_read_fds) == 1
 				|| (_clients.find(i) != _clients.end()
 					&& _clients[i].getClientStatus() == REQUEST_ONGOING))
@@ -433,9 +439,12 @@ void	Server::loop()
 					if (client.readRequest(FD_ISSET(i, &_read_fds)) == -1)
 					{
 						FD_CLR(i, &_all_sockets); // Remove socket from the set
+						std::vector<int>::iterator it = find(_socketMax.begin(), _socketMax.end(), i);
+						_socketMax.erase(it);
 						_clients.erase(i);
 						if (i == _fd_max)
-							_fd_max = _fd_max - 1; //TEMPORAIRE A MODIF
+							_fd_max = *max_element(_socketMax.begin(), _socketMax.end());
+							// _fd_max = _fd_max - 1; //TEMPORAIRE A MODIF
 					}
 				}
 				dprintf(2, "END of READ\n");
@@ -449,9 +458,12 @@ void	Server::loop()
 				{
 					close(i);
 					FD_CLR(i, &_all_sockets);
+					std::vector<int>::iterator it = find(_socketMax.begin(), _socketMax.end(), i);
+					_socketMax.erase(it);
 					_clients.erase(i);
 					if (i == _fd_max)
-						_fd_max = _fd_max - 1; //TEMPORAIRE A MODIF
+						_fd_max = *max_element(_socketMax.begin(), _socketMax.end());
+						// _fd_max = _fd_max - 1; //TEMPORAIRE A MODIF
 				}
 				dprintf(2, "END of WRITE\n");
         	}

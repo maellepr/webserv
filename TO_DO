@@ -1,37 +1,40 @@
-Claire : rajouter le boundary + isUpload dans la request
+Claire : rajouter le boundary + isUpload dans la request				=>OK
+
+header transfer encoding
+header close  / keep alive
 
 ######### TO DO #########
 
 - buildResponse():
-    gerer les return -> attention aux loop infinies =>Maelle
-    gerer les methods not accepted					=>Maelle
+    gerer les return -> attention aux loop infinies 					=>Maelle
+    gerer les methods not accepted										=>Maelle
 
 - buildErrorPage():
   URI relatives ou absolues ?
-  Refaire le html de la page d'erreur par defaut =>Maelle
+  Refaire le html de la page d'erreur par defaut 						=>Maelle
 
 - buildPost():
-    finir buildPost() = upload (creer les fichiers)
-    tester le binaire (si on peut afficher les images par ex)
-    a voir si remplacer les strings par vector<unsigned char>
+    finir buildPost() = upload (creer les fichiers)						=>OK
+    tester le binaire (si on peut afficher les images par ex)			=>OK
+    a voir si remplacer les strings par vector<unsigned char>			=>OK
     redirections -> attention aux loop infinies
-	  gerer plusieurs uploads => boundary
-    POST continue de refresh ?
-	Limiter la taille des media
+	  gerer plusieurs uploads => boundary								=>OK
+    POST continue de refresh 											=>OK
+	Limiter la taille des media?
 
 - buildDelete():
-    faire buildDelete() (suppr fichier)				=>Maelle
+    faire buildDelete() (suppr fichier)									=>Maelle
 
 - Server.loop():
     gerer correctement les fermetures de sockets (headers close et keep-alive)
     mettre en place des try catch pour eviter le shutdown du server
-    gerer correctement fd_max
-    gerer le nnombre de clients acceptes par socket server
+    gerer correctement fd_max											=>OK?
+    gerer le nombre de clients acceptes par socket server
 
 - chunked requests:
     to do
 
-- CGI:												=>Maelle
+- CGI:																	=>Maelle
     cas d'erreur dans les scripts (voir avec TIMEOUT?)
     tester queries
     tester nom fichier (?)
@@ -43,7 +46,7 @@ Claire : rajouter le boundary + isUpload dans la request
 - OTHER:
     Tester et retester erreurs de configs, de parsing....
     nettoyer le code et les commentaires
-    faire des jolies pages HTML						=>Maelle
+    faire des jolies pages HTML											=>Maelle
 
 
 ######### VARIABLES A REVOIR #########
