@@ -488,7 +488,12 @@ void	Response::buildPost(ParseRequestResult &request)
 		{
 			std::ofstream fileToUpload;
 			fileToUpload.open(filename.c_str(), std::ofstream::binary);
-			fileToUpload << it->second;
+			std::vector<unsigned char> v = vectorizeString(it->second);
+			for (std::vector<unsigned char>::iterator vit = v.begin(); vit != v.end(); vit++)
+			{
+				fileToUpload << *vit;
+			}
+			// fileToUpload << it->second;
 			fileToUpload.close();
 			_statusCode = STATUS_CREATED;
 		}

@@ -152,3 +152,8 @@ void	freeChar(char **tab)
 	}
 	delete tab;
 }
+
+std::vector<unsigned char> vectorizeString(std::string s)
+{
+	return (std::vector<unsigned char>(s.begin(), s.end()));
+}

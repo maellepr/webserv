@@ -17,6 +17,7 @@ Claire : rajouter le boundary + isUpload dans la request
     redirections -> attention aux loop infinies
 	  gerer plusieurs uploads => boundary
     POST continue de refresh ?
+	Limiter la taille des media
 
 - buildDelete():
     faire buildDelete() (suppr fichier)				=>Maelle
