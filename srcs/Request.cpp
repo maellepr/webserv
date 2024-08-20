@@ -81,70 +81,127 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 		std::cout << LIGHTBLUE << "BODY" << RESET << std::endl;
 		if (_contentLength == 0)
 			ret = checkIfBody();
-		// std::cout << LIGHTBLUE << "BODY 0" << RESET << std::endl;
+		std::cout << LIGHTBLUE << "BODY 0" << RESET << std::endl;
 		if (ret != STATUS_NONE)
 			return (parsingFailed(ret));
-		// std::cout << LIGHTBLUE << "BODY 1" << RESET << std::endl;
+		std::cout << LIGHTBLUE << "BODY 1" << RESET << std::endl;
 	
 		if (_contentLength == 0)
 		{
-			// std::cout << LIGHTBLUE << "BODY 2" << RESET << std::endl;
+			std::cout << LIGHTBLUE << "BODY 2" << RESET << std::endl;
 			if (buffer.empty() == false)
 				return (parsingFailed(STATUS_BAD_REQUEST));
 			return (parsingSucceeded());
 		}
 		else
 		{
-			// std::cout << LIGHTBLUE << "BODY 3" << RESET << std::endl;
+			std::cout << LIGHTBLUE << "BODY 3" << RESET << std::endl;
 			if (_isUpload)
 			{
+				std::cout << LIGHTBLUE << "BODY 4" << RESET << std::endl;
 				_isUpload = false;
-				std::stringstream ss(buffer);
-				std::string	line;
-				while (getline(ss, line, '\n'))
-				{
-					_body.append(line + "\n");
-					// // ******************************
-					// std::cout << DARKBLUE << "===============" << RESET << std::endl;
-					// for (std::string::iterator it = line.begin(); it != line.end(); it++)
-					// {
-					// 	if ((*it) == '\r')
-					// 		std::cout << DARKBLUE << "CR";
-					// 	else if ((*it) == '\n')
-					// 		std::cout << DARKBLUE << "LF" << std::endl;
-					// 	else
-					// 		std::cout << DARKBLUE << (*it);
-					// }
-					// std::cout << DARKBLUE << "\n===============" << RESET << std::endl;
-					// // ******************************
-					if (line.size() > 1 && line[line.size() - 1] == '\r')
-					{
-						if (line.substr(0, line.size() - 1) == _boundary + "--")
-						{
-							_isUpload = true;
-							line = "";
-							if (getline(ss, line, '\n'))
-								return (parsingFailed(STATUS_BAD_REQUEST));
-							break ;
-						}
-					}
-					line = "";
-				}
-				// std::cout << LIGHTBLUE << "BODY 4" << RESET << std::endl;
-				// std::cout << DARKBLUE << "_BODY = " << _body << RESET << std::endl;
+				std::vector<unsigned char> v(buffer.begin(), buffer.end());
 				buffer = "";
+				for (std::vector<unsigned char>::iterator vit = v.begin(); vit != v.end(); vit++)
+				{
+					// std::cout << LIGHTBLUE << "char = ";
+					// if (*vit == '\r')
+					// 	std::cout << "CR" << RESET << std::endl;
+					// else if (*vit == '\n')
+					// 	std::cout << "LF" << RESET << std::endl;
+					// else
+					// 	std::cout << *vit << RESET << std::endl;
+					_ucharLine.push_back(*vit);
+					_ucharBody.push_back(*vit);
+					if (*vit == '\n')
+					{
+						std::cout << LIGHTBLUE << "BLACKSLASH" << RESET << std::endl;
+						// std::cout << RED << "_ucharLine.size() = " << _ucharLine.size() << RESET << std::endl;
+						// std::cout << RED << "_ucharLine[_ucharLine.size() - 1] = ";
+						// if (_ucharLine[_ucharLine.size() - 2] == '\r')
+						// 	std::cout << "CR" << RESET << std::endl;
+						// else if (_ucharLine[_ucharLine.size() - 2] == '\n')
+						// 	std::cout << "LF" << RESET << std::endl;
+						// else
+						// 	std::cout << _ucharLine[_ucharLine.size() - 2] << RESET << std::endl;
+						if (_ucharLine.size() > 1 && _ucharLine[_ucharLine.size() - 2] == '\r')
+						{
+							std::cout << LIGHTBLUE << "GO OUT" << RESET << std::endl;
+							// std::cout << RED << "_ucharLine = " << stringifyVector(_ucharLine) << RESET << std::endl;
+							// std::cout << RED << "_boundary = " << _boundary + "--\r\n" << RESET << std::endl;
+							if (stringifyVector(_ucharLine) == _boundary + "--\r\n")
+							{
+								std::cout << LIGHTBLUE << "STRINGYFY" << RESET << std::endl;
+								_isUpload = true;
+								_ucharLine.clear();
+								std::cout << RED << "_ucharBody.size() = " << _ucharBody.size() << RESET << std::endl;
+								std::cout << RED << "v.size() = " << v.size() << RESET << std::endl;
+								std::cout << RED << "_contentLength = " << _contentLength << RESET << std::endl;
+								if (_ucharBody.size() != _contentLength)
+									return (parsingFailed(STATUS_BAD_REQUEST));
+								break;
+							}
+						}
+						_ucharLine.clear();
+					}
+				}
+				std::cout << LIGHTBLUE << "BODY 5" << RESET << std::endl;
 				if (_isUpload == false)
 				{
 					_isUpload = true;
 					return (parsingPending());
 				}
-				else if (_isUpload == true && line.empty() == false)
-				{
-					// std::cout << "line = " << line << std::endl;
-					return (parsingFailed(STATUS_BAD_REQUEST));
-				}
 				// std::cout << LIGHTBLUE << "BODY 5" << RESET << std::endl;
+				_body = stringifyVector(_ucharBody);
+				std::cout << LIGHTBLUE << "BODY 6" << RESET << std::endl;
 				return (parsingSucceeded());
+
+				// std::stringstream ss(buffer);
+				// std::string	line;
+				// while (getline(ss, line, '\n'))
+				// {
+				// 	_body.append(line + "\n");
+				// 	// // ******************************
+				// 	// std::cout << DARKBLUE << "===============" << RESET << std::endl;
+				// 	// for (std::string::iterator it = line.begin(); it != line.end(); it++)
+				// 	// {
+				// 	// 	if ((*it) == '\r')
+				// 	// 		std::cout << DARKBLUE << "CR";
+				// 	// 	else if ((*it) == '\n')
+				// 	// 		std::cout << DARKBLUE << "LF" << std::endl;
+				// 	// 	else
+				// 	// 		std::cout << DARKBLUE << (*it);
+				// 	// }
+				// 	// std::cout << DARKBLUE << "\n===============" << RESET << std::endl;
+				// 	// // ******************************
+				// 	if (line.size() > 1 && line[line.size() - 1] == '\r')
+				// 	{
+				// 		if (line.substr(0, line.size() - 1) == _boundary + "--")
+				// 		{
+				// 			_isUpload = true;
+				// 			line = "";
+				// 			if (getline(ss, line, '\n'))
+				// 				return (parsingFailed(STATUS_BAD_REQUEST));
+				// 			break ;
+				// 		}
+				// 	}
+				// 	line = "";
+				// }
+				// // std::cout << LIGHTBLUE << "BODY 4" << RESET << std::endl;
+				// // std::cout << DARKBLUE << "_BODY = " << _body << RESET << std::endl;
+				// buffer = "";
+				// if (_isUpload == false)
+				// {
+				// 	_isUpload = true;
+				// 	return (parsingPending());
+				// }
+				// else if (_isUpload == true && line.empty() == false)
+				// {
+				// 	// std::cout << "line = " << line << std::endl;
+				// 	return (parsingFailed(STATUS_BAD_REQUEST));
+				// }
+				// // std::cout << LIGHTBLUE << "BODY 5" << RESET << std::endl;
+				// return (parsingSucceeded());
 			}
 			else
 			{

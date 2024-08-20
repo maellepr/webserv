@@ -80,6 +80,7 @@ std::string	getAbsPath(std::string &path);
 char		**vectorStringToChar(std::vector<std::string> &vector);
 void		freeChar(char **tab);
 std::vector<unsigned char>	vectorizeString(std::string s);
+std::string	stringifyVector(std::vector<unsigned char> v);
 
 // Templates must be in header
 

@@ -157,3 +157,8 @@ std::vector<unsigned char> vectorizeString(std::string s)
 {
 	return (std::vector<unsigned char>(s.begin(), s.end()));
 }
+
+std::string	stringifyVector(std::vector<unsigned char> v)
+{
+	return (std::string(v.begin(), v.end()));
+}

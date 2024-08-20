@@ -46,6 +46,8 @@ class Request
 		ParsingStep									_parsingStep;
 		bool										_isUpload;
 		std::string									_boundary;
+		std::vector<unsigned char> 					_ucharLine;
+		std::vector<unsigned char>  				_ucharBody;
 
 };
 
