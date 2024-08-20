@@ -514,7 +514,8 @@ void	Response::buildPost(ParseRequestResult &request)
 			}
 			fileToUpload.close();
 			_statusCode = STATUS_CREATED;
-			return ;
+			_finalURI = "./pages/upload_success.html";
+			return (buildPage(request));
 		}
 		else
 		{
@@ -703,13 +704,13 @@ ResponseOutcome	Response::sendResponseToClient(int fd)
 int	Response::pushStrToClient(int fd, std::string &str)
 {
 	size_t	bytesSent = 0, tmpSent = 0;
-	std::cerr << "str = " << str << "\n";
+	std::cerr << "str = <" << str << ">\n";
 	std::cerr << "str size = " << str.size() << "\n";
 	while (bytesSent < str.size())
 	{
-		std::cerr << "pushstrclient 1\n";
+		// std::cerr << "pushstrclient 1\n";
 		tmpSent = send(fd, str.c_str() + bytesSent, str.size() - bytesSent, 0);
-		std::cerr << "pushstrclient 2\n";
+		// std::cerr << "pushstrclient 2\n";
 		if (tmpSent <= 0)
 			return (-1);
 		bytesSent += tmpSent;
