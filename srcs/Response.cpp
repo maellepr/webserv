@@ -484,6 +484,25 @@ void	Response::buildPost(ParseRequestResult &request)
 	for (std::map<std::string, std::string>::iterator it = _uploads.begin(); it != _uploads.end(); it++)
 	{
 		std::string filename = "./www/uploads/" + it->first;
+		if (access(filename.c_str(), F_OK) == 0)
+		{
+			// std::cout << RED << "FILE ALREADY EXISTS" << RESET << std::endl;
+			std::string fileRename = filename;
+			for (std::size_t i = 1; i < 11; i++) // 10 copies max
+			{
+				std::size_t extensionPos = filename.find_last_of(".");
+				if (extensionPos != std::string::npos && extensionPos != 0)
+					fileRename = filename.substr(0, extensionPos);
+				fileRename += "(" + convertToStr(i) + ")";
+				if (extensionPos != std::string::npos && extensionPos != 0)
+					fileRename += filename.substr(extensionPos, std::string::npos);
+				if (access(fileRename.c_str(), F_OK) != 0)
+				{
+					filename = fileRename;
+					break ;
+				}
+			}
+		}
 		if (access(filename.c_str(), F_OK) != 0)
 		{
 			std::ofstream fileToUpload;
@@ -493,13 +512,13 @@ void	Response::buildPost(ParseRequestResult &request)
 			{
 				fileToUpload << *vit;
 			}
-			// fileToUpload << it->second;
 			fileToUpload.close();
 			_statusCode = STATUS_CREATED;
+			return ;
 		}
 		else
 		{
-			std::cout << RED << "FILE ALREADY EXISTS" << RESET << std::endl;
+			return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
 		}
 	}
 	return ;
@@ -556,10 +575,10 @@ void	Response::listUploadFiles(ParseRequestResult &request)
 			_uploads[filename] = uploadData;
 		// std::cout << LIGHTBLUE << "BUILDPOST 8\n" << RESET;
 	}
-	for (std::map<std::string, std::string>::iterator it = _uploads.begin(); it != _uploads.end(); it++)
-	{
-		std::cout << DARKYELLOW << "[ " << it->first << " ] : \n" << it->second << RESET << std::endl;
-	}
+	// for (std::map<std::string, std::string>::iterator it = _uploads.begin(); it != _uploads.end(); it++)
+	// {
+	// 	std::cout << DARKYELLOW << "[ " << it->first << " ] : \n" << it->second << RESET << std::endl;
+	// }
 	return ;
 }
 
