@@ -29,7 +29,7 @@ header close  / keep alive
     gerer correctement les fermetures de sockets (headers close et keep-alive)
     mettre en place des try catch pour eviter le shutdown du server
     gerer correctement fd_max											=>OK?
-    gerer le nombre de clients acceptes par socket server
+    gerer le nombre de clients acceptes par socket server				=>OK
 
 - chunked requests:
     to do

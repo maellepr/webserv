@@ -24,6 +24,17 @@ int Client::getFd()
     return _clientfd;
 }
 
+void	Client::setServerFd(int fd)
+{
+    _serverfd = fd;
+}
+
+int Client::getServerFd()
+{
+    return _serverfd;
+}
+
+
 void	Client::setConnectedServers(int serverfd, std::map<int, std::vector<VirtualServer*> >	&socketBoundVs)
 {
 	std::map<int, std::vector<VirtualServer*> >::iterator it = socketBoundVs.find(serverfd);
@@ -69,10 +80,10 @@ int Client::readRequest(int isInReadSet)
 		if (bytesRead <= 0)
 		{
 			if (bytesRead == 0)
-				std::cout << "[" << _clientfd << "]" << "Client socket closed connection.\n" << std::endl;
+				std::cout << "[" << DARKYELLOW << _clientfd << "]" << "Client socket closed connection.\n" << RESET << std::endl;
 			else
 				std::cerr << "[Server] Recv error: " << strerror(errno) << std::endl;
-			close(_clientfd);
+			// close(_clientfd);
 			return (-1);
 		}
 		// buffer[bytesRead] = '\0';

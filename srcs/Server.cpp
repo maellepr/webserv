@@ -421,20 +421,25 @@ void	Server::loop()
 				std::map<int, std::vector<VirtualServer*> >::iterator it = _socketBoundVs.find(i);
 				if (it != _socketBoundVs.end())
 				{
-					dprintf(2, "WHILE 5 - read socket is a server\n");
+					std::cout << DARKYELLOW << "WHILE 5 - read socket is a server" << RESET << std::endl;
+					// dprintf(2, "WHILE 5 - read socket is a server\n");
 					// check if max nb of connections is reached
+					std::cout << "_maxConnections[" << i << "] + 1 = " << _maxConnections[i] + 1 << RESET << std::endl;
 					if (_maxConnections[i] + 1 > MAX_CLIENTS_PER_SERVER)
 					{
-						std::cout << "MAX NUMBER OF CLIENTS REACHED FOR THIS SERVER" << std::endl;
+						close(accept(i, NULL, NULL));
+						std::cout << RED << "Server <" << it->first << "> : max number of connexions reached.\nClosed connection request for socket <" << i << ">" << RESET << std::endl;
 						continue;
 					}
 					// create new connection
 					Client client;
 
 					client.setFd(_acceptNewConnection(i));
+					client.setServerFd(i);
 					client.setConnectedServers(i, _socketBoundVs);
 					dprintf(2, "WHILE 5 - 3\n");
 					_clients[client.getFd()] = client;
+					_maxConnections[i] += 1;
 					dprintf(2, "WHILE 5 - 4\n");
 					// res = 0;
 				}
@@ -445,6 +450,8 @@ void	Server::loop()
 					
 					if (client.readRequest(FD_ISSET(i, &_read_fds)) == -1)
 					{
+						_maxConnections[client.getServerFd()] -= 1;
+						close(client.getFd());
 						FD_CLR(i, &_all_sockets); // Remove socket from the set
 						std::vector<int>::iterator it = find(_socketMax.begin(), _socketMax.end(), i);
 						_socketMax.erase(it);
@@ -463,7 +470,9 @@ void	Server::loop()
                 Client&	client = _clients[i];
 				if (client.writeResponse() == RESPONSE_FAILURE) // A VERIF
 				{
-					close(i);
+					_maxConnections[client.getServerFd()] -= 1;
+					close(client.getFd());
+					// close(i);
 					FD_CLR(i, &_all_sockets);
 					std::vector<int>::iterator it = find(_socketMax.begin(), _socketMax.end(), i);
 					_socketMax.erase(it);

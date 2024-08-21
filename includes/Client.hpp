@@ -14,6 +14,8 @@ class Client
 
         void			setFd(int fd);
         int    			getFd();
+        void			setServerFd(int fd);
+        int    			getServerFd();
 		void			setConnectedServers(int serverfd, std::map<int, std::vector<VirtualServer*> >	&socketBoundVs);
 		ClientStatus	&getClientStatus();
 		// VirtualServer	&getConnectedServer();
@@ -25,6 +27,7 @@ class Client
         
     private :
         int 						_clientfd;
+		int							_serverfd;
 		std::vector<VirtualServer*>	_vsCandidates;
 		Request						*_request;
 		Response					*_response;
