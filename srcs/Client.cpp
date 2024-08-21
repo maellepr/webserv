@@ -2,7 +2,7 @@
 
 // CONSTRUCTORS / DESTRUCTORS ------------------------------------------------------ //
 
-Client::Client() : _clientfd(-1), _request(NULL), _response(NULL), _buffer(""), _clientStatus(NONE) {}
+Client::Client() : _clientfd(-1), _request(NULL), _response(NULL), _buffer(""), _clientStatus(NONE), _keepAlive(true) {}
 
 Client::~Client()
 {
@@ -68,6 +68,7 @@ ClientStatus	&Client::getClientStatus()
 
 int Client::readRequest(int isInReadSet)
 {
+	(void)_keepAlive;
 	ParseRequestResult	parsedRequest;
 	if (isInReadSet)
 	{

@@ -34,6 +34,7 @@ class Client
 		std::string					_buffer;
 		time_t 						_requestStartTime;
 		ClientStatus				_clientStatus;
+		bool						_keepAlive;
 
 };
 

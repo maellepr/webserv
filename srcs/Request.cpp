@@ -314,10 +314,16 @@ StatusCode	Request::parseHeader(std::string header)
 		(*it) = tolower(*it);
 	}
 
-	// for_each(name.begin(), name.end(), tolower);
-	// for_each(value.begin(), value.end(), tolower);
+	// doublons => bad request
+	if (_headers.find(name) != _headers.end())
+		return (STATUS_BAD_REQUEST);
+	
+	// connexion settings if any
+	// if (name == "connexion")
+	// {
 
-	// DOUBLONS ?
+	// 	if (value != "keep-alive" && value != "")
+	// }
 
 	_headers[name] = value;
 	return (STATUS_NONE);
