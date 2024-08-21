@@ -25,6 +25,7 @@ class Server
 		fd_set										_write_fds;
 		int											_fd_max;
 		std::vector<int>							_socketMax;
+		std::map<int, int>							_maxConnections;
 
 		int											_nbServers; // for parsing Maelle
 

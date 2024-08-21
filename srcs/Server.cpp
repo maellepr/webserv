@@ -368,6 +368,7 @@ void	Server::loop()
 		_socketMax.push_back(it->first);
 		if (_fd_max < it->first)
 			_fd_max = it->first;
+		_maxConnections[it->first] = 0;
 	}
 	// for (size_t i = 0; i < _virtualServers.size(); i++)
 	// {
@@ -421,7 +422,13 @@ void	Server::loop()
 				if (it != _socketBoundVs.end())
 				{
 					dprintf(2, "WHILE 5 - read socket is a server\n");
-					// CHECK NB DE CLIENTS CONNECTES TO DO
+					// check if max nb of connections is reached
+					if (_maxConnections[i] + 1 > MAX_CLIENTS_PER_SERVER)
+					{
+						std::cout << "MAX NUMBER OF CLIENTS REACHED FOR THIS SERVER" << std::endl;
+						continue;
+					}
+					// create new connection
 					Client client;
 
 					client.setFd(_acceptNewConnection(i));
