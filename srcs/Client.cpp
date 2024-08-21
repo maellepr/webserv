@@ -68,7 +68,7 @@ ClientStatus	&Client::getClientStatus()
 
 int Client::readRequest(int isInReadSet)
 {
-	(void)_keepAlive;
+	// (void)_keepAlive;
 	ParseRequestResult	parsedRequest;
 	if (isInReadSet)
 	{
@@ -137,6 +137,7 @@ int Client::readRequest(int isInReadSet)
 	std::cout << LIGHTGREEN << "REQUEST OUTCOME = " << parsedRequest.outcome << RESET << std::endl;
 	
 	_clientStatus = NONE;
+	_keepAlive = parsedRequest.keepAlive;
 
 	_response = new Response; // new A PROTEGER?
 	_response->generateResponse(parsedRequest);

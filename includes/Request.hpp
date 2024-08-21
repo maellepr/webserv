@@ -48,6 +48,7 @@ class Request
 		std::string									_boundary;
 		std::vector<unsigned char> 					_ucharLine;
 		std::vector<unsigned char>  				_ucharBody;
+		bool										_keepAlive;
 
 };
 

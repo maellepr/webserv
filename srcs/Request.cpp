@@ -1,6 +1,6 @@
 #include "../includes/Request.hpp"
 
-Request::Request(int clientfd, std::vector<VirtualServer*> &vsCandidates) : _clientfd(clientfd), _hostNameDefined(false), _vsCandidates(vsCandidates), _vs(NULL), _location(NULL), _contentLength(0), _parsingStep(IN_REQUESTLINE), _isUpload(false) {}
+Request::Request(int clientfd, std::vector<VirtualServer*> &vsCandidates) : _clientfd(clientfd), _hostNameDefined(false), _vsCandidates(vsCandidates), _vs(NULL), _location(NULL), _contentLength(0), _parsingStep(IN_REQUESTLINE), _isUpload(false), _keepAlive(true) {}
 
 Request::~Request() {}
 
@@ -319,11 +319,13 @@ StatusCode	Request::parseHeader(std::string header)
 		return (STATUS_BAD_REQUEST);
 	
 	// connexion settings if any
-	// if (name == "connexion")
-	// {
-
-	// 	if (value != "keep-alive" && value != "")
-	// }
+	if (name == "connexion")
+	{
+		if (value == "close")
+			_keepAlive = false;
+		else if (value != "keep-alive")
+			return (STATUS_BAD_REQUEST);
+	}
 
 	_headers[name] = value;
 	return (STATUS_NONE);
@@ -383,7 +385,7 @@ void	Request::fillParseRequestResult(ParseRequestResult &result)
 	result.vs = _vs;
 	if (_isUpload)
 		result.boundary = _boundary;
-
+	result.keepAlive = _keepAlive;
 }
 
 ParseRequestResult Request::parsingFailed(StatusCode statusCode)

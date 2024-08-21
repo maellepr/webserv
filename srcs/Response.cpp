@@ -111,8 +111,8 @@ void	Response::buildCgi(ParseRequestResult &request)
 	std::cerr << "finalUri = " << finalUri << "\n";
 	if (pid == 0)//child
 	{
-		dup2(fd[0], STDIN_FILENO);// pipe[0] devient stdin
-		dup2(fd[1], STDOUT_FILENO);//pipe[1] devient stdout
+		dup2(fd[0], STDIN_FILENO);// pipe[0] devient stdin (read into stdin == read into fd[0])
+		dup2(fd[1], STDOUT_FILENO);//pipe[1] devient stdout (write into stdout == write into fd[1])
 		close(fd[0]);
 		close(fd[1]);
 		char cgi[14] = "/usr/bin/php";
