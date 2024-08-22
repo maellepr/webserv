@@ -4,6 +4,9 @@
 #include "webserv.hpp"
 #include "VirtualServer.hpp"
 
+// std::map<unsigned char, int>		HEXA_BASE;
+extern std::map<unsigned char, int>			HEXA_BASE;
+
 class Request
 {
 	public:
@@ -42,14 +45,16 @@ class Request
 		std::string									_query;
 		std::map<std::string, std::string>			_headers;
 		std::string									_body;
-		size_t										_contentLength;
+		std::size_t									_contentLength;
 		ParsingStep									_parsingStep;
 		bool										_isUpload;
+		bool										_isChunked;
 		std::string									_boundary;
 		std::vector<unsigned char> 					_ucharLine;
 		std::vector<unsigned char>  				_ucharBody;
 		bool										_keepAlive;
-
+		std::size_t									_chunkedLen;
+		ChunkStep									_chunkStep;
 };
 
 #endif

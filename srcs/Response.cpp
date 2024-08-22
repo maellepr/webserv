@@ -682,22 +682,20 @@ ResponseOutcome	Response::sendResponseToClient(int fd)
 	line = "\r\n";
 	if (pushStrToClient(fd, line) == -1)
 		return RESPONSE_FAILURE;
-	
-	// METHOD HEAD => stop and return success
 
 	std::map<std::string, std::string>::iterator it = _headers.find("content-length");
-	if (it != _headers.end())
-		std::cerr << "FOUND CONTENT LENGTH of " << strtol(it->second.c_str(), NULL, 10) << "\n";
+	// if (it != _headers.end())
+		// std::cerr << "FOUND CONTENT LENGTH of " << strtol(it->second.c_str(), NULL, 10) << "\n";
 	if (it != _headers.end() && strtol(it->second.c_str(), NULL, 10) > 0)
 	{
 		std::cerr << "OK THERE IS A BODY\n";
 	 	line = _body.substr(0, strtol(it->second.c_str(), NULL, 10)); //convertir
 		if (pushStrToClient(fd, line) == -1)
 			return RESPONSE_FAILURE;
-		return RESPONSE_SUCCESS;
+		return RESPONSE_SUCCESS_KEEPALIVE;
 	}
 	else 
-		return (RESPONSE_SUCCESS);
+		return (RESPONSE_SUCCESS_KEEPALIVE);
 	return RESPONSE_PENDING;
 }
 

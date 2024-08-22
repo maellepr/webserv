@@ -36,7 +36,7 @@
 # define DEFAULT_CONTENT_TYPE "application/octet-stream"
 # define CGI_VERSION "CGI/1.1"
 # define SERVER_SOFTWARE "webserv/1"
-# define MAX_CLIENTS_PER_SERVER 2
+# define MAX_CLIENTS_PER_SERVER 1000
 
 # define RESET	"\e[0m"
 # define BOLD	"\e[1m"
@@ -55,13 +55,15 @@ extern bool noSignal;
 class Location;
 class VirtualServer;
 
+// std::map<unsigned char, int> HEXA_BASE;
+
 # include "VirtualServer.hpp"
 # include "Location.hpp"
 
-#define	DEFAULT_MAXBODYSIZE 3145728;
-#define KB_IN_BYTES 1024;
-#define MB_IN_BYTES 1048576;
-#define	GB_IN_BYTES 1073741824;
+# define DEFAULT_MAXBODYSIZE 3145728;
+# define KB_IN_BYTES 1024;
+# define MB_IN_BYTES 1048576;
+# define GB_IN_BYTES 1073741824;
 
 
 
@@ -69,6 +71,7 @@ class VirtualServer;
 
 void		fillStatusMsg();
 void		fillContentTypes();
+void		fillHexaBase();
 void		callException(int errorNum);
 void		extension(const std::string& str, const std::string& extension);
 void		isDirectory(const std::string & filename);
@@ -173,7 +176,9 @@ typedef enum RequestOutcome
 
 typedef enum ResponseOutcome
 {
-	RESPONSE_SUCCESS,
+	NOTHING_SENT,
+	RESPONSE_SUCCESS_KEEPALIVE,
+	RESPONSE_SUCCESS_CLOSE,
 	RESPONSE_PENDING,
 	RESPONSE_FAILURE
 } ResponseOutcome;
@@ -185,6 +190,12 @@ typedef enum ParsingStep
 	IN_BODY,
 	DONE
 } ParsingStep;
+
+typedef enum ChunkStep
+{
+	IN_LEN,
+	IN_CHUNK
+} ChunkStep;
 
 typedef enum GnlStatus
 {

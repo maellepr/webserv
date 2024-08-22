@@ -1,40 +1,39 @@
-Claire : rajouter le boundary + isUpload dans la request				=>OK
+Claire : rajouter le boundary + isUpload dans la request						=>OK
 
-header transfer encoding
-header close  / keep alive
+write body => limit / timeout ?
 
 ######### TO DO #########
 
 - buildResponse():
-    gerer les return -> attention aux loop infinies 					=>Maelle
-    gerer les methods not accepted										=>Maelle
+    gerer les return -> attention aux loop infinies 							=>Maelle
+    gerer les methods not accepted												=>Maelle
 
 - buildErrorPage():
   URI relatives ou absolues ?
-  Refaire le html de la page d'erreur par defaut 						=>Maelle
+  Refaire le html de la page d'erreur par defaut 								=>Maelle
 
 - buildPost():
-    finir buildPost() = upload (creer les fichiers)						=>OK
-    tester le binaire (si on peut afficher les images par ex)			=>OK
-    a voir si remplacer les strings par vector<unsigned char>			=>OK
+    finir buildPost() = upload (creer les fichiers)								=>OK
+    tester le binaire (si on peut afficher les images par ex)					=>OK
+    a voir si remplacer les strings par vector<unsigned char>					=>OK
     redirections -> attention aux loop infinies
-	  gerer plusieurs uploads => boundary								=>OK
-    POST continue de refresh 											=>OK
+	  gerer plusieurs uploads => boundary										=>OK
+    POST continue de refresh 													=>OK
 	Limiter la taille des media?
 
 - buildDelete():
-    faire buildDelete() (suppr fichier)									=>Maelle
+    faire buildDelete() (suppr fichier)											=>Maelle
 
 - Server.loop():
-    gerer correctement les fermetures de sockets (headers close et keep-alive)
+    gerer correctement les fermetures de sockets (headers close et keep-alive)	=>OK(?)
     mettre en place des try catch pour eviter le shutdown du server
-    gerer correctement fd_max											=>OK?
-    gerer le nombre de clients acceptes par socket server				=>OK
+    gerer correctement fd_max													=>OK
+    gerer le nombre de clients acceptes par socket server						=>OK
 
 - chunked requests:
     to do
 
-- CGI:																	=>Maelle
+- CGI:																			=>Maelle
     cas d'erreur dans les scripts (voir avec TIMEOUT?)
     tester queries
     tester nom fichier (?)
@@ -46,7 +45,7 @@ header close  / keep alive
 - OTHER:
     Tester et retester erreurs de configs, de parsing....
     nettoyer le code et les commentaires
-    faire des jolies pages HTML											=>Maelle
+    faire des jolies pages HTML													=>Maelle
 
 
 ######### VARIABLES A REVOIR #########
@@ -64,6 +63,6 @@ header close  / keep alive
 - CTRL+SHIFT vs CTRL+SHIFT+R pour rafraichir avec le cache ou non
 
 ######### RESOLVED #########
-- plusieurs server-names ->non accepte 
-- plusieurs locations pareilles -> OK on prend la premiere
+- plusieurs server-names 														=>OK non accepte 
+- plusieurs locations pareilles 												=> OK on prend la premiere
 

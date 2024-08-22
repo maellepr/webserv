@@ -1,6 +1,6 @@
 #include "../includes/Request.hpp"
 
-Request::Request(int clientfd, std::vector<VirtualServer*> &vsCandidates) : _clientfd(clientfd), _hostNameDefined(false), _vsCandidates(vsCandidates), _vs(NULL), _location(NULL), _contentLength(0), _parsingStep(IN_REQUESTLINE), _isUpload(false), _keepAlive(true) {}
+Request::Request(int clientfd, std::vector<VirtualServer*> &vsCandidates) : _clientfd(clientfd), _hostNameDefined(false), _vsCandidates(vsCandidates), _vs(NULL), _location(NULL), _contentLength(0), _parsingStep(IN_REQUESTLINE), _isUpload(false), _isChunked(false), _keepAlive(true), _chunkedLen(0), _chunkStep(IN_LEN) {}
 
 Request::~Request() {}
 
@@ -86,7 +86,7 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 			return (parsingFailed(ret));
 		// std::cout << LIGHTBLUE << "BODY 1" << RESET << std::endl;
 	
-		if (_contentLength == 0)
+		if (_contentLength == 0 && _isChunked == false)
 		{
 			// std::cout << LIGHTBLUE << "BODY 2" << RESET << std::endl;
 			if (buffer.empty() == false)
@@ -202,6 +202,69 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 				// }
 				// // std::cout << LIGHTBLUE << "BODY 5" << RESET << std::endl;
 				// return (parsingSucceeded());
+			}
+			else if (_isChunked)
+			{
+				// std::cout << LIGHTBLUE << "CHUNK" << RESET << std::endl;
+				// _isChunked = false;
+				std::vector<unsigned char> v(buffer.begin(), buffer.end());
+				buffer = "";
+				for (std::vector<unsigned char>::iterator vit = v.begin(); vit != v.end(); vit++)
+				{
+					if (_chunkStep == IN_LEN)
+					{
+						// std::size_t contentLength(0);
+						std::size_t power(1);
+						_ucharLine.push_back(*vit);
+						// _ucharBody.push_back(*vit);
+						if (*vit == '\n')
+						{
+							if (_ucharLine.size() < 1 || _ucharLine[_ucharLine.size() - 2] != '\r')
+								return (parsingFailed(STATUS_BAD_REQUEST));
+							_ucharLine.pop_back();
+							_ucharLine.pop_back();
+							while (_ucharLine.empty() == false)
+							{
+								if (HEXA_BASE.find(toupper(_ucharLine.back())) == HEXA_BASE.end())
+									return (parsingFailed(STATUS_BAD_REQUEST));
+								_chunkedLen += HEXA_BASE[toupper(_ucharLine.back())] * power;
+								_ucharLine.pop_back();
+								power *= 16;
+							}
+							if (_chunkedLen > _vs->getMaxBodySize() || _chunkedLen + _contentLength > _vs->getMaxBodySize())
+								return (parsingFailed(STATUS_PAYLOAD_TOO_LARGE));
+							if (_chunkedLen == 0)
+							{
+								// _isChunked = true;
+								_ucharLine.clear();
+								// if (_ucharBody.size() != _contentLength)
+								if (*vit != '\r' || *(++vit) != '\n' || ++vit != v.end())
+									return (parsingFailed(STATUS_BAD_REQUEST));
+								_ucharBody.push_back('\r');
+								_ucharBody.push_back('\n');
+								_contentLength += 2; // ??
+								_body = stringifyVector(_ucharBody);
+								return (parsingSucceeded());
+							}
+							_chunkStep = IN_CHUNK;
+						}
+					}
+					else
+					{
+						// vit++;
+						_contentLength += _chunkedLen;
+						while (_chunkedLen && vit != v.end())
+						{
+							_ucharLine.push_back(*vit);
+							_ucharBody.push_back(*vit);
+							_chunkedLen--;
+							vit++;
+						}
+						if (_chunkedLen != 0 || vit == v.end() || *vit != '\r' || *(++vit) != '\n')
+							return (parsingPending());
+						_chunkStep = IN_LEN;
+					}
+				}
 			}
 			else
 			{
@@ -337,11 +400,7 @@ StatusCode	Request::checkIfBody()
 	if (_method == POST)
 	{
 		std::map<std::string, std::string>::iterator it = _headers.find("content-length");
-		if (it == _headers.end())
-		{
-			_contentLength = 0;
-		}
-		else
+		if (it != _headers.end())
 		{
 			if (it->second.find_first_not_of("0123456789", 0) != std::string::npos)
 				return (STATUS_BAD_REQUEST);
@@ -367,7 +426,18 @@ StatusCode	Request::checkIfBody()
 				}
 			}
 		}
-			
+		else
+		{
+			_contentLength = 0;
+			std::map<std::string, std::string>::iterator ita = _headers.find("transfer-encoding");
+			if (ita != _headers.end())
+			{
+				if (ita->second != "chunked")
+					return (STATUS_BAD_REQUEST);
+				else
+					_isChunked = true;
+			}
+		}
 	}
 	return (STATUS_NONE);
 }

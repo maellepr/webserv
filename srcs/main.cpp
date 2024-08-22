@@ -4,6 +4,7 @@
 bool noSignal = true;
 std::map<StatusCode, std::string>	STATUS_MESSAGES;
 std::map<std::string, std::string>	CONTENT_TYPES;
+std::map<unsigned char, int>		HEXA_BASE;
 
 int main(int argc, char **argv)
 {

@@ -4,6 +4,7 @@
 
 extern std::map<StatusCode, std::string>	STATUS_MESSAGES;
 extern std::map<std::string, std::string>	CONTENT_TYPES;
+extern std::map<unsigned char, int>			HEXA_BASE;
 extern bool noSignal;
 
 void	fillStatusMsg()
@@ -26,9 +27,29 @@ void	fillStatusMsg()
 	STATUS_MESSAGES[STATUS_HTTP_VERSION_NOT_SUPPORTED] = "HTTP Version not supported";
 }
 
-void		fillContentTypes()
+void	fillContentTypes()
 {
 	CONTENT_TYPES["html"] = "text/html";
+}
+
+void	fillHexaBase()
+{
+	HEXA_BASE['0'] = 0;
+	HEXA_BASE['1'] = 1;
+	HEXA_BASE['2'] = 2;
+	HEXA_BASE['3'] = 3;
+	HEXA_BASE['4'] = 4;
+	HEXA_BASE['5'] = 5;
+	HEXA_BASE['6'] = 6;
+	HEXA_BASE['7'] = 7;
+	HEXA_BASE['8'] = 8;
+	HEXA_BASE['9'] = 9;
+	HEXA_BASE['A'] = 10;
+	HEXA_BASE['B'] = 11;
+	HEXA_BASE['C'] = 12;
+	HEXA_BASE['D'] = 13;
+	HEXA_BASE['E'] = 14;
+	HEXA_BASE['F'] = 15;
 }
 
 void	extension(const std::string & str, const std::string & ext)

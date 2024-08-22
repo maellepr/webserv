@@ -33,6 +33,7 @@ void	Server::init(const char *filename)
 	extension(filename, ".conf");
 	isDirectory(filename);
 	fillStatusMsg();
+	fillHexaBase();
 
 	std::ifstream file(filename);
 	if (!file.is_open())
@@ -468,7 +469,8 @@ void	Server::loop()
 				dprintf(2, "WHILE 7 - a client socket is ready to write\n");
 				status--;
                 Client&	client = _clients[i];
-				if (client.writeResponse() == RESPONSE_FAILURE) // A VERIF
+				ResponseOutcome status = client.writeResponse();
+				if (status == RESPONSE_FAILURE || status == RESPONSE_SUCCESS_CLOSE) // A VERIF
 				{
 					_maxConnections[client.getServerFd()] -= 1;
 					close(client.getFd());
