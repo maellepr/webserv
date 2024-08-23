@@ -2,6 +2,7 @@
     $query = $_SERVER["QUERY_STRING"];
     $params = array();
     parse_str($query, $params);
+
     echo '<!DOCTYPE html>
     <html lang="en">
     <head>

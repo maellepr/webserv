@@ -15,6 +15,7 @@
 # include <sys/types.h>
 # include <sys/socket.h>
 # include <sys/stat.h>
+# include <sys/wait.h>
 # include <unistd.h>
 # include <fcntl.h>
 # include <dirent.h>
@@ -50,6 +51,7 @@
 # define VIOLET "\e[38;2;99;71;231m"
 # define DARKBLUE "\e[38;2;42;62;244m"
 # define DARKYELLOW "\e[38;2;244;232;42m"
+# define PINK	"\e[38;2;255;50;171m"
 
 extern bool noSignal;
 class Location;

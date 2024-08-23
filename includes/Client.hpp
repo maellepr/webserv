@@ -18,6 +18,9 @@ class Client
         int    			getServerFd();
 		void			setConnectedServers(int serverfd, std::map<int, std::vector<VirtualServer*> >	&socketBoundVs);
 		ClientStatus	&getClientStatus();
+
+		void			setFdInfos(int fdMax, fd_set write_fds, fd_set read_fds);
+
 		// VirtualServer	&getConnectedServer();
 		// void			setMaxBodySize(size_t maxBodySize);
 		// size_t			getMaxBodySize();
@@ -35,6 +38,10 @@ class Client
 		time_t 						_requestStartTime;
 		ClientStatus				_clientStatus;
 		bool						_keepAlive;
+
+		fd_set						_read_fds;
+		fd_set						_write_fds;
+		int							_fd_max;
 
 };
 

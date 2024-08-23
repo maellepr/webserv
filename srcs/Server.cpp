@@ -437,6 +437,9 @@ void	Server::loop()
 					client.setFd(_acceptNewConnection(i));
 					client.setServerFd(i);
 					client.setConnectedServers(i, _socketBoundVs);
+
+					client.setFdInfos(_fd_max, _read_fds, _write_fds);
+
 					dprintf(2, "WHILE 5 - 3\n");
 					_clients[client.getFd()] = client;
 					_maxConnections[i] += 1;

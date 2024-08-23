@@ -64,6 +64,13 @@ ClientStatus	&Client::getClientStatus()
 // 	return (_maxBodySize);
 // }
 
+void	Client::setFdInfos(int fdMax, fd_set write_fds, fd_set read_fds)
+{
+	_fd_max = fdMax;
+	_write_fds = write_fds;
+	_read_fds = read_fds;
+}
+
 // FUNCTIONS --------------------------------------------------------------------- //
 
 int Client::readRequest(int isInReadSet)
@@ -139,6 +146,7 @@ int Client::readRequest(int isInReadSet)
 	_clientStatus = NONE;
 
 	_response = new Response; // new A PROTEGER?
+	_response->setFdInfos(_fd_max, _write_fds, _read_fds);
 	_response->generateResponse(parsedRequest);
 
 	delete _request;

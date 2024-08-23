@@ -8,6 +8,13 @@ Response::~Response()
 {
 }
 
+void	Response::setFdInfos(int fdMax, fd_set writeFds, fd_set readFds)
+{
+	_fd_max = fdMax;
+	_write_fds = writeFds;
+	_read_fds = readFds;
+}
+
 void	Response::generateResponse(ParseRequestResult &request)
 {
 	// std::cout << "request.hostName = " << request.hostName << std::endl;
@@ -21,9 +28,10 @@ void	Response::generateResponse(ParseRequestResult &request)
 	}
 	else if (request.location->getConfigLocation().find("cgi") != request.location->getConfigLocation().end()) // CGI
 	{
-		std::cerr << ">> CGI <<\n";
+		std::cerr << PINK << BOLD << ">> CGI <<\n" << RESET;
 		buildCgi(request);
 		(void) request;
+		std::cerr << PINK << BOLD << ">> end of CGI <<\n" << RESET;
 	}
 	else if (0) // location method not allowed
 	{
@@ -59,108 +67,77 @@ void	Response::generateResponse(ParseRequestResult &request)
 
 void	Response::buildCgi(ParseRequestResult &request)
 {
-	if (request.query.empty())
-		request.query = request.body;
-	_configLocation = request.location->getConfigLocation();
-	std::map<std::string, std::vector<std::string> >::iterator it = _configLocation.find("cgi");
-	std::string path = it->second[0];
-	path.insert(0, "./");
-	// char	*pathCgi = const_cast<char*>(it->second[0].c_str());// dans cgiTest : usr/bin/python-3
-	char *pathCgi = const_cast<char*>(path.c_str());
-	std::cerr << "pathCgi = " << pathCgi << "\n";
-
-	// (void)path;
-
-	// std::cerr << "_rootDir = " << _rootDir << "\n";
-	// std::cerr << "location uri = " << request.uri << "\n"; // = test.com
-	// // std::cerr << "location->getUri = " << request.location
-	// std::string uri = _rootDir + request.uri;
-	
-	if (_configLocation.find("rootDir") != _configLocation.end())
-		_rootDir = _configLocation["rootDir"][0];// rootDir : www/cgiTest/cgi-bin
-	std::cout << "root = " << _rootDir << std::endl;
-	if (_rootDir[0] == '/')
-		_rootDir = _rootDir.substr(1, _rootDir.size() - 1);
-	if (_rootDir[_rootDir.size() -1] == '/')
-		_rootDir = _rootDir.substr(0, _rootDir.size() - 1);
-	std::cerr << "request-uri = " << request.uri << "\n";// page demandee : /index
-	_finalURI = _rootDir + request.uri;// www/cgiTest/cgi-bin/index
-	_finalURI.insert(0, "./");
-	std::cout << "_finalURI = " << _finalURI << std::endl;
-	std::cout << "_query = " << request.query << std::endl;
-	char	*finalUri = const_cast<char*>(_finalURI.c_str());
-	std::cerr << "ici\n";
-	if (access(finalUri, F_OK) != 0)
-		return (buildErrorPage(request, STATUS_BAD_GATEWAY));
-	// A COMPLETER
-
-	// std::cerr << "Response headers = \n";
-	// for (std::map<std::string, std::string>::iterator it = request.headers.begin(); it != request.headers.end(); it++)
-	// {
-	// 	std::cerr << "KEY = " << it->first << "\n";
-	// 	std::cerr << "VALUE = " << it->second << "\n"; 
-	// }
-
+	initCgi(request);
+	std::cerr << "max fd = " << _fd_max << "\n";
 	int	fd[2];
+	int writeStatus;
+	std::string cgiFile	= ".read_cgi.txt";
+	int	cgiFd = open(cgiFile.c_str(), O_WRONLY | O_CREAT | O_TRUNC);
+	if (cgiFd != -1)
+	{
+		if (chmod(cgiFile.c_str(), S_IRWXU | S_IRWXG | S_IRWXO) != 0)
+		{
+			close(cgiFd);
+			cgiFd = -1;// a voir
+		}
+	}
 	if (pipe(fd) == - 1)
-		throw ErrorResponse("Error in Response : pipe()");
+		return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
 	pid_t	pid = fork();
 	if (pid == -1)
-		throw ErrorResponse("Error in Response : fork()");
-	std::cerr << "pathCgi = " << pathCgi << "\n";
-	std::cerr << "finalUri = " << finalUri << "\n";
+		return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
+
+	waitpid(pid, &writeStatus, 0);
 	if (pid == 0)//child
 	{
-		dup2(fd[0], STDIN_FILENO);// pipe[0] devient stdin
-		dup2(fd[1], STDOUT_FILENO);//pipe[1] devient stdout
+		dup2(fd[0], STDIN_FILENO);//stdin devient pipe[0]
 		close(fd[0]);
 		close(fd[1]);
+		dup2(cgiFd, STDOUT_FILENO);//stdout devient pipe[1]
+		close(cgiFd);
 		char cgi[14] = "/usr/bin/php";
-		char *av[] = {cgi, finalUri, NULL};
+		char *av[] = {cgi, _finalUriChar, NULL};
 		std::vector<std::string> vecEnv = doEnvCgi(request);
 		char **env = vectorStringToChar(vecEnv);
-		// int i = 0;
-		// std::cerr << "Env = ";
-		// while (env[i])
-		// {
-		// 	// int j = 0;
-		// 	std::cerr << env[i];
-		// 	// while(env[i][j])
-		// 	// {
-		// 	// 	std::cerr << env[i][j] << "\n";
-		// 	// 	j++;
-		// 	// }
-		// 	std::cerr << "\n";
-		// 	i++;
-		// }
+		closeAllFd();
 		execve(cgi, av, env);
+
 		// if execve didn't work :
 		perror("execve");
 		freeChar(env);
 		exit(EXIT_FAILURE);
-		// peut-etre faire exit
 	}
-	std::cerr << "PID = " << pid << " script = " << finalUri << "\n";
-
-	// on ecrit le body dans pipe[1] (stdout)
-	std::cerr << "_body_size = " << _body.size() << "\n";
-
-	// FILE* file = fdopen(fd[1], "w");
-
-	// std::ofstream ofs(file);
-	
-	// ofs << _body;
-	// fclose(file);
-
-	write(fd[1], _body.c_str(), _body.size());// A REMPLACER
-	
 	close(fd[1]);
-
-	// on lit la reponse depuis pipe[0]
-	std::string	response = readResponse(fd[0]);
 	close(fd[0]);
+	close(cgiFd);
+	buildPageCgi();
+}
 
-	_body = response;
+
+void	Response::closeAllFd(void)
+{
+	_fd_max += 3;
+	for (int fd = 3; fd < _fd_max; fd++)
+	{
+		std::cerr << PINK << "close all fd in child\n" << RESET;
+		if (FD_ISSET(fd, &_write_fds))
+			FD_CLR(fd, &_write_fds);
+		if (FD_ISSET(fd, &_read_fds))
+			FD_CLR(fd, &_read_fds);
+		if (fd == _fd_max)
+			_fd_max--;
+		close(fd);
+	}
+}
+
+void	Response::buildPageCgi()
+{
+	std::ifstream	ifs(".read_cgi.txt");//ajouter protection
+
+	std::stringstream response;
+	response << ifs.rdbuf();
+
+	_body = response.str();
 	_headers["content-length"] = convertToStr(_body.size());
 
 	size_t pos = _finalURI.find_last_of("/");
@@ -180,6 +157,29 @@ void	Response::buildCgi(ParseRequestResult &request)
 	}
 }
 
+void	Response::initCgi(ParseRequestResult &request)
+{
+	if (request.query.empty())
+		request.query = request.body;
+	_configLocation = request.location->getConfigLocation();
+	std::map<std::string, std::vector<std::string> >::iterator it = _configLocation.find("cgi");
+	std::string path = it->second[0];
+	path.insert(0, "./");
+	// char *pathCgi = const_cast<char*>(path.c_str());
+	if (_configLocation.find("rootDir") != _configLocation.end())
+		_rootDir = _configLocation["rootDir"][0];// rootDir : www/cgiTest/cgi-bin
+	if (_rootDir[0] == '/')
+		_rootDir = _rootDir.substr(1, _rootDir.size() - 1);
+	if (_rootDir[_rootDir.size() -1] == '/')
+		_rootDir = _rootDir.substr(0, _rootDir.size() - 1);
+	_finalURI = _rootDir + request.uri;// www/cgiTest/cgi-bin/index
+	_finalURI.insert(0, "./");
+	_finalUriChar = const_cast<char*>(_finalURI.c_str());
+	if (access(_finalUriChar, F_OK) != 0)
+		return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
+	// A COMPLETER
+
+}
 
 std::vector<std::string>	Response::doEnvCgi(ParseRequestResult &request)
 {
@@ -187,7 +187,7 @@ std::vector<std::string>	Response::doEnvCgi(ParseRequestResult &request)
 
 	std::stringstream ss;
 	ss << request.contentLenght;
-	std::cerr << "request.contentLenght = " << request.contentLenght << "\n";
+	// std::cerr << "request.contentLenght = " << request.contentLenght << "\n";
 	// std::cerr << "content lenght = " << ss.str() << "\n";
 	exportToEnv(env, "CONTENT_LENGHT", ss.str());// a remplir avec POST
 	std::map<std::string, std::string>::iterator it = request.headers.find("content-type");
@@ -218,7 +218,7 @@ std::vector<std::string>	Response::doEnvCgi(ParseRequestResult &request)
 			exportToEnv(env, keyWord, it->second);
 	}
 	std::string absPath = getAbsPath(_finalURI);
-	std::cerr << "absPath == " << absPath << "\n";
+	// std::cerr << "absPath == " << absPath << "\n";
 	exportToEnv(env, "PATH_INFO", "/mnt/nfs/homes/mapoirie/Documents/webserv_git/www/cgi/response.php");
 
 	exportToEnv(env, "QUERY_STRING", request.query);
@@ -251,22 +251,6 @@ std::vector<std::string>	Response::doEnvCgi(ParseRequestResult &request)
 	// 	std::cerr << (*it) << "\n";
 	// }
 	return (env);
-}
-
-std::string	Response::readResponse(int fd)
-{
-	char buffer[16384];//BUFFER_SIZE?
-	size_t length;
-	std::string response;
-	
-	while (true)
-	{
-		length = read(fd, buffer, 16384 - 1);// A REMPLACE
-		buffer[length] = '\0';
-		response += buffer;
-		if (length < 16384 - 1)
-			return response ;
-	}
 }
 
 void	Response::exportToEnv(std::vector<std::string> &env, const std::string &key, const std::string &value)
