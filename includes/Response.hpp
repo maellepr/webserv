@@ -21,6 +21,7 @@ class Response
 		int							pushStrToClient(int fd, std::string &str);
 
 		void						buildCgi(ParseRequestResult &request);
+		std::string					findCgi();
 		void						closeAllFd();
 		void						initCgi(ParseRequestResult &request);
 		void						buildPageCgi();
@@ -45,6 +46,7 @@ class Response
 		StatusCode											_statusCode;
 		std::string											_finalURI;
 		char												*_finalUriChar;
+		char												*_cgi;
 		std::string											_rootDir;
 		std::map<std::string, std::vector<std::string> >	_configLocation;
 		std::map<std::string, std::string> 					_uploads;

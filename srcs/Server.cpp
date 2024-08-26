@@ -381,10 +381,10 @@ void	Server::loop()
 	while (noSignal)
 	{
     	dprintf(2, "WHILE 1 - before sleep\n");
-        sleep(2); // A ENLEVER
+        sleep(1); // A ENLEVER
         _read_fds = _all_sockets;
         _write_fds = _all_sockets;
-        timer.tv_sec = 2; // 2 second timeout for select()
+        timer.tv_sec = 1; // 2 second timeout for select()
         timer.tv_usec = 0;
         
         dprintf(2, "WHILE 2 - avant select\n");
