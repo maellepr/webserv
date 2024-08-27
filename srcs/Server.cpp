@@ -380,14 +380,14 @@ void	Server::loop()
 	
 	while (noSignal)
 	{
-    	dprintf(2, "WHILE 1 - before sleep\n");
+    	dprintf(2, "\nWHILE 1 - before sleep\n");
         sleep(1); // A ENLEVER
         _read_fds = _all_sockets;
         _write_fds = _all_sockets;
         timer.tv_sec = 1; // 2 second timeout for select()
         timer.tv_usec = 0;
         
-        dprintf(2, "WHILE 2 - avant select\n");
+        dprintf(2, "\nWHILE 2 - avant select\n");
         status = select(_fd_max + 1, &_read_fds, &_write_fds, NULL, &timer);
         if (status == -1)
             callException(-2); // A modifier car le server ne doit pas s'arreter ?
@@ -396,7 +396,7 @@ void	Server::loop()
             printf("[Server] Waiting...\n");
             continue;
         }
-        dprintf(2, "WHILE 3 - apres select\n");
+        dprintf(2, "\nWHILE 3 - apres select\n");
         dprintf(2, "_fd_max = %d\n", _fd_max);
         for (int i = 0; i <= _fd_max && status > 0; i++) // 1 seule boucle ou 2 ?
         {
@@ -406,7 +406,7 @@ void	Server::loop()
 				|| (_clients.find(i) != _clients.end()
 					&& _clients[i].getClientStatus() == REQUEST_ONGOING))
 			{
-				dprintf(2, "WHILE 4 - debut boucle read set\n");
+				dprintf(2, "\nWHILE 4 - debut boucle read set\n");
 				status--;
 				// size_t j = 0;
 				// for (;j < _virtualServers.size(); j++)
@@ -421,7 +421,7 @@ void	Server::loop()
 				std::map<int, std::vector<VirtualServer*> >::iterator it = _socketBoundVs.find(i);
 				if (it != _socketBoundVs.end())
 				{
-					std::cout << DARKYELLOW << "WHILE 5 - read socket is a server" << RESET << std::endl;
+					std::cout << DARKYELLOW << "\nWHILE 5 - read socket is a server" << RESET << std::endl;
 					// dprintf(2, "WHILE 5 - read socket is a server\n");
 					// check if max nb of connections is reached
 					std::cout << "_maxConnections[" << i << "] + 1 = " << _maxConnections[i] + 1 << RESET << std::endl;
@@ -448,7 +448,7 @@ void	Server::loop()
 				}
 				else
 				{
-					dprintf(2, "WHILE 6 - read socket is a client\n");
+					dprintf(2, "\nWHILE 6 - read socket is a client\n");
 					Client&	client = _clients[i]; 
 					
 					if (client.readRequest(FD_ISSET(i, &_read_fds)) == -1)
@@ -468,7 +468,7 @@ void	Server::loop()
       		}
 			else if (FD_ISSET(i, &_write_fds) == 1)
 			{
-				dprintf(2, "WHILE 7 - a client socket is ready to write\n");
+				dprintf(2, "\nWHILE 7 - a client socket is ready to write\n");
 				status--;
                 Client&	client = _clients[i];
 				if (client.writeResponse() == RESPONSE_FAILURE) // A VERIF

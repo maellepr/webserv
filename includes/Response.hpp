@@ -39,6 +39,8 @@ class Response
 		Location					*associateLocationResponse(ParseRequestResult &request, std::string index);
 		void						listUploadFiles(ParseRequestResult &request);
 
+		bool						methodIsAuthorize(ParseRequestResult	&request);
+
 	private:
 		std::string											_statusLine;
 		std::map<std::string, std::string>					_headers;

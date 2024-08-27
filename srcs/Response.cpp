@@ -26,36 +26,36 @@ void	Response::generateResponse(ParseRequestResult &request)
 		buildErrorPage(request, request.statusCode);
 		std::cerr << "generate Response 3\n";
 	}
-	else if (request.location->getConfigLocation().find("cgi") != request.location->getConfigLocation().end()) // CGI
+	else if (methodIsAuthorize(request) == false) // location method not allowed
 	{
-		std::cerr << PINK << BOLD << ">> CGI <<\n" << RESET;
-		buildCgi(request);
-		(void) request;
-		std::cerr << PINK << BOLD << ">> end of CGI <<\n" << RESET;
-	}
-	else if (0) // location method not allowed
-	{
-		(void) request;
+		buildErrorPage(request, STATUS_METHOD_NOT_ALLOWED);
 	}
 	else if (0) // redirection return + gere les infinite loop !
 	{
 		(void) request;
 	}
 	else
-	{
-		if (request.method == GET)
+	{	
+		if (request.location->getConfigLocation().find("cgi") != request.location->getConfigLocation().end()) // CGI
+		{
+			std::cerr << PINK << ">> CGI <<\n" << RESET;
+			buildCgi(request);
+			(void) request;
+			std::cerr << PINK << ">> end of CGI <<\n" << RESET;
+		}
+		else if (request.method == GET)
 		{
 			std::cerr << "generate Response 4\n";
 			buildGet(request);
 			std::cerr << "generate Response 5\n";
 		}
-		if (request.method == POST)
+		else if (request.method == POST)
 		{
 			std::cerr << "generate Response 6\n";
 			buildPost(request);
 			std::cerr << "generate Response 7\n";
 		}
-		if (request.method == DELETE)
+		else if (request.method == DELETE)
 			return ; // buildDelete(request)
 	}
 
@@ -63,6 +63,61 @@ void	Response::generateResponse(ParseRequestResult &request)
 	// std::cerr << "_body = " << _body << std::endl;
 	std::cerr << "generate Response 6\n";
 	// build headers (+body)
+}
+
+bool	Response::methodIsAuthorize(ParseRequestResult	&request)
+{
+	std::cerr << "request config location :\n";
+	for (std::map<std::string, std::vector<std::string> >::iterator i = request.location->getConfigLocation().begin(); i != request.location->getConfigLocation().end(); i++)
+	{
+		std::cerr << i->first << "\n";
+		for (std::vector<std::string>::iterator j = i->second.begin(); j != i->second.end(); j++)
+		{
+			std::cerr << *j << " ";
+		}
+		std::cerr << "\n";
+	}
+
+
+	std::map<std::string, std::vector<std::string> >::iterator it = request.location->getConfigLocation().find("methods");
+	std::string m;
+	if (request.method == POST)
+		m = "POST";
+	else if (request.method == GET)
+		m = "GET";
+	else if (request.method == DELETE)
+		m = "DELETE";
+	else
+		m = "NONE";
+	std::cerr << PINK << BOLD << "request method : " << m << "\n" << RESET;
+	
+	if (it != request.location->getConfigLocation().end())
+	{
+		for (std::vector<std::string>::iterator itSec = it->second.begin(); itSec != it->second.end(); itSec++)
+		{
+			
+			if (request.method == POST && *itSec == "POST")
+			{
+				std::cerr << PINK << BOLD << "POST allowed\n" << RESET;
+				return true ;
+			}
+			else if (request.method == GET && *itSec == "GET")
+			{
+				std::cerr << PINK << BOLD << "GET allowed\n" << RESET;
+				return true ;
+			}
+			else if (request.method == DELETE && *itSec == "DELETE")
+			{
+				std::cerr << PINK << BOLD << "DELETE allowed\n" << RESET;	
+				return true ;
+			}
+		}
+
+		std::cerr << PINK << BOLD << "method " << m << " not allowed\n" << RESET;
+		return false;
+	}
+	std::cerr << PINK << BOLD << "all methods allowed\n" << RESET;
+	return true;
 }
 
 void	Response::buildCgi(ParseRequestResult &request)
@@ -129,7 +184,12 @@ void	Response::buildCgi(ParseRequestResult &request)
 			time_t	end = time(NULL);
 			if (end - start >= 3)// valeur 3?
 			{
-				kill(pid, SIGQUIT);
+				std::cerr << BOLD << "return error page timeout\n" << RESET;
+				close(cgiFd);
+				if (kill(pid, SIGKILL) == 0)
+					std::cerr << "Child process killed successfully\n";
+				else
+					std::cerr << "Failed to kill child process\n";
 				return (buildErrorPage(request, STATUS_REQUEST_TIMEOUT));
 			}
 		}
@@ -184,6 +244,7 @@ void	Response::buildPageCgi()
 	std::stringstream response;
 	response << ifs.rdbuf();
 
+	remove(".read_cgi.txt");
 	_body = response.str();
 	std::cerr << "response : " << _body << "\n";
 	_headers["content-length"] = convertToStr(_body.size());
