@@ -40,7 +40,6 @@ void	Response::generateResponse(ParseRequestResult &request)
 		{
 			std::cerr << PINK << ">> CGI <<\n" << RESET;
 			buildCgi(request);
-			(void) request;
 			std::cerr << PINK << ">> end of CGI <<\n" << RESET;
 		}
 		else if (request.method == GET)
@@ -123,6 +122,8 @@ bool	Response::methodIsAuthorize(ParseRequestResult	&request)
 void	Response::buildCgi(ParseRequestResult &request)
 {
 	initCgi(request);
+	if (_statusCode != STATUS_OK)
+		return(buildErrorPage(request, _statusCode));
 	// std::cerr << "max fd = " << _fd_max << "\n";
 	// int	fd[2];
 	int writeStatus;
@@ -172,25 +173,33 @@ void	Response::buildCgi(ParseRequestResult &request)
 		freeChar(env);
 		return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
 	}
+	// system("pstree -p");
 	// close(fd[1]);
 	// close(fd[0]);
 	while (true)
 	{
 		pid_t	pid_result = waitpid(pid, &writeStatus, WNOHANG);
 		if (pid_result > 0)// success, child process change state
+		{
+			std::cerr << "waitpid success, child process chage state\n";
 			break;
-		else if (pid_result == 0)// no state change detected, verify that not too much time passed (infinite loop ?)
+		}
+		if (pid_result == 0)// no state change detected, verify that not too much time passed (infinite loop ?)
 		{
 			time_t	end = time(NULL);
 			if (end - start >= 3)// valeur 3?
 			{
-				std::cerr << BOLD << "return error page timeout\n" << RESET;
+				std::cerr << BOLD << "return error page timeout\n" << "pid killed = " << pid << "\n" << RESET;
 				close(cgiFd);
 				if (kill(pid, SIGKILL) == 0)
 					std::cerr << "Child process killed successfully\n";
 				else
 					std::cerr << "Failed to kill child process\n";
-				return (buildErrorPage(request, STATUS_REQUEST_TIMEOUT));
+				pid_result = waitpid(pid, &writeStatus, WNOHANG);
+				if (kill(pid, SIGKILL) == 0)
+					std::cerr << "Child process killed successfully\n";
+				_statusCode = STATUS_INTERNAL_SERVER_ERROR;
+				return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
 			}
 		}
 		else// waitpid failed
@@ -202,6 +211,8 @@ void	Response::buildCgi(ParseRequestResult &request)
 	}
 	close(cgiFd);
 	buildPageCgi();
+	if (_statusCode != STATUS_OK)
+		buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR);
 }
 
 std::string	Response::findCgi()
@@ -246,6 +257,11 @@ void	Response::buildPageCgi()
 
 	remove(".read_cgi.txt");
 	_body = response.str();
+	if (_body.size() == 0)
+	{
+		_statusCode = STATUS_INTERNAL_SERVER_ERROR;
+		return ;
+	}
 	std::cerr << "response : " << _body << "\n";
 	_headers["content-length"] = convertToStr(_body.size());
 
@@ -286,8 +302,8 @@ void	Response::initCgi(ParseRequestResult &request)
 	_finalUriChar = const_cast<char*>(_finalURI.c_str());
 	dprintf(2, "_finalUriChar = %s\n", _finalUriChar);
 	if (access(_finalUriChar, F_OK) != 0)
-		return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
-	
+		_statusCode = STATUS_NOT_FOUND;
+
 	// A COMPLETER
 
 }
@@ -795,7 +811,7 @@ ResponseOutcome	Response::sendResponseToClient(int fd)
 		return (RESPONSE_SUCCESS);
 	return RESPONSE_PENDING;
 }
-
+//
 int	Response::pushStrToClient(int fd, std::string &str)
 {
 	size_t	bytesSent = 0, tmpSent = 0;
@@ -803,9 +819,9 @@ int	Response::pushStrToClient(int fd, std::string &str)
 	std::cerr << "str size = " << str.size() << "\n";
 	while (bytesSent < str.size())
 	{
-		// std::cerr << "pushstrclient 1\n";
+		std::cerr << "pushstrclient 1\n";
 		tmpSent = send(fd, str.c_str() + bytesSent, str.size() - bytesSent, 0);
-		// std::cerr << "pushstrclient 2\n";
+		std::cerr << "pushstrclient 2\n";
 		if (tmpSent <= 0)
 			return (-1);
 		bytesSent += tmpSent;

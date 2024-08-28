@@ -6,6 +6,7 @@ Client::Client() : _clientfd(-1), _request(NULL), _response(NULL), _buffer(""), 
 
 Client::~Client()
 {
+	
 	if (_request)
 		delete _request;
 	if (_response)
