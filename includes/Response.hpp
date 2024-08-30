@@ -20,6 +20,8 @@ class Response
 		ResponseOutcome				sendResponseToClient(int fd);
 		int							pushStrToClient(int fd, std::string &str);
 
+		void						buildReturn(ParseRequestResult &request);
+		bool						methodIsAuthorize(ParseRequestResult	&request);
 		void						buildCgi(ParseRequestResult &request);
 		std::string					findCgi();
 		void						closeAllFd();
@@ -39,8 +41,6 @@ class Response
 		Location					*associateLocationResponse(ParseRequestResult &request, std::string index);
 		void						listUploadFiles(ParseRequestResult &request);
 
-		bool						methodIsAuthorize(ParseRequestResult	&request);
-
 	private:
 		std::string											_statusLine;
 		std::map<std::string, std::string>					_headers;
@@ -49,10 +49,11 @@ class Response
 		std::string											_finalURI;
 		char												*_finalUriChar;
 		char												*_cgi;
+		std::string											_returnRes;
 		std::string											_rootDir;
 		std::map<std::string, std::vector<std::string> >	_configLocation;
 		std::map<std::string, std::string> 					_uploads;
-		
+			
 		int		_fd_max;
 		fd_set	_write_fds;
 		fd_set	_read_fds;

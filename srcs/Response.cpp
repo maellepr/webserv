@@ -30,12 +30,14 @@ void	Response::generateResponse(ParseRequestResult &request)
 	{
 		buildErrorPage(request, STATUS_METHOD_NOT_ALLOWED);
 	}
-	else if (0) // redirection return + gere les infinite loop !
+	else if (request.location->getReturn().size() > 0) // redirection return + gere les infinite loop !
 	{
-		(void) request;
+		std::cerr << TURQUOISE << ">> Return <<\n" << RESET;
+		buildReturn(request);
+		std::cerr << TURQUOISE << ">> end of return <<\n" << RESET;
 	}
 	else
-	{	
+	{
 		if (request.location->getConfigLocation().find("cgi") != request.location->getConfigLocation().end()) // CGI
 		{
 			std::cerr << PINK << ">> CGI <<\n" << RESET;
@@ -64,18 +66,83 @@ void	Response::generateResponse(ParseRequestResult &request)
 	// build headers (+body)
 }
 
-bool	Response::methodIsAuthorize(ParseRequestResult	&request)
+void	Response::buildReturn(ParseRequestResult &request)
 {
-	std::cerr << "request config location :\n";
-	for (std::map<std::string, std::vector<std::string> >::iterator i = request.location->getConfigLocation().begin(); i != request.location->getConfigLocation().end(); i++)
+	int			returnCode;
+	std::string	redirectUri;
+	std::cerr << "get Return :\n";
+	for (std::map<int, std::string>::iterator i = request.location->getReturn().begin(); i != request.location->getReturn().end(); i++)
 	{
-		std::cerr << i->first << "\n";
-		for (std::vector<std::string>::iterator j = i->second.begin(); j != i->second.end(); j++)
-		{
-			std::cerr << *j << " ";
-		}
-		std::cerr << "\n";
+		std::cerr << i->first << " " << i->second << "\n";
+		returnCode = i->first;
+		redirectUri = i->second;
 	}
+	// STATUS_MULTIPLE_CHOICES = 300,
+	// STATUS_MOVED_PERMANENTLY = 301,
+	// STATUS_FOUND = 302,
+	// STATUS_SEE_OTHER = 303,
+	// STATUS_NOT_MODIFIED = 304,
+	// STATUS_USE_PROXY = 305,
+	// STATUS_SWITCH_PROXY = 306,
+	// STATUS_TEMPORARY_REDIRECT = 307,
+	// STATUS_PERMANENT_REDIRECT = 308,
+	if (returnCode == 300)
+		_statusCode = STATUS_MULTIPLE_CHOICES;
+	else if (returnCode == 301)
+		_statusCode = STATUS_MOVED_PERMANENTLY;
+	else if (returnCode == 302)
+		_statusCode = STATUS_FOUND;
+	else if (returnCode == 303)
+		_statusCode = STATUS_SEE_OTHER;
+	else if (returnCode == 304)
+		_statusCode = STATUS_NOT_MODIFIED;
+	else if (returnCode == 305)
+		_statusCode = STATUS_USE_PROXY;
+	else if (returnCode == 306)
+		_statusCode = STATUS_SWITCH_PROXY;
+	else if (returnCode == 307)
+		_statusCode = STATUS_TEMPORARY_REDIRECT;
+	else if (returnCode == 308)
+		_statusCode = STATUS_PERMANENT_REDIRECT;
+	 // A MODIFIER METTRE LES DIFF CODE 300
+	// std::stringstream res;
+	
+
+    //         // response = "HTTP/1.1 301 Moved Permanently\r\n";
+    //         // response += "Location: " + redirect_url + "\r\n";
+    //         // response += "Content-Length: 0\r\n";
+    //         // response += "\r\n";
+	
+	// res << "HTTP/1.1 302 Status Found" << std::endl;
+	// res << "Location: /form302.html" << std::endl;
+	// res << "Content-Length: " << 0 << std::endl << std::endl;
+
+	// _returnRes = res.str();
+
+	// _headers["HTTP/1.1 301 Moved Permanently\r\n"] = "";
+	// std::cerr << "returnCode : " << returnCode << " redirectUri : " << redirectUri << "\n";
+	_headers["location"] = "/" + redirectUri + "\r\n";
+	// _headers["content-length"] = "0\r\n";
+	
+
+
+	// on doit return une reponse contenant 301 et form2.html 
+	// request.location->getReturn()
+	// std::map<int, std::string>	_returnPageLocation;
+}
+
+bool	Response::methodIsAuthorize(ParseRequestResult &request)
+{
+	// std::cerr << "request config location :\n";
+	// for (std::map<std::string, std::vector<std::string> >::iterator i = request.location->getConfigLocation().begin(); i != request.location->getConfigLocation().end(); i++)
+	// {
+	// 	std::cerr << i->first << "\n";
+	// 	for (std::vector<std::string>::iterator j = i->second.begin(); j != i->second.end(); j++)
+	// 	{
+	// 		std::cerr << *j << " ";
+	// 	}
+	// 	std::cerr << "\n";
+	// }
 
 
 	std::map<std::string, std::vector<std::string> >::iterator it = request.location->getConfigLocation().find("methods");
@@ -87,7 +154,7 @@ bool	Response::methodIsAuthorize(ParseRequestResult	&request)
 	else if (request.method == DELETE)
 		m = "DELETE";
 	else
-		m = "NONE";
+		m = "NONE";// peut etre ajouter erreur
 	std::cerr << PINK << BOLD << "request method : " << m << "\n" << RESET;
 	
 	if (it != request.location->getConfigLocation().end())
@@ -158,20 +225,16 @@ void	Response::buildCgi(ParseRequestResult &request)
 		std::string cgi = findCgi();
 		_cgi = const_cast<char*>(cgi.c_str());
 		dprintf(2, "_cgi here = %s\n", _cgi);
-		// if (ext == ".php")
-			// char cgi[14] = "/usr/bin/php";
-		// else if (ext == ".py")
-			// char cgi[17] = "/usr/bin/python3";	
 		char *av[] = {_cgi, _finalUriChar, NULL};
 		std::vector<std::string> vecEnv = doEnvCgi(request);
 		char **env = vectorStringToChar(vecEnv);
 		closeAllFd();
 		execve(_cgi, av, env);
-
 		// execve failed
 		perror("execve");
 		freeChar(env);
-		return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
+		sleep(3);
+		exit(EXIT_FAILURE);
 	}
 	// system("pstree -p");
 	// close(fd[1]);
@@ -780,13 +843,23 @@ void	Response::buildAutoindexPage(ParseRequestResult &request)
 ResponseOutcome	Response::sendResponseToClient(int fd)
 {
 	std::string	line;
+	
+	// if (_returnRes.size() > 0)
+	// {
+	// 	std::cerr << "-------->_returnRes to push = " << _returnRes << "\n";
+	// 	if (pushStrToClient(fd, _returnRes) == -1)
+	// 		return RESPONSE_FAILURE;
+	// 	return RESPONSE_SUCCESS;
+	// }
 
+	std::cerr << "-------->_statusLine to push = " << _statusLine << "\n";
 	if (pushStrToClient(fd, _statusLine) == -1)
 		return RESPONSE_FAILURE;
 
 	for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); it++)
 	{
 		line = it->first + ": " + it->second + "\r\n";
+		std::cerr << "-------->line to push = " << line << "\n";
 		if (pushStrToClient(fd, line) == -1)
 			return RESPONSE_FAILURE;
 	}
