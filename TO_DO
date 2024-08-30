@@ -66,3 +66,18 @@ write body => limit / timeout ?
 - plusieurs server-names 														=>OK non accepte 
 - plusieurs locations pareilles 												=> OK on prend la premiere
 
+
+################################################
+GET / HTTP/1.1
+Transfer-Encoding: chunked
+Host: example.com
+
+5
+Hello
+a
+My name is
+17
+Claire ou peut etre pas
+0
+
+################################################

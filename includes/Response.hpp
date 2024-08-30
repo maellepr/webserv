@@ -31,6 +31,7 @@ class Response
 		void						buildAutoindexPage(ParseRequestResult &request);
 		Location					*associateLocationResponse(ParseRequestResult &request, std::string index);
 		void						listUploadFiles(ParseRequestResult &request);
+		bool						getErrorCloseSocket();
 
 	private:
 		std::string											_statusLine;
@@ -41,6 +42,7 @@ class Response
 		std::string											_rootDir;
 		std::map<std::string, std::vector<std::string> >	_configLocation;
 		std::map<std::string, std::string> 					_uploads;
+		bool												_errorCloseSocket;
 		
 
 };

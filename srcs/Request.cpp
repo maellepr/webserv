@@ -7,6 +7,7 @@ Request::~Request() {}
 ParseRequestResult	Request::parseBuffer(std::string &buffer)
 {
 	std::cout << LIGHTBLUE << "PARSE_BUFFER" << RESET << std::endl;
+	std::cout << VIOLET << "body = " << _body << RESET << std::endl;
 	StatusCode	ret(STATUS_NONE);
 	GnlStatus	gnl;
 
@@ -205,36 +206,50 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 			}
 			else if (_isChunked)
 			{
-				// std::cout << LIGHTBLUE << "CHUNK" << RESET << std::endl;
+				std::cout << LIGHTBLUE << "CHUNK" << RESET << std::endl;
 				// _isChunked = false;
 				std::vector<unsigned char> v(buffer.begin(), buffer.end());
 				buffer = "";
 				for (std::vector<unsigned char>::iterator vit = v.begin(); vit != v.end(); vit++)
 				{
+					std::cout << LIGHTBLUE << "CHUNK 0" << RESET << std::endl;
 					if (_chunkStep == IN_LEN)
 					{
+						std::cout << LIGHTBLUE << "CHUNK 1" << RESET << std::endl;
 						// std::size_t contentLength(0);
 						std::size_t power(1);
 						_ucharLine.push_back(*vit);
 						// _ucharBody.push_back(*vit);
 						if (*vit == '\n')
 						{
-							if (_ucharLine.size() < 1 || _ucharLine[_ucharLine.size() - 2] != '\r')
+							std::cout << LIGHTBLUE << "CHUNK 2" << RESET << std::endl;
+							if (_ucharLine.size() < 2 || _ucharLine[_ucharLine.size() - 2] != '\r')
 								return (parsingFailed(STATUS_BAD_REQUEST));
 							_ucharLine.pop_back();
 							_ucharLine.pop_back();
 							while (_ucharLine.empty() == false)
 							{
+								std::cout << LIGHTBLUE << "CHUNK 2.1" << RESET << std::endl;
+								if (_ucharLine.back() == '\r')
+									std::cout << PURPLE << "_ucharLine.back() = " << "CR" << RESET << std::endl;
+								else if (_ucharLine.back() == '\n')
+									std::cout << PURPLE << "_ucharLine.back() = " << "LF" << RESET << std::endl;
+								else
+									std::cout << PURPLE << "_ucharLine.back() = " << _ucharLine.back() << RESET << std::endl;
 								if (HEXA_BASE.find(toupper(_ucharLine.back())) == HEXA_BASE.end())
 									return (parsingFailed(STATUS_BAD_REQUEST));
+								std::cout << LIGHTBLUE << "CHUNK 2.2" << RESET << std::endl;
 								_chunkedLen += HEXA_BASE[toupper(_ucharLine.back())] * power;
 								_ucharLine.pop_back();
 								power *= 16;
 							}
+							std::cout << LIGHTBLUE << "CHUNK 3" << RESET << std::endl;
 							if (_chunkedLen > _vs->getMaxBodySize() || _chunkedLen + _contentLength > _vs->getMaxBodySize())
 								return (parsingFailed(STATUS_PAYLOAD_TOO_LARGE));
+							std::cout << LIGHTBLUE << "CHUNK 4" << RESET << std::endl;
 							if (_chunkedLen == 0)
 							{
+								std::cout << LIGHTBLUE << "CHUNK 5" << RESET << std::endl;
 								// _isChunked = true;
 								_ucharLine.clear();
 								// if (_ucharBody.size() != _contentLength)
@@ -247,10 +262,12 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 								return (parsingSucceeded());
 							}
 							_chunkStep = IN_CHUNK;
+							std::cout << LIGHTBLUE << "CHUNK 6" << RESET << std::endl;
 						}
 					}
 					else
 					{
+						std::cout << LIGHTBLUE << "CHUNK 7" << RESET << std::endl;
 						// vit++;
 						_contentLength += _chunkedLen;
 						while (_chunkedLen && vit != v.end())
@@ -260,9 +277,12 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 							_chunkedLen--;
 							vit++;
 						}
+						std::cout << LIGHTBLUE << "CHUNK 8" << RESET << std::endl;
 						if (_chunkedLen != 0 || vit == v.end() || *vit != '\r' || *(++vit) != '\n')
 							return (parsingPending());
+						_ucharLine.clear();
 						_chunkStep = IN_LEN;
+						std::cout << LIGHTBLUE << "CHUNK 9" << RESET << std::endl;
 					}
 				}
 			}
@@ -399,6 +419,7 @@ StatusCode	Request::checkIfBody()
 	std::cout << "Check if body\n";
 	if (_method == POST)
 	{
+		// std::cout << "is post\n";
 		std::map<std::string, std::string>::iterator it = _headers.find("content-length");
 		if (it != _headers.end())
 		{
@@ -426,17 +447,20 @@ StatusCode	Request::checkIfBody()
 				}
 			}
 		}
-		else
+	}
+	else
+	{
+		// std::cout << "not post\n";
+		_contentLength = 0;
+		std::map<std::string, std::string>::iterator ita = _headers.find("transfer-encoding");
+		if (ita != _headers.end())
 		{
-			_contentLength = 0;
-			std::map<std::string, std::string>::iterator ita = _headers.find("transfer-encoding");
-			if (ita != _headers.end())
-			{
-				if (ita->second != "chunked")
-					return (STATUS_BAD_REQUEST);
-				else
-					_isChunked = true;
-			}
+			// std::cout << "chunked ?\n";
+			if (ita->second != "chunked")
+				return (STATUS_BAD_REQUEST);
+			else
+				_isChunked = true;
+			// std::cout << "chunked !\n";
 		}
 	}
 	return (STATUS_NONE);

@@ -1,0 +1,15 @@
+GET / HTTP/1.1
+Transfer-encoding: chunked
+Host: example.com
+
+5
+Hello
+
+a
+My name is
+
+17
+Claire ou peut etre pas
+
+0
+

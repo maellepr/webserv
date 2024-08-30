@@ -133,6 +133,10 @@ int Client::readRequest(int isInReadSet)
 		else
 			return (0);
 	}
+	else if (parsedRequest.outcome == REQUEST_FAILURE)
+	{
+		_buffer.erase();
+	}
 
 	std::cout << LIGHTGREEN << "REQUEST OUTCOME = " << parsedRequest.outcome << RESET << std::endl;
 	
@@ -156,12 +160,14 @@ ResponseOutcome Client::writeResponse()
 		status = _response->sendResponseToClient(_clientfd);
 		if (status != RESPONSE_PENDING)
 		{
-			delete _response;
-			_response = NULL;
 			if (status == RESPONSE_SUCCESS_KEEPALIVE && _keepAlive == false)
 			{
 				status = RESPONSE_SUCCESS_CLOSE;
 			}
+			if (_response->getErrorCloseSocket() == true)
+				status = RESPONSE_SUCCESS_CLOSE;
+			delete _response;
+			_response = NULL;
 		}
 	}
 

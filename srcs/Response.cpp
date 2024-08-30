@@ -1,6 +1,6 @@
 #include "../includes/Response.hpp"
 
-Response::Response() : _statusCode(STATUS_OK)
+Response::Response() : _statusCode(STATUS_OK), _errorCloseSocket(false)
 {
 }
 
@@ -285,6 +285,7 @@ void	Response::buildStatusLine()
 
 void	Response::buildErrorPage(ParseRequestResult &request, StatusCode statusCode)
 {
+	_errorCloseSocket = true;
 	// Attention, le request.statusCode n'est plus forcement valide => utilise celui envoye dans les arguments
 	std::cerr << "build error page\n";
 	std::string	errorPageUri("");
@@ -762,4 +763,9 @@ Location	*Response::associateLocationResponse(ParseRequestResult &request, std::
 	}
 
 	return (newLoc);
+}
+
+bool	Response::getErrorCloseSocket()
+{
+	return _errorCloseSocket;
 }
