@@ -150,7 +150,7 @@ void	Response::buildCgi(ParseRequestResult &request)
 	// std::ofstream ofs(file);
 	
 	// ofs << _body;
-	// fclose(file);
+	// fclosefile);
 
 	write(fd[1], _body.c_str(), _body.size());// A REMPLACER
 	
@@ -476,53 +476,58 @@ void	Response::buildGet(ParseRequestResult &request)
 void	Response::buildPost(ParseRequestResult &request)
 {
 	std::cout << LIGHTBLUE << "BUILDPOST\n" << RESET;
-	listUploadFiles(request);
-	if (_uploads.empty())
+	if (request.isUpload)
 	{
-		_statusCode = STATUS_NO_CONTENT;
-		return ;
-	}
-	for (std::map<std::string, std::string>::iterator it = _uploads.begin(); it != _uploads.end(); it++)
-	{
-		std::string filename = "./www/uploads/" + it->first;
-		if (access(filename.c_str(), F_OK) == 0)
+		listUploadFiles(request);
+		if (_uploads.empty())
 		{
-			// std::cout << RED << "FILE ALREADY EXISTS" << RESET << std::endl;
-			std::string fileRename = filename;
-			for (std::size_t i = 1; i < 11; i++) // 10 copies max
+			_statusCode = STATUS_NO_CONTENT;
+			return ;
+		}
+		for (std::map<std::string, std::string>::iterator it = _uploads.begin(); it != _uploads.end(); it++)
+		{
+			std::string filename = "./www/uploads/" + it->first;
+			if (access(filename.c_str(), F_OK) == 0)
 			{
-				std::size_t extensionPos = filename.find_last_of(".");
-				if (extensionPos != std::string::npos && extensionPos != 0)
-					fileRename = filename.substr(0, extensionPos);
-				fileRename += "(" + convertToStr(i) + ")";
-				if (extensionPos != std::string::npos && extensionPos != 0)
-					fileRename += filename.substr(extensionPos, std::string::npos);
-				if (access(fileRename.c_str(), F_OK) != 0)
+				// std::cout << RED << "FILE ALREADY EXISTS" << RESET << std::endl;
+				std::string fileRename = filename;
+				for (std::size_t i = 1; i < 11; i++) // 10 copies max
 				{
-					filename = fileRename;
-					break ;
+					std::size_t extensionPos = filename.find_last_of(".");
+					if (extensionPos != std::string::npos && extensionPos != 0)
+						fileRename = filename.substr(0, extensionPos);
+					fileRename += "(" + convertToStr(i) + ")";
+					if (extensionPos != std::string::npos && extensionPos != 0)
+						fileRename += filename.substr(extensionPos, std::string::npos);
+					if (access(fileRename.c_str(), F_OK) != 0)
+					{
+						filename = fileRename;
+						break ;
+					}
 				}
 			}
-		}
-		if (access(filename.c_str(), F_OK) != 0)
-		{
-			std::ofstream fileToUpload;
-			fileToUpload.open(filename.c_str(), std::ofstream::binary);
-			std::vector<unsigned char> v = vectorizeString(it->second);
-			for (std::vector<unsigned char>::iterator vit = v.begin(); vit != v.end(); vit++)
+			if (access(filename.c_str(), F_OK) != 0)
 			{
-				fileToUpload << *vit;
+				std::ofstream fileToUpload;
+				fileToUpload.open(filename.c_str(), std::ofstream::binary);
+				std::vector<unsigned char> v = vectorizeString(it->second);
+				for (std::vector<unsigned char>::iterator vit = v.begin(); vit != v.end(); vit++)
+				{
+					fileToUpload << *vit;
+				}
+				fileToUpload.close();
+				_statusCode = STATUS_CREATED;
+				_finalURI = "./pages/upload_success.html";
+				return (buildPage(request));
 			}
-			fileToUpload.close();
-			_statusCode = STATUS_CREATED;
-			_finalURI = "./pages/upload_success.html";
-			return (buildPage(request));
-		}
-		else
-		{
-			return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
+			else
+			{
+				return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
+			}
 		}
 	}
+	else
+		return (buildGet(request));
 	return ;
 }
 

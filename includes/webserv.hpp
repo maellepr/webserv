@@ -85,6 +85,7 @@ char		**vectorStringToChar(std::vector<std::string> &vector);
 void		freeChar(char **tab);
 std::vector<unsigned char>	vectorizeString(std::string s);
 std::string	stringifyVector(std::vector<unsigned char> v);
+// void	closeIf(int *fd);
 
 // Templates must be in header
 
@@ -149,6 +150,15 @@ class ErrorResponse : public std::exception
 		
 	private:
 		std::string	_errorMsg;
+};
+
+class CtrlC : public std::exception
+{
+	public:
+		virtual const char* what() const throw()
+		{
+			return ("CTRL+C : stop the server");
+		}
 };
 
 // Enums ----------------------------------------------------------------------------- //

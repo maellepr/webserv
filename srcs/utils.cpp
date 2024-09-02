@@ -137,6 +137,8 @@ void	handleSignal(int signum)
 {
 	(void)signum;
 	noSignal = false;
+	// std::cerr << "RED" << "THROW" << RESET << std::endl;
+	// throw CtrlC() ;
 }
 
 std::string	getAbsPath(std::string &path)
@@ -183,3 +185,10 @@ std::string	stringifyVector(std::vector<unsigned char> v)
 {
 	return (std::string(v.begin(), v.end()));
 }
+
+// void	closeIf(int *fd)
+// {
+// 	if (*fd > 0)
+// 		close(*fd);
+// 	*fd = -1;
+// }

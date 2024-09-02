@@ -84,7 +84,7 @@ int Client::readRequest(int isInReadSet)
 				std::cout << "[" << DARKYELLOW << _clientfd << "]" << "Client socket closed connection.\n" << RESET << std::endl;
 			else
 				std::cerr << "[Server] Recv error: " << strerror(errno) << std::endl;
-			// close(_clientfd);
+			// close_clientfd);
 			return (-1);
 		}
 		// buffer[bytesRead] = '\0';
