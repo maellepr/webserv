@@ -7,7 +7,7 @@ Request::~Request() {}
 ParseRequestResult	Request::parseBuffer(std::string &buffer)
 {
 	std::cout << LIGHTBLUE << "PARSE_BUFFER" << RESET << std::endl;
-	std::cout << VIOLET << "body = " << _body << RESET << std::endl;
+	// std::cout << VIOLET << "body = " << _body << RESET << std::endl;
 	StatusCode	ret(STATUS_NONE);
 	GnlStatus	gnl;
 
@@ -224,7 +224,7 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 						{
 							std::cout << LIGHTBLUE << "CHUNK 2" << RESET << std::endl;
 							if (_ucharLine.size() < 2 || _ucharLine[_ucharLine.size() - 2] != '\r')
-								return (parsingFailed(STATUS_BAD_REQUEST));
+								continue;
 							_ucharLine.pop_back();
 							_ucharLine.pop_back();
 							while (_ucharLine.empty() == false)
@@ -246,6 +246,7 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 							std::cout << LIGHTBLUE << "CHUNK 3" << RESET << std::endl;
 							if (_chunkedLen > _vs->getMaxBodySize() || _chunkedLen + _contentLength > _vs->getMaxBodySize())
 								return (parsingFailed(STATUS_PAYLOAD_TOO_LARGE));
+							std::cout << PURPLE << "_chunkedLen = " << _chunkedLen << RESET << std::endl;
 							std::cout << LIGHTBLUE << "CHUNK 4" << RESET << std::endl;
 							if (_chunkedLen == 0)
 							{
@@ -253,12 +254,21 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 								// _isChunked = true;
 								_ucharLine.clear();
 								// if (_ucharBody.size() != _contentLength)
+								// if (*vit == '\r')
+								// 	std::cout << PURPLE << "*vit = " << "CR" << RESET << std::endl;
+								// else if (*vit == '\n')
+								// 	std::cout << PURPLE << "*vit = " << "LF" << RESET << std::endl;
+								// else
+								// 	std::cout << PURPLE << "*vit = " << *vit << RESET << std::endl;
+								vit++;
 								if (*vit != '\r' || *(++vit) != '\n' || ++vit != v.end())
 									return (parsingFailed(STATUS_BAD_REQUEST));
+								std::cout << LIGHTBLUE << "CHUNK 5.1" << RESET << std::endl;
 								_ucharBody.push_back('\r');
 								_ucharBody.push_back('\n');
 								_contentLength += 2; // ??
 								_body = stringifyVector(_ucharBody);
+								std::cout << VIOLET << "body = " << _body << RESET << std::endl;
 								return (parsingSucceeded());
 							}
 							_chunkStep = IN_CHUNK;
@@ -272,6 +282,12 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 						_contentLength += _chunkedLen;
 						while (_chunkedLen && vit != v.end())
 						{
+								// if (*vit == '\r')
+								// 	std::cout << PURPLE << "*vit = " << "CR" << RESET << std::endl;
+								// else if (*vit == '\n')
+								// 	std::cout << PURPLE << "*vit = " << "LF" << RESET << std::endl;
+								// else
+								// 	std::cout << PURPLE << "*vit = " << *vit << RESET << std::endl;
 							_ucharLine.push_back(*vit);
 							_ucharBody.push_back(*vit);
 							_chunkedLen--;
@@ -417,51 +433,46 @@ StatusCode	Request::parseHeader(std::string header)
 StatusCode	Request::checkIfBody()
 {
 	std::cout << "Check if body\n";
-	if (_method == POST)
+	_contentLength = 0;
+	// if (_method == POST)
+	std::map<std::string, std::string>::iterator it = _headers.find("content-length");
+	if (it != _headers.end())
 	{
-		// std::cout << "is post\n";
-		std::map<std::string, std::string>::iterator it = _headers.find("content-length");
-		if (it != _headers.end())
-		{
-			if (it->second.find_first_not_of("0123456789", 0) != std::string::npos)
-				return (STATUS_BAD_REQUEST);
-			_contentLength = strtol(it->second.c_str(), NULL, 10);
-			if (_contentLength > _vs->getMaxBodySize())
-				return (STATUS_PAYLOAD_TOO_LARGE);
+		if (it->second.find_first_not_of("0123456789", 0) != std::string::npos)
+			return (STATUS_BAD_REQUEST);
+		_contentLength = strtol(it->second.c_str(), NULL, 10);
+		if (_contentLength > _vs->getMaxBodySize())
+			return (STATUS_PAYLOAD_TOO_LARGE);
 
-			std::map<std::string, std::string>::iterator it = _headers.find("content-type");
-			if (it == _headers.end())
-				return (STATUS_BAD_REQUEST);
-			else
+		std::map<std::string, std::string>::iterator it = _headers.find("content-type");
+		if (it == _headers.end())
+			return (STATUS_BAD_REQUEST);
+		else
+		{
+			if (it->second.substr(0, strlen("text/plain")) == "text/plain")
+				return (STATUS_UNSUPPORTED_MEDIA_TYPE); // A CHECKER
+			else if (it->second.substr(0, strlen("multipart/form-data")) == "multipart/form-data")
 			{
-				if (it->second.substr(0, strlen("text/plain")) == "text/plain")
-					return (STATUS_UNSUPPORTED_MEDIA_TYPE); // A CHECKER
-				else if (it->second.substr(0, strlen("multipart/form-data")) == "multipart/form-data")
-				{
-					_isUpload = true;
-					size_t pos = it->second.find("boundary=");
-					if (pos == std::string::npos)
-						return (STATUS_BAD_REQUEST);
-					else
-						_boundary = "--" + it->second.substr(pos + 9);
-				}
+				_isUpload = true;
+				size_t pos = it->second.find("boundary=");
+				if (pos == std::string::npos)
+					return (STATUS_BAD_REQUEST);
+				else
+					_boundary = "--" + it->second.substr(pos + 9);
 			}
 		}
 	}
-	else
+	std::map<std::string, std::string>::iterator ita = _headers.find("transfer-encoding");
+	if (ita != _headers.end() && _contentLength != 0)
+		return (STATUS_BAD_REQUEST);
+	else if (ita != _headers.end())
 	{
-		// std::cout << "not post\n";
-		_contentLength = 0;
-		std::map<std::string, std::string>::iterator ita = _headers.find("transfer-encoding");
-		if (ita != _headers.end())
-		{
-			// std::cout << "chunked ?\n";
-			if (ita->second != "chunked")
-				return (STATUS_BAD_REQUEST);
-			else
-				_isChunked = true;
-			// std::cout << "chunked !\n";
-		}
+		// std::cout << "chunked ?\n";
+		if (ita->second != "chunked")
+			return (STATUS_BAD_REQUEST);
+		else
+			_isChunked = true;
+		// std::cout << "chunked !\n";
 	}
 	return (STATUS_NONE);
 }

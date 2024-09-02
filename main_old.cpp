@@ -199,7 +199,7 @@ void read_data_from_socket(int socket, fd_set *all_sockets, int fd_max, int serv
         else {
             fprintf(stderr, "[Server] Recv error: %s\n", strerror(errno));
         }
-        close(socket); // Close the socket
+        close(&socket); // Close the socket
         FD_CLR(socket, all_sockets); // Remove socket from the set
     }
     else {
