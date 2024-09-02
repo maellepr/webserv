@@ -1,0 +1,44 @@
+body {
+    height: 100%;
+    margin: 0;
+    background-color: rgb(255, 210, 224);
+	font-family: Georgia;
+	justify-content: center;
+}
+
+.title1 {
+    margin-top: 30px;
+    font-size:2em;
+    color: #000000;
+    text-align: center;
+}
+
+.title2 {
+    margin-top: 20px;
+    font-size:1em;
+    color: #000000;
+    text-align: center;
+}
+
+.index {
+	margin-top:10px;
+	text-align: center;
+	
+}
+
+.indexButton {
+	text-decoration: none;
+}
+
+.img_arrow {
+	position:block;
+	transform: rotate(90deg);
+	margin-top:15px;
+	text-align: center;
+}
+
+.img {
+	position:block;
+	margin-top:15px;
+	text-align: center;
+}

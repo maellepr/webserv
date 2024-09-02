@@ -13,10 +13,19 @@ void	fillStatusMsg()
 	STATUS_MESSAGES[STATUS_OK] = "OK"; // A MODIF
 	STATUS_MESSAGES[STATUS_CREATED] = "Created";
 	STATUS_MESSAGES[STATUS_NO_CONTENT] = "No Content";
+	STATUS_MESSAGES[STATUS_MULTIPLE_CHOICES] = "Status Multiple Choices";
 	STATUS_MESSAGES[STATUS_MOVED_PERMANENTLY] = "Moved Permanently";
+	STATUS_MESSAGES[STATUS_FOUND] = "Status Found";
+	STATUS_MESSAGES[STATUS_SEE_OTHER] = "Status See Other";
+	STATUS_MESSAGES[STATUS_NOT_MODIFIED] = "Status Not Modified";
+	STATUS_MESSAGES[STATUS_USE_PROXY] = "Status Use Proxy";
+	STATUS_MESSAGES[STATUS_SWITCH_PROXY] = "Status Switch Proxy";
+	STATUS_MESSAGES[STATUS_TEMPORARY_REDIRECT] = "Status Temporary Redirect";
+	STATUS_MESSAGES[STATUS_PERMANENT_REDIRECT] = "Status Permanent Redirect";
 	STATUS_MESSAGES[STATUS_FORBIDDEN] = "Forbidden";
 	STATUS_MESSAGES[STATUS_BAD_REQUEST] = "Bad Request";
 	STATUS_MESSAGES[STATUS_NOT_FOUND] = "Not Found";
+	STATUS_MESSAGES[STATUS_METHOD_NOT_ALLOWED] = "Method Not Allowed";
 	STATUS_MESSAGES[STATUS_REQUEST_TIMEOUT] = "Request Time-out";
 	STATUS_MESSAGES[STATUS_PAYLOAD_TOO_LARGE] = "Request Entity Too Large";
 	STATUS_MESSAGES[STATUS_URI_TOO_LONG] = "Request-URI Too Long";
@@ -166,12 +175,13 @@ char	**vectorStringToChar(std::vector<std::string> &vector)
 
 void	freeChar(char **tab)
 {
-	for (size_t i = 0; tab[i]; i++)
+	int i = 0;
+	while (tab[i])
 	{
-		if (tab[i])
-			delete tab[i];
+		delete [] tab[i];
+		i++;
 	}
-	delete tab;
+	delete [] tab;
 }
 
 std::vector<unsigned char> vectorizeString(std::string s)

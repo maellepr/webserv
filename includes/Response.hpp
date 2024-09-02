@@ -13,12 +13,21 @@ class Response
 		Response();
 		~Response();
 
+		void						setFdInfos(int fdMax, fd_set writeFds, fd_set readFds);
+
 		void						fillStatusMsg();
 		void						generateResponse(ParseRequestResult &request);
 		ResponseOutcome				sendResponseToClient(int fd);
 		int							pushStrToClient(int fd, std::string &str);
 
+		void						buildReturn(ParseRequestResult &request);
+		bool						methodIsAuthorize(ParseRequestResult	&request);
 		void						buildCgi(ParseRequestResult &request);
+		std::string					findCgi();
+		void						closeAllFd();
+		void						initCgi(ParseRequestResult &request);
+		void						buildPageCgi();
+		int							getLine(std::string &buffer);
 		std::vector<std::string>	doEnvCgi(ParseRequestResult &request);
 		void						exportToEnv(std::vector<std::string> &env, const std::string &key, const std::string &value);
 		std::string					readResponse(int fd);
@@ -39,12 +48,16 @@ class Response
 		std::string											_body;
 		StatusCode											_statusCode;
 		std::string											_finalURI;
+		char												*_finalUriChar;
+		char												*_cgi;
+		std::string											_returnRes;
 		std::string											_rootDir;
 		std::map<std::string, std::vector<std::string> >	_configLocation;
 		std::map<std::string, std::string> 					_uploads;
 		bool												_errorCloseSocket;
-		
-
+		int													_fd_max;
+		fd_set												_write_fds;
+		fd_set												_read_fds;
 };
 
 #endif

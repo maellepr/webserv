@@ -15,6 +15,7 @@
 # include <sys/types.h>
 # include <sys/socket.h>
 # include <sys/stat.h>
+# include <sys/wait.h>
 # include <unistd.h>
 # include <fcntl.h>
 # include <dirent.h>
@@ -50,6 +51,8 @@
 # define VIOLET "\e[38;2;99;71;231m"
 # define DARKBLUE "\e[38;2;42;62;244m"
 # define DARKYELLOW "\e[38;2;244;232;42m"
+# define PINK	"\e[38;2;255;50;171m"
+# define TURQUOISE "\e[38;2;128;255;251m"
 
 extern bool noSignal;
 class Location;
@@ -210,10 +213,19 @@ typedef enum StatusCode
 	STATUS_OK = 200,
 	STATUS_CREATED = 201,
 	STATUS_NO_CONTENT = 204,
+	STATUS_MULTIPLE_CHOICES = 300,
 	STATUS_MOVED_PERMANENTLY = 301,
+	STATUS_FOUND = 302,
+	STATUS_SEE_OTHER = 303,
+	STATUS_NOT_MODIFIED = 304,
+	STATUS_USE_PROXY = 305,
+	STATUS_SWITCH_PROXY = 306,
+	STATUS_TEMPORARY_REDIRECT = 307,
+	STATUS_PERMANENT_REDIRECT = 308,
 	STATUS_FORBIDDEN = 403,
 	STATUS_BAD_REQUEST = 400,
 	STATUS_NOT_FOUND = 404,
+	STATUS_METHOD_NOT_ALLOWED = 405,
 	STATUS_REQUEST_TIMEOUT = 408,
 	STATUS_PAYLOAD_TOO_LARGE = 413,
 	STATUS_URI_TOO_LONG = 414,

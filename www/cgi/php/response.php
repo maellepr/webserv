@@ -2,6 +2,7 @@
     $query = $_SERVER["QUERY_STRING"];
     $params = array();
     parse_str($query, $params);
+
     echo '<!DOCTYPE html>
     <html lang="en">
     <head>
@@ -14,9 +15,9 @@
     <body>
         <h1 class="pagesTitle">Response</h1>
         <div class="response">
-            <div class="tag">Name : <span class="value">' .$params['name'] . '</span></div>
-            <div class="tag">Firstname : <span class="value">' .$params['firstname'] . '</span></div>
-            <div class="tag">Login : <span class="value">' .$params['login'] . '</span></div>
+            <div class="tag">Your favorite color is <span class="value">' .$params['color'] . '</span></div>
+            <div class="tag">Your favorite meal is <span class="value">' .$params['meal'] . '</span></div>
+            <div class="tag">Your favorite season <span class="value">' .$params['season'] . '</span></div>
         </div>
         <div class="index">
             <a class="indexButton" href="/site_index.html">Index</a>

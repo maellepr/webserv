@@ -8,6 +8,13 @@ Response::~Response()
 {
 }
 
+void	Response::setFdInfos(int fdMax, fd_set writeFds, fd_set readFds)
+{
+	_fd_max = fdMax;
+	_write_fds = writeFds;
+	_read_fds = readFds;
+}
+
 void	Response::generateResponse(ParseRequestResult &request)
 {
 	// std::cout << "request.hostName = " << request.hostName << std::endl;
@@ -19,35 +26,37 @@ void	Response::generateResponse(ParseRequestResult &request)
 		buildErrorPage(request, request.statusCode);
 		std::cerr << "generate Response 3\n";
 	}
-	else if (request.location->getConfigLocation().find("cgi") != request.location->getConfigLocation().end()) // CGI
+	else if (methodIsAuthorize(request) == false) // location method not allowed
 	{
-		std::cerr << ">> CGI <<\n";
-		buildCgi(request);
-		(void) request;
+		buildErrorPage(request, STATUS_METHOD_NOT_ALLOWED);
 	}
-	else if (0) // location method not allowed
+	else if (request.location->getReturn().size() > 0) // redirection return + gere les infinite loop !
 	{
-		(void) request;
-	}
-	else if (0) // redirection return + gere les infinite loop !
-	{
-		(void) request;
+		std::cerr << TURQUOISE << ">> Return <<\n" << RESET;
+		buildReturn(request);
+		std::cerr << TURQUOISE << ">> end of return <<\n" << RESET;
 	}
 	else
 	{
-		if (request.method == GET)
+		if (request.location->getConfigLocation().find("cgi") != request.location->getConfigLocation().end()) // CGI
+		{
+			std::cerr << PINK << ">> CGI <<\n" << RESET;
+			buildCgi(request);
+			std::cerr << PINK << ">> end of CGI <<\n" << RESET;
+		}
+		else if (request.method == GET)
 		{
 			std::cerr << "generate Response 4\n";
 			buildGet(request);
 			std::cerr << "generate Response 5\n";
 		}
-		if (request.method == POST)
+		else if (request.method == POST)
 		{
 			std::cerr << "generate Response 6\n";
 			buildPost(request);
 			std::cerr << "generate Response 7\n";
 		}
-		if (request.method == DELETE)
+		else if (request.method == DELETE)
 			return ; // buildDelete(request)
 	}
 
@@ -57,110 +66,266 @@ void	Response::generateResponse(ParseRequestResult &request)
 	// build headers (+body)
 }
 
-void	Response::buildCgi(ParseRequestResult &request)
+void	Response::buildReturn(ParseRequestResult &request)
 {
-	if (request.query.empty())
-		request.query = request.body;
-	_configLocation = request.location->getConfigLocation();
-	std::map<std::string, std::vector<std::string> >::iterator it = _configLocation.find("cgi");
-	std::string path = it->second[0];
-	path.insert(0, "./");
-	// char	*pathCgi = const_cast<char*>(it->second[0].c_str());// dans cgiTest : usr/bin/python-3
-	char *pathCgi = const_cast<char*>(path.c_str());
-	std::cerr << "pathCgi = " << pathCgi << "\n";
-
-	// (void)path;
-
-	// std::cerr << "_rootDir = " << _rootDir << "\n";
-	// std::cerr << "location uri = " << request.uri << "\n"; // = test.com
-	// // std::cerr << "location->getUri = " << request.location
-	// std::string uri = _rootDir + request.uri;
+	int			returnCode;
+	std::string	redirectUri;
+	std::cerr << "get Return :\n";
+	for (std::map<int, std::string>::iterator i = request.location->getReturn().begin(); i != request.location->getReturn().end(); i++)
+	{
+		std::cerr << i->first << " " << i->second << "\n";
+		returnCode = i->first;
+		redirectUri = i->second;
+	}
+	// STATUS_MULTIPLE_CHOICES = 300,
+	// STATUS_MOVED_PERMANENTLY = 301,
+	// STATUS_FOUND = 302,
+	// STATUS_SEE_OTHER = 303,
+	// STATUS_NOT_MODIFIED = 304,
+	// STATUS_USE_PROXY = 305,
+	// STATUS_SWITCH_PROXY = 306,
+	// STATUS_TEMPORARY_REDIRECT = 307,
+	// STATUS_PERMANENT_REDIRECT = 308,
+	if (returnCode == 300)
+		_statusCode = STATUS_MULTIPLE_CHOICES;
+	else if (returnCode == 301)
+		_statusCode = STATUS_MOVED_PERMANENTLY;
+	else if (returnCode == 302)
+		_statusCode = STATUS_FOUND;
+	else if (returnCode == 303)
+		_statusCode = STATUS_SEE_OTHER;
+	else if (returnCode == 304)
+		_statusCode = STATUS_NOT_MODIFIED;
+	else if (returnCode == 305)
+		_statusCode = STATUS_USE_PROXY;
+	else if (returnCode == 306)
+		_statusCode = STATUS_SWITCH_PROXY;
+	else if (returnCode == 307)
+		_statusCode = STATUS_TEMPORARY_REDIRECT;
+	else if (returnCode == 308)
+		_statusCode = STATUS_PERMANENT_REDIRECT;
+	 // A MODIFIER METTRE LES DIFF CODE 300
+	// std::stringstream res;
 	
-	if (_configLocation.find("rootDir") != _configLocation.end())
-		_rootDir = _configLocation["rootDir"][0];// rootDir : www/cgiTest/cgi-bin
-	std::cout << "root = " << _rootDir << std::endl;
-	if (_rootDir[0] == '/')
-		_rootDir = _rootDir.substr(1, _rootDir.size() - 1);
-	if (_rootDir[_rootDir.size() -1] == '/')
-		_rootDir = _rootDir.substr(0, _rootDir.size() - 1);
-	std::cerr << "request-uri = " << request.uri << "\n";// page demandee : /index
-	_finalURI = _rootDir + request.uri;// www/cgiTest/cgi-bin/index
-	_finalURI.insert(0, "./");
-	std::cout << "_finalURI = " << _finalURI << std::endl;
-	std::cout << "_query = " << request.query << std::endl;
-	char	*finalUri = const_cast<char*>(_finalURI.c_str());
-	std::cerr << "ici\n";
-	if (access(finalUri, F_OK) != 0)
-		return (buildErrorPage(request, STATUS_BAD_GATEWAY));
-	// A COMPLETER
 
-	// std::cerr << "Response headers = \n";
-	// for (std::map<std::string, std::string>::iterator it = request.headers.begin(); it != request.headers.end(); it++)
+    //         // response = "HTTP/1.1 301 Moved Permanently\r\n";
+    //         // response += "Location: " + redirect_url + "\r\n";
+    //         // response += "Content-Length: 0\r\n";
+    //         // response += "\r\n";
+	
+	// res << "HTTP/1.1 302 Status Found" << std::endl;
+	// res << "Location: /form302.html" << std::endl;
+	// res << "Content-Length: " << 0 << std::endl << std::endl;
+
+	// _returnRes = res.str();
+
+	// _headers["HTTP/1.1 301 Moved Permanently\r\n"] = "";
+	// std::cerr << "returnCode : " << returnCode << " redirectUri : " << redirectUri << "\n";
+	_headers["location"] = "/" + redirectUri + "\r\n";
+	// _headers["content-length"] = "0\r\n";
+	
+
+
+	// on doit return une reponse contenant 301 et form2.html 
+	// request.location->getReturn()
+	// std::map<int, std::string>	_returnPageLocation;
+}
+
+bool	Response::methodIsAuthorize(ParseRequestResult &request)
+{
+	// std::cerr << "request config location :\n";
+	// for (std::map<std::string, std::vector<std::string> >::iterator i = request.location->getConfigLocation().begin(); i != request.location->getConfigLocation().end(); i++)
 	// {
-	// 	std::cerr << "KEY = " << it->first << "\n";
-	// 	std::cerr << "VALUE = " << it->second << "\n"; 
+	// 	std::cerr << i->first << "\n";
+	// 	for (std::vector<std::string>::iterator j = i->second.begin(); j != i->second.end(); j++)
+	// 	{
+	// 		std::cerr << *j << " ";
+	// 	}
+	// 	std::cerr << "\n";
 	// }
 
-	int	fd[2];
-	if (pipe(fd) == - 1)
-		throw ErrorResponse("Error in Response : pipe()");
+
+	std::map<std::string, std::vector<std::string> >::iterator it = request.location->getConfigLocation().find("methods");
+	std::string m;
+	if (request.method == POST)
+		m = "POST";
+	else if (request.method == GET)
+		m = "GET";
+	else if (request.method == DELETE)
+		m = "DELETE";
+	else
+		m = "NONE";// peut etre ajouter erreur
+	std::cerr << PINK << BOLD << "request method : " << m << "\n" << RESET;
+	
+	if (it != request.location->getConfigLocation().end())
+	{
+		for (std::vector<std::string>::iterator itSec = it->second.begin(); itSec != it->second.end(); itSec++)
+		{
+			
+			if (request.method == POST && *itSec == "POST")
+			{
+				std::cerr << PINK << BOLD << "POST allowed\n" << RESET;
+				return true ;
+			}
+			else if (request.method == GET && *itSec == "GET")
+			{
+				std::cerr << PINK << BOLD << "GET allowed\n" << RESET;
+				return true ;
+			}
+			else if (request.method == DELETE && *itSec == "DELETE")
+			{
+				std::cerr << PINK << BOLD << "DELETE allowed\n" << RESET;	
+				return true ;
+			}
+		}
+
+		std::cerr << PINK << BOLD << "method " << m << " not allowed\n" << RESET;
+		return false;
+	}
+	std::cerr << PINK << BOLD << "all methods allowed\n" << RESET;
+	return true;
+}
+
+void	Response::buildCgi(ParseRequestResult &request)
+{
+	initCgi(request);
+	if (_statusCode != STATUS_OK)
+		return(buildErrorPage(request, _statusCode));
+	// std::cerr << "max fd = " << _fd_max << "\n";
+	// int	fd[2];
+	int writeStatus;
+	std::string cgiFile	= ".read_cgi.txt";
+	int	cgiFd = open(cgiFile.c_str(), O_WRONLY | O_CREAT | O_TRUNC);
+	if (cgiFd != -1)
+	{
+		if (chmod(cgiFile.c_str(), S_IRWXU | S_IRWXG | S_IRWXO) != 0)
+		{
+			close(cgiFd);
+			cgiFd = -1;// a voir
+		}
+	}
+	// if (pipe(fd) == - 1)
+		// return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
+	time_t	start = time(NULL);
 	pid_t	pid = fork();
 	if (pid == -1)
-		throw ErrorResponse("Error in Response : fork()");
-	std::cerr << "pathCgi = " << pathCgi << "\n";
-	std::cerr << "finalUri = " << finalUri << "\n";
+		return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
 	if (pid == 0)//child
 	{
-		dup2(fd[0], STDIN_FILENO);// pipe[0] devient stdin (read into stdin == read into fd[0])
-		dup2(fd[1], STDOUT_FILENO);//pipe[1] devient stdout (write into stdout == write into fd[1])
-		close(fd[0]);
-		close(fd[1]);
-		char cgi[14] = "/usr/bin/php";
-		char *av[] = {cgi, finalUri, NULL};
+		// dup2(fd[0], STDIN_FILENO);//stdin devient pipe[0]
+		// close(fd[0]);
+		// close(fd[1]);
+		dup2(cgiFd, STDOUT_FILENO);//stdout devient pipe[1]
+		close(cgiFd);
+		// size_t extention = _finalURI.find_last_of('.');
+		// std::cerr << "_finalURI = " << _finalURI << "\n";
+		// dprintf(2, "size = %lu", extention);
+		// std::string ext = _finalURI.substr(extention, _finalURI.size());
+		// std::cerr << "extention = " << ext << "\n";
+		std::string cgi = findCgi();
+		_cgi = const_cast<char*>(cgi.c_str());
+		dprintf(2, "_cgi here = %s\n", _cgi);
+		char *av[] = {_cgi, _finalUriChar, NULL};
 		std::vector<std::string> vecEnv = doEnvCgi(request);
 		char **env = vectorStringToChar(vecEnv);
-		// int i = 0;
-		// std::cerr << "Env = ";
-		// while (env[i])
-		// {
-		// 	// int j = 0;
-		// 	std::cerr << env[i];
-		// 	// while(env[i][j])
-		// 	// {
-		// 	// 	std::cerr << env[i][j] << "\n";
-		// 	// 	j++;
-		// 	// }
-		// 	std::cerr << "\n";
-		// 	i++;
-		// }
-		execve(cgi, av, env);
-		// if execve didn't work :
+		closeAllFd();
+		execve(_cgi, av, env);
+		// execve failed
 		perror("execve");
 		freeChar(env);
+		sleep(3);
 		exit(EXIT_FAILURE);
-		// peut-etre faire exit
 	}
-	std::cerr << "PID = " << pid << " script = " << finalUri << "\n";
+	// system("pstree -p");
+	// close(fd[1]);
+	// close(fd[0]);
+	while (true)
+	{
+		pid_t	pid_result = waitpid(pid, &writeStatus, WNOHANG);
+		if (pid_result > 0)// success, child process change state
+		{
+			std::cerr << "waitpid success, child process chage state\n";
+			break;
+		}
+		if (pid_result == 0)// no state change detected, verify that not too much time passed (infinite loop ?)
+		{
+			time_t	end = time(NULL);
+			if (end - start >= 3)// valeur 3?
+			{
+				std::cerr << BOLD << "return error page timeout\n" << "pid killed = " << pid << "\n" << RESET;
+				close(cgiFd);
+				if (kill(pid, SIGKILL) == 0)
+					std::cerr << "Child process killed successfully\n";
+				else
+					std::cerr << "Failed to kill child process\n";
+				pid_result = waitpid(pid, &writeStatus, WNOHANG);
+				if (kill(pid, SIGKILL) == 0)
+					std::cerr << "Child process killed successfully\n";
+				_statusCode = STATUS_INTERNAL_SERVER_ERROR;
+				return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
+			}
+		}
+		else// waitpid failed
+		{
+			perror("waitpid");
+			close(cgiFd);
+			return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
+		}
+	}
+	close(cgiFd);
+	buildPageCgi();
+	if (_statusCode != STATUS_OK)
+		buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR);
+}
 
-	// on ecrit le body dans pipe[1] (stdout)
-	std::cerr << "_body_size = " << _body.size() << "\n";
+std::string	Response::findCgi()
+{
+	size_t extention = _finalURI.find_last_of('.');
+	// std::cerr << "_finalURI = " << _finalURI << "\n";
+	// dprintf(2, "size = %lu", extention);
+	std::string ext = _finalURI.substr(extention, _finalURI.size());
+	// std::cerr << "extention = " << ext << "\n";
+	std::string cgi;
+	if (ext == ".php")
+		cgi = "/usr/bin/php";
+	else if (ext == ".py")
+		cgi = "/usr/bin/python3";
+	return cgi;
+	// _cgi = const_cast<char*>(cgi.c_str());
+	// dprintf(2, "_cgi = %s\n", _cgi);
+}
 
-	// FILE* file = fdopen(fd[1], "w");
+void	Response::closeAllFd(void)
+{
+	_fd_max += 3;
+	for (int fd = 3; fd < _fd_max; fd++)
+	{
+		std::cerr << PINK << "close all fd in child\n" << RESET;
+		if (FD_ISSET(fd, &_write_fds))
+			FD_CLR(fd, &_write_fds);
+		if (FD_ISSET(fd, &_read_fds))
+			FD_CLR(fd, &_read_fds);
+		if (fd == _fd_max)
+			_fd_max--;
+		close(fd);
+	}
+}
 
-	// std::ofstream ofs(file);
-	
-	// ofs << _body;
-	// fclose(file);
+void	Response::buildPageCgi()
+{
+	std::ifstream	ifs(".read_cgi.txt");//ajouter protection
 
-	write(fd[1], _body.c_str(), _body.size());// A REMPLACER
-	
-	close(fd[1]);
+	std::stringstream response;
+	response << ifs.rdbuf();
 
-	// on lit la reponse depuis pipe[0]
-	std::string	response = readResponse(fd[0]);
-	close(fd[0]);
-
-	_body = response;
+	remove(".read_cgi.txt");
+	_body = response.str();
+	if (_body.size() == 0)
+	{
+		_statusCode = STATUS_INTERNAL_SERVER_ERROR;
+		return ;
+	}
+	std::cerr << "response : " << _body << "\n";
 	_headers["content-length"] = convertToStr(_body.size());
 
 	size_t pos = _finalURI.find_last_of("/");
@@ -180,6 +345,31 @@ void	Response::buildCgi(ParseRequestResult &request)
 	}
 }
 
+void	Response::initCgi(ParseRequestResult &request)
+{
+	if (request.query.empty())
+		request.query = request.body;
+	_configLocation = request.location->getConfigLocation();
+	std::map<std::string, std::vector<std::string> >::iterator it = _configLocation.find("cgi");
+	std::string path = it->second[0];
+	path.insert(0, "./");
+	// char *pathCgi = const_cast<char*>(path.c_str());
+	if (_configLocation.find("rootDir") != _configLocation.end())
+		_rootDir = _configLocation["rootDir"][0];// rootDir : www/cgiTest/cgi-bin
+	if (_rootDir[0] == '/')
+		_rootDir = _rootDir.substr(1, _rootDir.size() - 1);
+	if (_rootDir[_rootDir.size() -1] == '/')
+		_rootDir = _rootDir.substr(0, _rootDir.size() - 1);
+	_finalURI = _rootDir + request.uri;// www/cgiTest/cgi-bin/index
+	_finalURI.insert(0, "./");
+	_finalUriChar = const_cast<char*>(_finalURI.c_str());
+	dprintf(2, "_finalUriChar = %s\n", _finalUriChar);
+	if (access(_finalUriChar, F_OK) != 0)
+		_statusCode = STATUS_NOT_FOUND;
+
+	// A COMPLETER
+
+}
 
 std::vector<std::string>	Response::doEnvCgi(ParseRequestResult &request)
 {
@@ -187,7 +377,7 @@ std::vector<std::string>	Response::doEnvCgi(ParseRequestResult &request)
 
 	std::stringstream ss;
 	ss << request.contentLenght;
-	std::cerr << "request.contentLenght = " << request.contentLenght << "\n";
+	// std::cerr << "request.contentLenght = " << request.contentLenght << "\n";
 	// std::cerr << "content lenght = " << ss.str() << "\n";
 	exportToEnv(env, "CONTENT_LENGHT", ss.str());// a remplir avec POST
 	std::map<std::string, std::string>::iterator it = request.headers.find("content-type");
@@ -218,8 +408,8 @@ std::vector<std::string>	Response::doEnvCgi(ParseRequestResult &request)
 			exportToEnv(env, keyWord, it->second);
 	}
 	std::string absPath = getAbsPath(_finalURI);
-	std::cerr << "absPath == " << absPath << "\n";
-	exportToEnv(env, "PATH_INFO", "/mnt/nfs/homes/mapoirie/Documents/webserv_git/www/cgi/response.php");
+	// std::cerr << "absPath == " << absPath << "\n";
+	exportToEnv(env, "PATH_INFO", "/mnt/nfs/homes/mapoirie/Documents/webserv_git/www/cgi/response.php");// A CHANGER en fonction
 
 	exportToEnv(env, "QUERY_STRING", request.query);
 	// The query string portion of the URL (the part after ? in the URL) A REMPLIR
@@ -235,7 +425,7 @@ std::vector<std::string>	Response::doEnvCgi(ParseRequestResult &request)
 	exportToEnv(env, "REQUEST_METHOD", method);
 	// std::cerr << "request.uri =>> " << request.uri << "\n";
 	// exportToEnv(env, "SCRIPT_NAME", request.uri);
-	exportToEnv(env, "SCRIPT_NAME", "/cgi/response.php");
+	exportToEnv(env, "SCRIPT_NAME", "/cgi/response.php");// A CHANGER en fonction
 	exportToEnv(env, "SCRIPT_FILENAME", "/mnt/nfs/homes/mapoirie/Documents/webserv_git/www/cgi/response.php");
 	exportToEnv(env, "SERVER_PROTOCOL", PROTOCOL_VERSION);
 	exportToEnv(env, "SERVER_SOFTWARE", SERVER_SOFTWARE);
@@ -251,22 +441,6 @@ std::vector<std::string>	Response::doEnvCgi(ParseRequestResult &request)
 	// 	std::cerr << (*it) << "\n";
 	// }
 	return (env);
-}
-
-std::string	Response::readResponse(int fd)
-{
-	char buffer[16384];//BUFFER_SIZE?
-	size_t length;
-	std::string response;
-	
-	while (true)
-	{
-		length = read(fd, buffer, 16384 - 1);// A REMPLACE
-		buffer[length] = '\0';
-		response += buffer;
-		if (length < 16384 - 1)
-			return response ;
-	}
 }
 
 void	Response::exportToEnv(std::vector<std::string> &env, const std::string &key, const std::string &value)
@@ -670,13 +844,23 @@ void	Response::buildAutoindexPage(ParseRequestResult &request)
 ResponseOutcome	Response::sendResponseToClient(int fd)
 {
 	std::string	line;
+	
+	// if (_returnRes.size() > 0)
+	// {
+	// 	std::cerr << "-------->_returnRes to push = " << _returnRes << "\n";
+	// 	if (pushStrToClient(fd, _returnRes) == -1)
+	// 		return RESPONSE_FAILURE;
+	// 	return RESPONSE_SUCCESS;
+	// }
 
+	std::cerr << "-------->_statusLine to push = " << _statusLine << "\n";
 	if (pushStrToClient(fd, _statusLine) == -1)
 		return RESPONSE_FAILURE;
 
 	for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); it++)
 	{
 		line = it->first + ": " + it->second + "\r\n";
+		std::cerr << "-------->line to push = " << line << "\n";
 		if (pushStrToClient(fd, line) == -1)
 			return RESPONSE_FAILURE;
 	}
@@ -699,7 +883,7 @@ ResponseOutcome	Response::sendResponseToClient(int fd)
 		return (RESPONSE_SUCCESS_KEEPALIVE);
 	return RESPONSE_PENDING;
 }
-
+//
 int	Response::pushStrToClient(int fd, std::string &str)
 {
 	size_t	bytesSent = 0, tmpSent = 0;
@@ -707,9 +891,9 @@ int	Response::pushStrToClient(int fd, std::string &str)
 	std::cerr << "str size = " << str.size() << "\n";
 	while (bytesSent < str.size())
 	{
-		// std::cerr << "pushstrclient 1\n";
+		std::cerr << "pushstrclient 1\n";
 		tmpSent = send(fd, str.c_str() + bytesSent, str.size() - bytesSent, 0);
-		// std::cerr << "pushstrclient 2\n";
+		std::cerr << "pushstrclient 2\n";
 		if (tmpSent <= 0)
 			return (-1);
 		bytesSent += tmpSent;
