@@ -234,7 +234,8 @@ typedef enum StatusCode
 	STATUS_INTERNAL_SERVER_ERROR = 500,
 	STATUS_NOT_IMPLEMENTED = 501,
 	STATUS_BAD_GATEWAY = 502,
-	STATUS_HTTP_VERSION_NOT_SUPPORTED = 505
+	STATUS_HTTP_VERSION_NOT_SUPPORTED = 505,
+	STATUS_LOOP_DETECTED = 508
 } StatusCode;
 
 // Structures ----------------------------------------------------------------------------- //

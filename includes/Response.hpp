@@ -19,7 +19,7 @@ class Response
 		void						generateResponse(ParseRequestResult &request);
 		ResponseOutcome				sendResponseToClient(int fd);
 		int							pushStrToClient(int fd, std::string &str);
-
+		bool						loopDetectedReturn(ParseRequestResult &request);
 		void						buildReturn(ParseRequestResult &request);
 		bool						methodIsAuthorize(ParseRequestResult	&request);
 		void						buildCgi(ParseRequestResult &request);
@@ -58,6 +58,7 @@ class Response
 		int													_fd_max;
 		fd_set												_write_fds;
 		fd_set												_read_fds;
+		
 };
 
 #endif
