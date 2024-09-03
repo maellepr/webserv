@@ -246,6 +246,7 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 							std::cout << LIGHTBLUE << "CHUNK 3" << RESET << std::endl;
 							if (_chunkedLen > _vs->getMaxBodySize() || _chunkedLen + _contentLength > _vs->getMaxBodySize())
 								return (parsingFailed(STATUS_PAYLOAD_TOO_LARGE));
+							std::cout << PURPLE << "_chunkedLen = " << _chunkedLen << RESET << std::endl;
 							std::cout << LIGHTBLUE << "CHUNK 4" << RESET << std::endl;
 							if (_chunkedLen == 0)
 							{
@@ -253,12 +254,21 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 								// _isChunked = true;
 								_ucharLine.clear();
 								// if (_ucharBody.size() != _contentLength)
+								// if (*vit == '\r')
+								// 	std::cout << PURPLE << "*vit = " << "CR" << RESET << std::endl;
+								// else if (*vit == '\n')
+								// 	std::cout << PURPLE << "*vit = " << "LF" << RESET << std::endl;
+								// else
+								// 	std::cout << PURPLE << "*vit = " << *vit << RESET << std::endl;
+								vit++;
 								if (*vit != '\r' || *(++vit) != '\n' || ++vit != v.end())
 									return (parsingFailed(STATUS_BAD_REQUEST));
+								std::cout << LIGHTBLUE << "CHUNK 5.1" << RESET << std::endl;
 								_ucharBody.push_back('\r');
 								_ucharBody.push_back('\n');
 								_contentLength += 2; // ??
 								_body = stringifyVector(_ucharBody);
+								std::cout << VIOLET << "body = " << _body << RESET << std::endl;
 								return (parsingSucceeded());
 							}
 							_chunkStep = IN_CHUNK;
@@ -272,6 +282,12 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 						_contentLength += _chunkedLen;
 						while (_chunkedLen && vit != v.end())
 						{
+								// if (*vit == '\r')
+								// 	std::cout << PURPLE << "*vit = " << "CR" << RESET << std::endl;
+								// else if (*vit == '\n')
+								// 	std::cout << PURPLE << "*vit = " << "LF" << RESET << std::endl;
+								// else
+								// 	std::cout << PURPLE << "*vit = " << *vit << RESET << std::endl;
 							_ucharLine.push_back(*vit);
 							_ucharBody.push_back(*vit);
 							_chunkedLen--;
@@ -477,6 +493,7 @@ void	Request::fillParseRequestResult(ParseRequestResult &result)
 	result.hostName = _hostName;
 	result.location = _location;
 	result.vs = _vs;
+	result.isUpload = _isUpload;
 	if (_isUpload)
 		result.boundary = _boundary;
 	result.keepAlive = _keepAlive;
