@@ -38,7 +38,13 @@ void	fillStatusMsg()
 
 void	fillContentTypes()
 {
+	CONTENT_TYPES["txt"] = "text/plain";
 	CONTENT_TYPES["html"] = "text/html";
+	CONTENT_TYPES["htm"] = "text/html";
+	CONTENT_TYPES["png"] = "image/png";
+	CONTENT_TYPES["jpg"] = "image/jpeg";
+	CONTENT_TYPES["jpeg"] = "image/jpeg";
+	CONTENT_TYPES["css"] = "text/css";
 }
 
 void	fillHexaBase()

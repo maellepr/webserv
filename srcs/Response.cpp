@@ -787,6 +787,7 @@ void	Response::buildPage(ParseRequestResult &request)
 			std::string fileExtension = resourceName.substr(pos + 1);
 			if (CONTENT_TYPES.find(fileExtension) != CONTENT_TYPES.end())		
 			{
+				std::cout << RED << "content-type" << RESET << std::endl;
 				_headers["content-type"] = CONTENT_TYPES[fileExtension];
 				return ;
 			}

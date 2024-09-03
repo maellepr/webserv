@@ -1,9 +1,9 @@
-GET / HTTP/1.1
+GET /cgi HTTP/1.1
 Transfer-encoding: chunked
 Host: example.com
 
 5
-Hello
+meal=haha
 
 a
 My name is
