@@ -66,8 +66,68 @@ void	Response::generateResponse(ParseRequestResult &request)
 	// build headers (+body)
 }
 
+bool	Response::loopDetectedReturn(ParseRequestResult &request)
+{
+	std::string returnUri;
+	for (std::map<int, std::string>::iterator i = request.location->getReturn().begin(); i != request.location->getReturn().end(); i++)
+	{
+		returnUri = i->second;
+	}
+	if (returnUri.size() > 0 && returnUri[0] != '/')
+	{
+		returnUri.insert(0, "/");
+	}
+	std::cerr << "returnUri = " << returnUri << "\n";
+	// On cherche a comparer la prochaine location a laquelle correspond returnUri
+	// avec la location actuelle, si c'est la meme -> infinite loop
+	// exact match
+	std::cerr << "exact match\n";
+	for (std::map<std::string, Location>::iterator it = request.vs->getLocationsEqual().begin(); it != request.vs->getLocationsEqual().end(); it++)
+	{// on cherche dans toutes les locations du virtual server avec un prefix "="
+	 // si un prefix vs correspond a returnUri et qu'il est egal a la loc actuelle de notre request -> loop Detected
+		std::cerr << "it->first : " << it->first << "\n";
+		if (it->first == returnUri && it->first == request.location->getPrefix())
+		{
+			std::cerr << "IT->FIRST : " << it->first << "\n";
+			return true;
+		}
+	}
+	// longuest match
+	std::cerr << "longuest match\n";
+	size_t 		len(0);
+	std::string	locationPrefix;
+	// Location 	*locationTmp;
+	for (std::map<std::string, Location>::iterator it = request.vs->getLocations().begin(); it != request.vs->getLocations().end(); it++)
+	{// on cherche dans toutes les locations du virtual server
+	 // si un prefix correspond au debut de l'uri 
+	 // et si l'uri est plus grande que la length precedente 
+	 // sauver la location, et changer len, si jamais il y a un meilleur match
+		std::cerr << "it->first : " << it->first << "\n";
+		if (it->first == returnUri.substr(0, it->first.size()))
+		{
+			if (it->first.size() > len)
+			{
+				std::cerr << "IT->FIRST : " << it->first << "\n";
+				locationPrefix = it->first;
+				// locationTmp = &(it->second);
+				len = it->first.size();
+			}
+		}
+	}
+	std::cerr << "locationPrefix : " << locationPrefix << "\n";
+	if (locationPrefix == request.location->getPrefix())
+		return true ;
+	return false ;
+}
+
 void	Response::buildReturn(ParseRequestResult &request)
 {
+	if (loopDetectedReturn(request) == true)
+	{
+		std::cerr << "loop detected in the return section\n";
+		_statusCode = STATUS_LOOP_DETECTED;
+		return(buildErrorPage(request, _statusCode));
+	}
 	int			returnCode;
 	std::string	redirectUri;
 	std::cerr << "get Return :\n";
@@ -77,15 +137,6 @@ void	Response::buildReturn(ParseRequestResult &request)
 		returnCode = i->first;
 		redirectUri = i->second;
 	}
-	// STATUS_MULTIPLE_CHOICES = 300,
-	// STATUS_MOVED_PERMANENTLY = 301,
-	// STATUS_FOUND = 302,
-	// STATUS_SEE_OTHER = 303,
-	// STATUS_NOT_MODIFIED = 304,
-	// STATUS_USE_PROXY = 305,
-	// STATUS_SWITCH_PROXY = 306,
-	// STATUS_TEMPORARY_REDIRECT = 307,
-	// STATUS_PERMANENT_REDIRECT = 308,
 	if (returnCode == 300)
 		_statusCode = STATUS_MULTIPLE_CHOICES;
 	else if (returnCode == 301)
@@ -250,7 +301,7 @@ void	Response::buildCgi(ParseRequestResult &request)
 		if (pid_result == 0)// no state change detected, verify that not too much time passed (infinite loop ?)
 		{
 			time_t	end = time(NULL);
-			if (end - start >= 3)// valeur 3?
+			if (end - start >= 10)// valeur 3?
 			{
 				std::cerr << BOLD << "return error page timeout\n" << "pid killed = " << pid << "\n" << RESET;
 				close(cgiFd);
@@ -297,16 +348,20 @@ std::string	Response::findCgi()
 
 void	Response::closeAllFd(void)
 {
-	_fd_max += 3;
-	for (int fd = 3; fd < _fd_max; fd++)
+	std::cerr << "class all -> fd_max : " << _fd_max << "\n";
+	// _fd_max += 1;
+	for (int fd = 3; fd <= _fd_max; fd++)
 	{
 		std::cerr << PINK << "close all fd in child\n" << RESET;
+		std::cerr << "fd_max : " << _fd_max << "\n";
 		if (FD_ISSET(fd, &_write_fds))
 			FD_CLR(fd, &_write_fds);
 		if (FD_ISSET(fd, &_read_fds))
 			FD_CLR(fd, &_read_fds);
-		if (fd == _fd_max)
-			_fd_max--;
+		
+		// if (fd == _fd_max)
+		// 	_fd_max--;
+		std::cerr << "fd about to be closed " << fd << "\n";
 		close(fd);
 	}
 }
@@ -322,6 +377,7 @@ void	Response::buildPageCgi()
 	_body = response.str();
 	if (_body.size() == 0)
 	{
+		std::cerr << "response body size = 0\n";
 		_statusCode = STATUS_INTERNAL_SERVER_ERROR;
 		return ;
 	}

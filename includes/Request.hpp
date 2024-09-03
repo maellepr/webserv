@@ -28,7 +28,6 @@ class Request
 		VirtualServer*				findServerNamesMatches(std::vector<VirtualServer*> matchingIpPortCombos);
 		StatusCode					extractClientServerName();
 		void						fillParseRequestResult(ParseRequestResult &result);
-
 	private:
 		std::string									_line;
 		int											_clientfd;

@@ -34,6 +34,7 @@ void	fillStatusMsg()
 	STATUS_MESSAGES[STATUS_INTERNAL_SERVER_ERROR] = "Internal Server Error";
 	STATUS_MESSAGES[STATUS_NOT_IMPLEMENTED] = "Not Implemented";
 	STATUS_MESSAGES[STATUS_HTTP_VERSION_NOT_SUPPORTED] = "HTTP Version not supported";
+	STATUS_MESSAGES[STATUS_LOOP_DETECTED] = "Loop Detected";
 }
 
 void	fillContentTypes()

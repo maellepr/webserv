@@ -54,22 +54,22 @@ class VirtualServer
 		std::map<int, std::string>	&getReturnPages();
 
 	private:
-		struct sockaddr_in _address;
+		struct sockaddr_in 				_address;
 	
-		int			_index;			// FOR PARSING num du server dans l'ordre
-		std::string	_ip;			// listen -> ip_address (ex: 127.0.0.2)
-		std::string	_ipParse;		// FOR PARSING
-		int			_port;			// listen -> port (ex: 8080)
-		std::string	_rootDir;		// root -> configurer tel que "www" pour l'instant
+		int								_index;			// FOR PARSING num du server dans l'ordre
+		std::string						_ip;			// listen -> ip_address (ex: 127.0.0.2)
+		std::string						_ipParse;		// FOR PARSING
+		int								_port;			// listen -> port (ex: 8080)
+		std::string						_rootDir;		// root -> configurer tel que "www" pour l'instant
 
-		std::string	_autoIndex;		// FOR PARSING
-		bool		_indexOnOff;	// autoindex -> si true = on, si false = non renseigne ou off
-		size_t		_maxBodySize;	// client_max_body_size -> in bytes by default, max 3M
-		std::map<int, std::string>	_errorPages;	// error_page -> map avec int = error code, std::string = page correspondante 
-		std::map<int, std::string>	_returnPages;	// return -> map avec int = error code, std::string = page correspondante
-		std::vector<std::string>	_indexPages;	// index -> vector avec les pages
+		std::string						_autoIndex;		// FOR PARSING
+		bool							_indexOnOff;	// autoindex -> si true = on, si false = non renseigne ou off
+		size_t							_maxBodySize;	// client_max_body_size -> in bytes by default, max 3M
+		std::map<int, std::string>		_errorPages;	// error_page -> map avec int = error code, std::string = page correspondante 
+		std::map<int, std::string>		_returnPages;	// return -> map avec int = error code, std::string = page correspondante
+		std::vector<std::string>		_indexPages;	// index -> vector avec les pages
 		// std::vector<std::string>	_serverNames;
-		std::string	_serverName;	// server_name
+		std::string						_serverName;	// server_name
 
 		std::map<std::string, Location> _location;	// location -> map avec string = prefix, Location = un obj Location
 		std::map<std::string, Location> _locationEqual; // location = prefix {}
