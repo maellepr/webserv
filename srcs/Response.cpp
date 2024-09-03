@@ -301,7 +301,7 @@ void	Response::buildCgi(ParseRequestResult &request)
 		if (pid_result == 0)// no state change detected, verify that not too much time passed (infinite loop ?)
 		{
 			time_t	end = time(NULL);
-			if (end - start >= 3)// valeur 3?
+			if (end - start >= 10)// valeur 3?
 			{
 				std::cerr << BOLD << "return error page timeout\n" << "pid killed = " << pid << "\n" << RESET;
 				close(cgiFd);
@@ -348,16 +348,20 @@ std::string	Response::findCgi()
 
 void	Response::closeAllFd(void)
 {
-	_fd_max += 3;
-	for (int fd = 3; fd < _fd_max; fd++)
+	std::cerr << "class all -> fd_max : " << _fd_max << "\n";
+	// _fd_max += 1;
+	for (int fd = 3; fd <= _fd_max; fd++)
 	{
 		std::cerr << PINK << "close all fd in child\n" << RESET;
+		std::cerr << "fd_max : " << _fd_max << "\n";
 		if (FD_ISSET(fd, &_write_fds))
 			FD_CLR(fd, &_write_fds);
 		if (FD_ISSET(fd, &_read_fds))
 			FD_CLR(fd, &_read_fds);
-		if (fd == _fd_max)
-			_fd_max--;
+		
+		// if (fd == _fd_max)
+		// 	_fd_max--;
+		std::cerr << "fd about to be closed " << fd << "\n";
 		close(fd);
 	}
 }
@@ -373,6 +377,7 @@ void	Response::buildPageCgi()
 	_body = response.str();
 	if (_body.size() == 0)
 	{
+		std::cerr << "response body size = 0\n";
 		_statusCode = STATUS_INTERNAL_SERVER_ERROR;
 		return ;
 	}
