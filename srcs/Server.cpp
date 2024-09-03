@@ -24,6 +24,7 @@ Server::~Server()
 	for(std::map<int, Client>::iterator it = _clients.begin(); it != _clients.end(); it++)
 	{
 		std::cerr << "close socket client :" << it->second.getFd() << "\n";
+		std::cerr << "registered as socket :" << it->first << "\n";
 		close(it->second.getFd());
 	}
 }
@@ -391,7 +392,12 @@ void	Server::loop()
         dprintf(2, "\nWHILE 2 - avant select\n");
         status = select(_fd_max + 1, &_read_fds, &_write_fds, NULL, &timer);
         if (status == -1)
+		{
             callException(-2); // A modifier car le server ne doit pas s'arreter ?
+			// A REMPLACER PAR : (?)
+			//noSignal = true;
+			//continue;
+		}
         else if (status == 0)
 		{
             printf("[Server] Waiting...\n");
@@ -403,7 +409,9 @@ void	Server::loop()
         {
 			if (FD_ISSET(i, &_all_sockets) != 1)
 				continue;
-            if ((FD_ISSET(i, &_read_fds) == 1 && _clients[i].getClientStatus()!= TO_CLOSE)
+            if ((FD_ISSET(i, &_read_fds) == 1 && _clients.find(i) == _clients.end())
+				|| (FD_ISSET(i, &_read_fds) == 1 && _clients.find(i) != _clients.end()
+				&& _clients[i].getClientStatus()!= TO_CLOSE)
 				|| (_clients.find(i) != _clients.end()
 					&& _clients[i].getClientStatus() == REQUEST_ONGOING))
 			{
@@ -450,11 +458,15 @@ void	Server::loop()
 				else
 				{
 					dprintf(2, "\nWHILE 6 - read socket is a client\n");
-					Client&	client = _clients[i]; 
+					Client&	client = _clients[i];
+					// std::cerr << "client fd ref read = " << client.getFd() << std::endl;
 					
 					if (client.readRequest(FD_ISSET(i, &_read_fds)) == -1)
 					{
+						std::cout << "*** close socket : " << client.getFd() << std::endl;
+						sleep(1);
 						_maxConnections[client.getServerFd()] -= 1;
+						// shutdown(client.getFd(), SHUT_RDWR);
 						close(client.getFd());
 						FD_CLR(i, &_all_sockets); // Remove socket from the set
 						std::vector<int>::iterator it = find(_socketMax.begin(), _socketMax.end(), i);
@@ -473,11 +485,14 @@ void	Server::loop()
 				dprintf(2, "\nWHILE 7 - a client socket is ready to write\n");
 				status--;
                 Client&	client = _clients[i];
+				// std::cerr << "client fd ref write = " << client.getFd() << std::endl;
 				ResponseOutcome status = client.writeResponse();
 				if (status == RESPONSE_FAILURE || status == RESPONSE_SUCCESS_CLOSE) // A VERIF
 				{
-					std::cout << "close socket : " << client.getFd() << std::endl;
+					std::cout << "*** close socket : " << client.getFd() << std::endl;
+					sleep(1);
 					_maxConnections[client.getServerFd()] -= 1;
+					// shutdown(client.getFd(), SHUT_RDWR);
 					close(client.getFd());
 					// close(i);
 					FD_CLR(i, &_all_sockets);
@@ -487,6 +502,9 @@ void	Server::loop()
 					if (i == _fd_max)
 						_fd_max = *max_element(_socketMax.begin(), _socketMax.end());
 						// _fd_max = _fd_max - 1; //TEMPORAIRE A MODIF
+					// std::map<int, Client>::iterator lol = _clients.find(i);
+					// if (lol != _clients.end())
+					// 	std::cout << "TROUVE ENCORE" << std::endl;
 				}
 				dprintf(2, "END of WRITE\n");
         	}
