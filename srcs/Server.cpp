@@ -24,9 +24,10 @@ Server::~Server()
 	for(std::map<int, Client>::iterator it = _clients.begin(); it != _clients.end(); it++)
 	{
 		std::cerr << "close socket client :" << it->second.getFd() << "\n";
-		std::cerr << "registered as socket :" << it->first << "\n";
+		// std::cerr << "registered as socket :" << it->first << "\n";
 		close(it->second.getFd());
 	}
+	std::cout << "Leaving webserv... bye !" << std::endl;
 }
 
 void	Server::init(const char *filename)
@@ -34,6 +35,7 @@ void	Server::init(const char *filename)
 	extension(filename, ".conf");
 	isDirectory(filename);
 	fillStatusMsg();
+	fillContentTypes();
 	fillHexaBase();
 
 	std::ifstream file(filename);
@@ -393,10 +395,10 @@ void	Server::loop()
         status = select(_fd_max + 1, &_read_fds, &_write_fds, NULL, &timer);
         if (status == -1)
 		{
-            callException(-2); // A modifier car le server ne doit pas s'arreter ?
+            // callException(-2); // A modifier car le server ne doit pas s'arreter ?
 			// A REMPLACER PAR : (?)
-			//noSignal = true;
-			//continue;
+			noSignal = true;
+			continue;
 		}
         else if (status == 0)
 		{

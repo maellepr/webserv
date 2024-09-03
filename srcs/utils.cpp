@@ -45,6 +45,7 @@ void	fillContentTypes()
 	CONTENT_TYPES["png"] = "image/png";
 	CONTENT_TYPES["jpg"] = "image/jpeg";
 	CONTENT_TYPES["jpeg"] = "image/jpeg";
+	CONTENT_TYPES["xpm"] = "image/x-xpixmap";
 	CONTENT_TYPES["css"] = "text/css";
 }
 

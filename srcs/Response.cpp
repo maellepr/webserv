@@ -839,15 +839,24 @@ void	Response::buildPage(ParseRequestResult &request)
 	size_t pos = _finalURI.find_last_of("/");
 	if (pos != std::string::npos && (_finalURI.begin() + pos + 1) != _finalURI.end())
 	{
+		// std::cerr << "ETAGE1\n";
 		std::string resourceName = _finalURI.substr(pos + 1);
 		pos = resourceName.find_last_of(".");
 		if (pos != std::string::npos && (resourceName.begin() + pos + 1) != resourceName.end())
 		{
+			// std::cerr << "ETAGE2\n";
 			std::string fileExtension = resourceName.substr(pos + 1);
+			// std::cerr << "extension = <" << fileExtension << ">" << std::endl;
+			// for (std::map<std::string, std::string>::iterator lol = CONTENT_TYPES.begin(); lol != CONTENT_TYPES.end(); lol++)
+			// {
+			// 	std::cerr << lol->first << " = " << lol->second << std::endl;
+			// }
 			if (CONTENT_TYPES.find(fileExtension) != CONTENT_TYPES.end())		
 			{
-				std::cout << RED << "content-type" << RESET << std::endl;
+				// std::cerr << "ETAGE3\n";
+				// std::cout << RED << "content-type" << RESET << std::endl;
 				_headers["content-type"] = CONTENT_TYPES[fileExtension];
+				// _headers["content-disposition"] = "attachment";
 				return ;
 			}
 		}
