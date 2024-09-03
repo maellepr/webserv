@@ -305,9 +305,10 @@ void	Response::closeAllFd(void)
 			FD_CLR(fd, &_write_fds);
 		if (FD_ISSET(fd, &_read_fds))
 			FD_CLR(fd, &_read_fds);
-		if (fd == _fd_max)
-			_fd_max--;
-		close(fd);
+		// if (fd == _fd_max)
+		// 	_fd_max--;
+		if (fd > 0)
+			close(fd);
 	}
 }
 
@@ -656,6 +657,7 @@ void	Response::buildPost(ParseRequestResult &request)
 	std::cout << LIGHTBLUE << "BUILDPOST\n" << RESET;
 	if (request.isUpload)
 	{
+		std::cout << LIGHTBLUE << "UPLOAD\n" << RESET;
 		listUploadFiles(request);
 		if (_uploads.empty())
 		{

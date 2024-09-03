@@ -483,8 +483,8 @@ void	Server::loop()
 					}
 					dprintf(2, "END of READ\n");
 				}
-				// else if (FD_ISSET(i, &_write_fds) == 1)
-				if (FD_ISSET(i, &_write_fds) == 1)
+				else if (FD_ISSET(i, &_write_fds) == 1)
+				// if (FD_ISSET(i, &_write_fds) == 1)
 				{
 					dprintf(2, "WHILE 7 - a client socket is ready to write\n");
 					status--;

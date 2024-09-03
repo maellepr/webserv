@@ -488,6 +488,7 @@ void	Request::fillParseRequestResult(ParseRequestResult &result)
 	result.hostName = _hostName;
 	result.location = _location;
 	result.vs = _vs;
+	result.isUpload = _isUpload;
 	if (_isUpload)
 		result.boundary = _boundary;
 	result.keepAlive = _keepAlive;
