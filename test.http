@@ -1,15 +1,32 @@
-GET /cgi HTTP/1.1
+POST /cgi HTTP/1.1
 Transfer-encoding: chunked
 Host: example.com
 
-5
-meal=haha
-
 a
-My name is
+color=haha
 
-17
-Claire ou peut etre pas
+8
+meal=dsf
+
+b
+season=dsgd
+
+0
+
+
+
+POST /cgi/py/response.py HTTP/1.1
+Transfer-encoding: chunked
+Host: example.com
+
+b
+color=haha&
+
+9
+meal=dsf&
+
+c
+season=dsgd&
 
 0
 

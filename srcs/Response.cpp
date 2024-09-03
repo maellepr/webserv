@@ -337,10 +337,12 @@ std::string	Response::findCgi()
 	std::string ext = _finalURI.substr(extention, _finalURI.size());
 	// std::cerr << "extention = " << ext << "\n";
 	std::string cgi;
-	if (ext == ".php")
-		cgi = "/usr/bin/php";
-	else if (ext == ".py")
+
+	if (ext == ".py")
 		cgi = "/usr/bin/python3";
+	else if (ext == ".php")
+		cgi = "/usr/bin/php";
+	//ajouter erreur si pas d'extention
 	return cgi;
 	// _cgi = const_cast<char*>(cgi.c_str());
 	// dprintf(2, "_cgi = %s\n", _cgi);

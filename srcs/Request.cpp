@@ -433,8 +433,9 @@ StatusCode	Request::parseHeader(std::string header)
 StatusCode	Request::checkIfBody()
 {
 	std::cout << "Check if body\n";
-	if (_method == POST)
-	{
+	_contentLength = 0;
+	// if (_method == POST)
+	// {
 		// std::cout << "is post\n";
 		std::map<std::string, std::string>::iterator it = _headers.find("content-length");
 		if (it != _headers.end())
@@ -463,12 +464,13 @@ StatusCode	Request::checkIfBody()
 				}
 			}
 		}
-	}
-	else
-	{
+	// }
+	// else
+	// {
 		// std::cout << "not post\n";
-		_contentLength = 0;
 		std::map<std::string, std::string>::iterator ita = _headers.find("transfer-encoding");
+		if (ita != _headers.end() && _contentLength != 0)
+			return (STATUS_BAD_REQUEST);
 		if (ita != _headers.end())
 		{
 			// std::cout << "chunked ?\n";
@@ -478,7 +480,7 @@ StatusCode	Request::checkIfBody()
 				_isChunked = true;
 			// std::cout << "chunked !\n";
 		}
-	}
+	// }
 	return (STATUS_NONE);
 }
 
