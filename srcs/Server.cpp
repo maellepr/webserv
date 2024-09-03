@@ -403,7 +403,7 @@ void	Server::loop()
         {
 			if (FD_ISSET(i, &_all_sockets) != 1)
 				continue;
-            if (FD_ISSET(i, &_read_fds) == 1
+            if ((FD_ISSET(i, &_read_fds) == 1 && _clients[i].getClientStatus()!= TO_CLOSE)
 				|| (_clients.find(i) != _clients.end()
 					&& _clients[i].getClientStatus() == REQUEST_ONGOING))
 			{
@@ -468,6 +468,7 @@ void	Server::loop()
 				dprintf(2, "END of READ\n");
       		}
 			else if (FD_ISSET(i, &_write_fds) == 1)
+			// if (FD_ISSET(i, &_write_fds) == 1)
 			{
 				dprintf(2, "\nWHILE 7 - a client socket is ready to write\n");
 				status--;
@@ -475,6 +476,7 @@ void	Server::loop()
 				ResponseOutcome status = client.writeResponse();
 				if (status == RESPONSE_FAILURE || status == RESPONSE_SUCCESS_CLOSE) // A VERIF
 				{
+					std::cout << "close socket : " << client.getFd() << std::endl;
 					_maxConnections[client.getServerFd()] -= 1;
 					close(client.getFd());
 					// close(i);

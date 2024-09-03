@@ -443,9 +443,10 @@ StatusCode	Request::checkIfBody()
 			if (it->second.find_first_not_of("0123456789", 0) != std::string::npos)
 				return (STATUS_BAD_REQUEST);
 			_contentLength = strtol(it->second.c_str(), NULL, 10);
+			// std::cout << "Check if body 2\n";
 			if (_contentLength > _vs->getMaxBodySize())
 				return (STATUS_PAYLOAD_TOO_LARGE);
-
+			// std::cout << "Check if body 3\n";
 			std::map<std::string, std::string>::iterator it = _headers.find("content-type");
 			if (it == _headers.end())
 				return (STATUS_BAD_REQUEST);

@@ -517,7 +517,8 @@ void	Response::buildStatusLine()
 
 void	Response::buildErrorPage(ParseRequestResult &request, StatusCode statusCode)
 {
-	_errorCloseSocket = true;
+	if (statusCode != STATUS_NOT_FOUND)
+		_errorCloseSocket = true;
 	// Attention, le request.statusCode n'est plus forcement valide => utilise celui envoye dans les arguments
 	std::cerr << "build error page\n";
 	std::string	errorPageUri("");

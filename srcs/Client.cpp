@@ -144,11 +144,13 @@ int Client::readRequest(int isInReadSet)
 	else if (parsedRequest.outcome == REQUEST_FAILURE)
 	{
 		_buffer.erase();
+		_clientStatus = TO_CLOSE;
 	}
 
 	std::cout << LIGHTGREEN << "REQUEST OUTCOME = " << parsedRequest.outcome << RESET << std::endl;
 	
-	_clientStatus = NONE;
+	if (_clientStatus != TO_CLOSE)
+		_clientStatus = NONE;
 	_keepAlive = parsedRequest.keepAlive;
 
 	_response = new Response; // new A PROTEGER?
