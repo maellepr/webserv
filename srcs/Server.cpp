@@ -384,11 +384,12 @@ void	Server::loop()
 	
 	while (noSignal)
 	{
+		std::cerr << "noSignal = " << noSignal << std::endl;
     	dprintf(2, "\nWHILE 1 - before sleep\n");
         sleep(1); // A ENLEVER
         _read_fds = _all_sockets;
         _write_fds = _all_sockets;
-        timer.tv_sec = 1; // 2 second timeout for select()
+        timer.tv_sec = 0; // 2 second timeout for select()
         timer.tv_usec = 0;
         
         dprintf(2, "\nWHILE 2 - avant select\n");

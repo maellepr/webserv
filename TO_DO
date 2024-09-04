@@ -1,12 +1,8 @@
-Claire : rajouter le boundary + isUpload dans la request						=>OK
-
-write body => limit / timeout ?
-
 ######### TO DO #########
 
 - buildResponse():
-    gerer les return -> attention aux loop infinies 							=>Maelle
-    gerer les methods not accepted												=>Maelle
+    gerer les return -> attention aux loop infinies 							=>OK
+    gerer les methods not accepted												=>OK
 
 - buildErrorPage():
   URI relatives ou absolues ?
@@ -16,7 +12,7 @@ write body => limit / timeout ?
     finir buildPost() = upload (creer les fichiers)								=>OK
     tester le binaire (si on peut afficher les images par ex)					=>OK
     a voir si remplacer les strings par vector<unsigned char>					=>OK
-    redirections -> attention aux loop infinies
+    redirections -> attention aux loop infinies									=>OK(a retester)
 	  gerer plusieurs uploads => boundary										=>OK
     POST continue de refresh 													=>OK
 	Limiter la taille des media?
@@ -30,17 +26,20 @@ write body => limit / timeout ?
     gerer correctement fd_max													=>OK
     gerer le nombre de clients acceptes par socket server						=>OK
 
-- chunked requests:
-    to do
+- chunked requests																=>OK
 
-- CGI:																			=>Maelle
-    cas d'erreur dans les scripts (voir avec TIMEOUT?)
-    tester queries
-    tester nom fichier (?)
+- Reponse : write body => limit / timeout ?										=>pas de limite car controle 
+																				de la size du body
+
+- CGI:																			
+    cas d'erreur dans les scripts (voir avec TIMEOUT?)							=>OK
+	essayer d'autres scripts
+    tester queries/body															=>OK
+    tester nom fichier (?)														=>O/S
 
 - BONUS:
-    cache to do
-    CGI x2 to do
+    cookies/cache to do
+    CGI x2 to do																=>OK
 
 - OTHER:
     Tester et retester erreurs de configs, de parsing....
@@ -51,7 +50,7 @@ write body => limit / timeout ?
 ######### VARIABLES A REVOIR #########
 - revoir les statuscodes
 - max body size
-- timeout
+- timeouts
 
 ######### PENDING QUESTIONS #########
 - User-agent -> faut-il en faire qqc? (ex si =/= firefox ou curl, interdire?)
