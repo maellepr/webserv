@@ -1,5 +1,5 @@
-document.getElementById('deleteInput').addEventListener('click', function() {
-    var selectElement = document.getElementById("resourceList");
+document.getElementById('deleteButton').addEventListener('click', function() {
+    var selectElement = document.getElementById("deleteInput");
     var selectedResource = selectElement.value;
     var source = selectElement.getAttribute("data-source");
     
@@ -15,7 +15,7 @@ document.getElementById('deleteInput').addEventListener('click', function() {
         console.log("The deletion of the resource is confirmed.");
         
         var xhr = new XMLHttpRequest();
-        xhr.open('DELETE', '/images' + selectedResource, true);
+        xhr.open('DELETE', 'www/' + selectedResource, true);
         
         xhr.onreadystatechange = function() {
             if (xhr.readyState === XMLHttpRequest.DONE) {

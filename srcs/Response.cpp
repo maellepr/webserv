@@ -244,6 +244,7 @@ void	Response::buildDelete(ParseRequestResult &request)
 	if (remove(request.uri.c_str()) != 0)
 	{
 		std::cerr << "remove succed\n";
+		_statusCode = STATUS_OK;
 		_body = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><link href=\"./style/style.css\" rel=\"stylesheet\"><link href=\"./style/error_page.css\" rel=\"stylesheet\"><title>Ressource deleted</title></head><body><h1>Ressource deleted</h1><p id=\"comment\">The ressource was successfully deleted.</p><p><a href=\"site_index.html\"><button>Index</button></a></p></body></html>";
 	}
 	else
@@ -730,6 +731,11 @@ void	Response::buildGet(ParseRequestResult &request)
 				}
 				std::cerr << "CASE 1.4\n";
 			}
+			if (request.uri == "/files_to_delete/")
+			{
+				std::cerr << "CASE 1.45\n";
+				return(buildResponseJs(request));
+			}
 			if (_configLocation.find("autoindex") != _configLocation.end()
 					&& _configLocation["autoindex"][0] == "true")
 			{
@@ -918,6 +924,13 @@ std::vector<std::string> Response::doDirListing(DIR *dir)
 		//directory : a-t-on bien le slash de fin?
 	}
 	return (filesList);
+}
+
+void	Response::buildResponseJs(ParseRequestResult &request)
+{
+	(void) request;
+	
+	return ;
 }
 
 void	Response::buildAutoindexPage(ParseRequestResult &request)

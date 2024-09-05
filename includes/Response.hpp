@@ -44,6 +44,7 @@ class Response
 		void						buildPost(ParseRequestResult &request);
 		void						buildPage(ParseRequestResult &request);
 		std::vector<std::string>	doDirListing(DIR *dir);
+		void						buildResponseJs(ParseRequestResult &request);
 		void						buildAutoindexPage(ParseRequestResult &request);
 		Location					*associateLocationResponse(ParseRequestResult &request, std::string index);
 		void						listUploadFiles(ParseRequestResult &request);

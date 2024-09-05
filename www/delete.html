@@ -3,21 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="/style/style.css" rel="stylesheet">
-    <link href="/style/delete.css" rel="stylesheet">
-    <!-- <script src="/listrepo.js"></script> -->
+    <link href="style.css" rel="stylesheet">
+    <script src="listrepo.js"></script>
     <title>Document</title>
 </head>
 <body>
     <h1 class="pagesTitle">Delete</h1>
     <p>Choose the resource to delete :</p>
     <div class="list-suppr">
-        <!-- <select class="list" id="resourceList"></select> -->
+		<select class="list" id="fileList"></select>        <!-- <select class="list" id="resourceList"></select> -->
 
-		<input type="text" id="deleteInput" placeholder="Enter file ID or name">
+		<!-- <input type="text" id="deleteInput" placeholder="Enter file ID or name"> -->
 
         <button class="suppr" id="deleteButton">Delete the ressource</button>
-        <script src="/cgi/deletejs.js"></script>
+        <script src="deletejs.js"></script>
     </div>
     <div class="index">
         <a class="indexButton" href="/site_index.html">Index</a>
