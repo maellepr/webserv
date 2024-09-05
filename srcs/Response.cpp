@@ -259,7 +259,16 @@ void	Response::buildCgi(ParseRequestResult &request)
 	if (_statusCode != STATUS_OK)
 		return(buildErrorPage(request, _statusCode));
 	// std::cerr << "max fd = " << _fd_max << "\n";
-	// int	fd[2];
+	// ***************************************************************************
+	std::cout << "request.body : " << request.body << std::endl;
+	int fdBody = open("/tmp/.sendBody.txt", O_RDWR | O_CREAT);
+	// std::ofstream fillBody;
+	// fillBody.open("/tmp/.sendBody.txt");
+	// fillBody << request.body;
+	// fillBody.close();
+	// ***************************************************************************
+	int	fd[2]; // ***************************************************************************
+	fd[0] = fdBody; // ***************************************************************************
 	int writeStatus;
 	std::string cgiFile	= ".read_cgi.txt";
 	int	cgiFd = open(cgiFile.c_str(), O_WRONLY | O_CREAT | O_TRUNC);
@@ -271,8 +280,9 @@ void	Response::buildCgi(ParseRequestResult &request)
 			return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
 		}
 	}
-	// if (pipe(fd) == - 1)
-		// return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
+	if (pipe(fd) == - 1)// ***************************************************************************
+		return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));// ***************************************************************************
+
 	std::string cgi = findCgi();
 		_cgi = const_cast<char*>(cgi.c_str());
 	if (cgi.size() == 0)
@@ -285,8 +295,9 @@ void	Response::buildCgi(ParseRequestResult &request)
 		return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
 	if (pid == 0)//child
 	{
-		// dup2(fd[0], STDIN_FILENO);//stdin devient pipe[0]
-		// close(fd[0]);
+		// std::cerr << "CHILD 0" << std::endl;
+		dup2(fd[0], STDIN_FILENO);//stdin devient pipe[0] // ***************************************************************************
+		close(fd[0]);// ***************************************************************************
 		// close(fd[1]);
 		dup2(cgiFd, STDOUT_FILENO);//stdout devient pipe[1]
 		close(cgiFd);
@@ -296,12 +307,19 @@ void	Response::buildCgi(ParseRequestResult &request)
 		// std::string ext = _finalURI.substr(extention, _finalURI.size());
 		// std::cerr << "extention = " << ext << "\n";
 
+	std::ofstream fillBody; // ***************************************************************************
+	fillBody.open("/tmp/.sendBody.txt"); // ***************************************************************************
+	fillBody << request.body; // ***************************************************************************
+	fillBody.close(); // ***************************************************************************
+
 		dprintf(2, "_cgi here = %s\n", _cgi);
 		char *av[] = {_cgi, _finalUriChar, NULL};
 
 		char **env = vectorStringToChar(vecEnv);
 		closeAllFd();
+		// std::cerr << "CHILD 1" << std::endl;
 		execve(_cgi, av, env);
+		// std::cerr << "CHILD 2" << std::endl;
 		// execve failed
 		perror("execve");
 		freeChar(env);
@@ -313,6 +331,7 @@ void	Response::buildCgi(ParseRequestResult &request)
 	// close(fd[0]);
 	while (true)
 	{
+		// std::cerr << "PARENT 0" << std::endl;
 		pid_t	pid_result = waitpid(pid, &writeStatus, WNOHANG);
 		if (pid_result > 0)// success, child process change state
 		{
@@ -335,6 +354,7 @@ void	Response::buildCgi(ParseRequestResult &request)
 					std::cerr << "Child process killed successfully\n";
 				_statusCode = STATUS_INTERNAL_SERVER_ERROR;
 				remove(".read_cgi.txt");
+				remove("/tmp/.sendBody.txt"); // *****************************************************************
 				return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
 			}
 		}
@@ -428,6 +448,7 @@ void	Response::buildPageCgi()
 	response << ifs.rdbuf();
 
 	remove(".read_cgi.txt");
+	remove("/tmp/.sendBody.txt"); // *****************************************************************
 	_body = response.str();
 	if (_body.size() == 0)
 	{
@@ -486,7 +507,7 @@ std::vector<std::string>	Response::doEnvCgi(ParseRequestResult &request)
 	ss << request.contentLenght;
 	// std::cerr << "request.contentLenght = " << request.contentLenght << "\n";
 	// std::cerr << "content lenght = " << ss.str() << "\n";
-	exportToEnv(env, "CONTENT_LENGHT", ss.str());
+	exportToEnv(env, "CONTENT_LENGTH", ss.str());
 	std::map<std::string, std::string>::iterator it = request.headers.find("content-type");
 	if (it == request.headers.end())
 		exportToEnv(env, "CONTENT_TYPE", DEFAULT_CONTENT_TYPE);
