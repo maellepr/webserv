@@ -259,10 +259,11 @@ void	VirtualServer::parseRoot(std::istringstream& iss)
 	if (!(iss >> path))
 		throw ErrorConfigFile("Error in the conf file : no root");
 	// std::cerr << "path = " << path << "\n";
-	if (path.compare(0, 8, "/var/www") == 0 || path.compare(0, 5, "/www/") == 0)
-		_rootDir = "www";
-	else
+	// if (path.compare(0, 8, "/var/www") == 0 || path.compare(0, 5, "/www/") == 0)
+	
+	if (path.compare(0, 3, "www") != 0 && path.compare(0, 4, "www/") != 0)
 		throw ErrorConfigFile("Error in the conf file : root : wrong content1");
+	_rootDir = path;	
 	// _rootDir = path + (path[path.size() - 1] == '/' ? "" : "/");
 	// check if line ends with '/' -> if it does add nothing
 	//							   -> if it doesn't add '/'

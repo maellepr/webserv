@@ -10,20 +10,3 @@ b
 season=dsgd
 0
 
-
-
-POST /cgi/py/response.py HTTP/1.1
-Transfer-encoding: chunked
-Host: example.com
-
-b
-color=haha&
-
-9
-meal=dsf&
-
-c
-season=dsgd&
-
-0
-

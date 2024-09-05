@@ -3,6 +3,9 @@
 
 # include "webserv.hpp"
 # include "Location.hpp"
+# include "Client.hpp"
+
+class Client;
 
 extern std::map<StatusCode, std::string>	STATUS_MESSAGES;
 extern std::map<std::string, std::string>	CONTENT_TYPES;
@@ -14,7 +17,10 @@ class Response
 		~Response();
 
 		void						setFdInfos(int fdMax, fd_set writeFds, fd_set readFds);
+		// void						setClient(std::vector<int> &c);
+		void						setClient(std::map<int, Client> *c);
 
+		void						setSocketBoundVs(std::map<int, std::vector<VirtualServer*> > &vs);
 		void						fillStatusMsg();
 		void						generateResponse(ParseRequestResult &request);
 		ResponseOutcome				sendResponseToClient(int fd);
@@ -22,6 +28,7 @@ class Response
 		bool						loopDetectedReturn(ParseRequestResult &request);
 		void						buildReturn(ParseRequestResult &request);
 		bool						methodIsAuthorize(ParseRequestResult	&request);
+		void						buildDelete(ParseRequestResult &request);
 		void						buildCgi(ParseRequestResult &request);
 		std::string					findCgi();
 		void						closeAllFd();
@@ -58,7 +65,12 @@ class Response
 		int													_fd_max;
 		fd_set												_write_fds;
 		fd_set												_read_fds;
-		
+	
+		// std::vector<int>									_clients;
+
+		std::map<int, Client>								*_c;
+		std::map<int, std::vector<VirtualServer*> >			_socketBoundVs;
+
 };
 
 #endif

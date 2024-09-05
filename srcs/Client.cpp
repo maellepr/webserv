@@ -72,6 +72,20 @@ void	Client::setFdInfos(int fdMax, fd_set write_fds, fd_set read_fds)
 	_read_fds = read_fds;
 }
 
+void	Client::setClient(std::map<int, Client> &c)
+{
+	// for (std::map<int, Client>::iterator it = c.begin(); it != c.end(); it++)
+	// {
+	// 	_clients.push_back(it->first);
+	// }
+	_c = &c;
+}
+
+void	Client::setSocketBoundVs(std::map<int, std::vector<VirtualServer*> > &vs)
+{
+	_socketBoundVs = vs;
+}
+
 // FUNCTIONS --------------------------------------------------------------------- //
 
 int Client::readRequest(int isInReadSet)
@@ -155,6 +169,8 @@ int Client::readRequest(int isInReadSet)
 
 	_response = new Response; // new A PROTEGER?
 	_response->setFdInfos(_fd_max, _write_fds, _read_fds);
+	_response->setSocketBoundVs(_socketBoundVs);
+	_response->setClient(_c);
 	_response->generateResponse(parsedRequest);
 
 	delete _request;
