@@ -11,7 +11,7 @@ content = "<!DOCTYPE html> \
         <h1 class=\"title\">Response</h1> \
         <h2>Hello, World!</h2> \
         <p>" + query + "</p> \
-        <a href=\"site_index.html\"><button>INDEX</button></a> \
+        <a href=\"../../home.html\"><button>INDEX</button></a> \
     </body> \
 </html>"
 

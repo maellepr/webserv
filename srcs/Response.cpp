@@ -751,7 +751,7 @@ void	Response::buildPost(ParseRequestResult &request)
 				}
 				fileToUpload.close();
 				_statusCode = STATUS_CREATED;
-				_finalURI = "./www/html/upload_success.html";
+				_finalURI = "./www/upload_success.html";
 				return (buildPage(request));
 			}
 			else
