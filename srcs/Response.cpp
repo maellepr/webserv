@@ -739,6 +739,7 @@ void	Response::buildPost(ParseRequestResult &request)
 					}
 				}
 			}
+			std::cerr << "before access = " << filename.c_str() << "\n";
 			if (access(filename.c_str(), F_OK) != 0)
 			{
 				std::ofstream fileToUpload;
@@ -750,7 +751,7 @@ void	Response::buildPost(ParseRequestResult &request)
 				}
 				fileToUpload.close();
 				_statusCode = STATUS_CREATED;
-				_finalURI = "./pages/upload_success.html";
+				_finalURI = "./www/html/upload_success.html";
 				return (buildPage(request));
 			}
 			else

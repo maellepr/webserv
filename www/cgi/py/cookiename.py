@@ -1,18 +1,33 @@
-import os
+#!/usr/bin/python
+import cgi, cgitb
+cgitb.enable()
+form = cgi.FieldStorage()
 
-query = os.environ.get('QUERY_STRING')
+print("Content-type: text/html\r\n")
 
-content = "<!DOCTYPE html> \
-<html lang=\"en\"> \
-    <head> \
-        <title>Response</title> \
-    </head> \
-    <body> \
-        <h1 class=\"title\">Response</h1> \
-        <h2>Hello, World!</h2> \
-        <p>" + query + "</p> \
-        <a href=\"site_index.html\"><button>INDEX</button></a> \
-    </body> \
-</html>"
-
-print(content)
+if form.getvalue('name'):
+    name = form.getvalue('name')
+    print(f"Set-Cookie: name={name}\r\n")
+    print(f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <title>You will be remembered, {name}</title>
+    </head>
+    <body>
+        <a href="site_index.html"><button>go back to site index</button></a>
+    </body>
+    </html>
+    """)
+else:
+    print("""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <title>Did not quite get your name...</title>
+    </head>
+    <body>
+        <a href="site_index.html"><button>go back to site index</button></a>
+    </body>
+    </html>
+    """)
