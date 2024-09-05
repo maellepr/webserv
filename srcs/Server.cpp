@@ -385,7 +385,7 @@ void	Server::loop()
         sleep(1); // A ENLEVER
         _read_fds = _all_sockets;
         _write_fds = _all_sockets;
-        timer.tv_sec = 1; // 2 second timeout for select()
+        timer.tv_sec = 0; // 2 second timeout for select()
         timer.tv_usec = 0;
         
         dprintf(2, "\nWHILE 2 - avant select\n");
@@ -440,9 +440,12 @@ void	Server::loop()
 					client.setConnectedServers(i, _socketBoundVs);
 
 					client.setFdInfos(_fd_max, _read_fds, _write_fds);
+					client.setSocketBoundVs(_socketBoundVs);
+					client.setClient(_clients);
 
 					dprintf(2, "WHILE 5 - 3\n");
 					_clients[client.getFd()] = client;
+					
 					_maxConnections[i] += 1;
 					dprintf(2, "WHILE 5 - 4\n");
 					// res = 0;

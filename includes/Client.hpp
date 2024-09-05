@@ -6,6 +6,8 @@
 #include "Request.hpp"
 #include "Response.hpp"
 
+class Response;
+
 class Client 
 {
     public :
@@ -16,6 +18,10 @@ class Client
         int    			getFd();
         void			setServerFd(int fd);
         int    			getServerFd();
+
+		void			setClient(std::map<int, Client> &c);
+		void			setSocketBoundVs(std::map<int, std::vector<VirtualServer*> > &vs);
+
 		void			setConnectedServers(int serverfd, std::map<int, std::vector<VirtualServer*> >	&socketBoundVs);
 		ClientStatus	&getClientStatus();
 
@@ -42,6 +48,10 @@ class Client
 		fd_set						_read_fds;
 		fd_set						_write_fds;
 		int							_fd_max;
+
+		// std::vector<int>									_clients;
+		std::map<int, Client>								*_c;
+		std::map<int, std::vector<VirtualServer*> >			_socketBoundVs;
 
 };
 
