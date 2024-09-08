@@ -2,13 +2,14 @@
 <html lang="en">
     <head>
 		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="style.css" rel="stylesheet">
         <title>Form</title>
     </head>
 	<body>
-        <div class="title2">fill out this form</div>
+        <div class="title1">Fill out this form</div>
         <form id="form" action="../cgi/php/response.php" method="POST">
-            <div id="etiquete">
+            <div class="questionForm">
                 <div class="nfl">
                     <label for="color">What's your favorite color ?<br></label>
                     <input type="text" name="color" id="color" maxlength="25" value="color" required/>
@@ -22,9 +23,10 @@
                     <input type="text" name="season" id="season" maxlength="25" value="season" required/>
 					<br><br>
                 </div>
-            </div>
+            
             <input id="sendButton" type="submit" value="Send it !"/><br><br>
-        </form>
+        </div>
+	</form>
         <div class="index">
             <a class="indexButton" href="home.html">go back to home page</a>
         </div>
