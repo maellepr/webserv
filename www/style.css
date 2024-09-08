@@ -81,11 +81,23 @@ a:hover, a:active {
 	position: relative;
 	line-height: 1.5rem;
 	margin-top: 40px;
+	font-size: 14px;
 	
 }
 
 .nfl {
 	margin-top: 15px;
+}
+
+
+.uploadDoc {
+	text-align: center;
+	align-items: center;
+	position: relative;
+	line-height: 1.5rem;
+	margin-top: 40px;
+	font-size: 14px;
+	
 }
 
 /* .img1 {
