@@ -241,17 +241,51 @@ void	Response::buildDelete(ParseRequestResult &request)
 	if (request.uri.size() > 0 && request.uri[0] == '/')
 		request.uri = request.uri.substr(1, request.uri.size() - 1);
 	std::cerr << "request uri in delete : " << request.uri << "\n";	
-	if (remove(request.uri.c_str()) != 0)
+	if (remove(request.uri.c_str()) == 0)
 	{
 		std::cerr << "remove succed\n";
-		_statusCode = STATUS_OK;
-		_body = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><link href=\"./style/style.css\" rel=\"stylesheet\"><link href=\"./style/error_page.css\" rel=\"stylesheet\"><title>Ressource deleted</title></head><body><h1>Ressource deleted</h1><p id=\"comment\">The ressource was successfully deleted.</p><p><a href=\"site_index.html\"><button>Index</button></a></p></body></html>";
+		_body = "<!DOCTYPE html>\
+		<html lang=\"en\">\
+		<head>\
+		<meta charset=\"UTF-8\">\
+		<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\
+		<link href=\"./style.css\" rel=\"stylesheet\">\
+		<title>Delete succeeded</title>\
+		</head>\
+		<body>\
+		<div class=\"title2\">The file has been deleted !</div>\
+		<div class=\"index\">\
+		<a class=\"indexButton\" href=\"delete.html\">delete another file</a><br>\
+		<a class=\"indexButton\" href=\"home.html\">go back to home page</a>\
+		</div>\
+		</body>\
+		</html>";
 	}
 	else
 	{
 		std::cerr << "remove failed\n";
-		_body = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><link href=\"./style/style.css\" rel=\"stylesheet\"><link href=\"./style/error_page.css\" rel=\"stylesheet\"><title>Ressource not deleted</title></head><body><h1>Ressource not deleted</h1><p id=\"comment\">The ressource you are trying to delete does not exist.</p><p><a href=\"site_index.html\"><button>Index</button></a></p></body></html>";
+		_body = "<!DOCTYPE html>\
+		<html lang=\"en\">\
+		<head><meta charset=\"UTF-8\">\
+		<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\
+		<link href=\"./style.css\" rel=\"stylesheet\">\
+		<title>Delete failed</title>\
+		</head>\
+		<body>\
+		<div class=\"title2\">The file couldn't be deleted</div>\
+		<div class=\"index\">\
+		<a class=\"indexButton\" href=\"delete.html\">try again</a><br>\
+		<a class=\"indexButton\" href=\"home.html\">go back to home page</a>\
+		</div>\
+		</body>\
+		</html>";
+		// "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><link href=\"./style/style.css\" rel=\"stylesheet\"><link href=\"./style/error_page.css\" rel=\"stylesheet\"><title>Ressource not deleted</title></head><body><h1>Ressource not deleted</h1><p id=\"comment\">The ressource you are trying to delete does not exist.</p><p><a href=\"site_index.html\"><button>Index</button></a></p></body></html>";
+	
+	
 	}
+	_headers["content-type"] = "text/html";
+	_headers["content-length"] = convertToStr(_body.size());
+	_statusCode = STATUS_OK;
 }
 
 void	Response::buildCgi(ParseRequestResult &request)
@@ -592,64 +626,29 @@ void	Response::buildErrorPage(ParseRequestResult &request, StatusCode statusCode
 			errorMsg = convertToStr(_statusCode) + " " + STATUS_MESSAGES[_statusCode];
 		else
 			errorMsg = "Unknown error " + convertToStr(_statusCode);
-		// std::stringstream ss;
-		// ss << _statusCode;
-		// std::string	codeStr = ss.str(); 
-		// std::string	title;
-		// if (it != STATUS_MESSAGES.end())
-		// 	"Unknown error " + codeStr;
-		// else
-		// 	codeStr + " " + it->second;
-		// _body = "<!DOCTYPE html>\n"
-		// 			"<html lang=\"en\">\n"
-		// 			"\n"
-		// 			"<head>\n"
-		// 			"\t<meta charset=\"UTF-8\">\n"
-		// 			"\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
-		// 			"\t<title>" +
-		// 			title +
-		// 			"</title>\n"
-		// 			"\t<style>\n"
-		// 			"\t\tbody {\n"
-		// 			"\t\t\tbackground-color: #f0f0f0;\n"
-		// 			"\t\t\tfont-family: Arial, sans-serif;\n"
-		// 			"\t\t}\n"
-		// 			"\n"
-		// 			"\t\t.container {\n"
-		// 			"\t\t\twidth: 80%;\n"
-		// 			"\t\t\tmargin: auto;\n"
-		// 			"\t\t\ttext-align: center;\n"
-		// 			"\t\t\tpadding-top: 20%;\n"
-		// 			"\t\t}\n"
-		// 			"\n"
-		// 			"\t\th1 {\n"
-		// 			"\t\t\tcolor: #333;\n"
-		// 			"\t\t}\n"
-		// 			"\n"
-		// 			"\t\tp {\n"
-		// 			"\t\t\tcolor: #666;\n"
-		// 			"\t\t}\n"
-		// 			"\t</style>\n"
-		// 			"</head>\n"
-		// 			"\n"
-		// 			"<body>\n"
-		// 			"\t<div class=\"container\">\n"
-		// 			"\t\t<h1>" +
-		// 			title +
-		// 			"</h1>\n"
-		// 			"\t\t<a href=\"/\">Go back to root.</a>\n"
-		// 			"\t</div>\n"
-		// 			"</body>\n"
-		// 			"\n"
-		// 			"</html>";
+	// _body += "<!DOCTYPE html>\n";
+	// _body += "<html>\n";
+	// _body += "<body>\n";
+	// _body += "<h1>" + errorMsg + "</h1>";
+	// _body += "</body>\n";
+	// _body += "</html>";
 
-	_body += "<!DOCTYPE html>\n";
-	_body += "<html>\n";
-	_body += "<body>\n";
-	_body += "<h1>" + errorMsg + "</h1>";
-	_body += "</body>\n";
-	_body += "</html>";
-	
+		_body = "<!DOCTYPE html>\
+				<html lang=\"en\">\
+				<head>\
+				<meta charset=\"UTF-8\">\
+				<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\
+				<link href=\"style.css\" rel=\"stylesheet\">\
+				<title>Error</title>\
+				</head>\
+				<body>\
+				<div class=\"title1\">" + errorMsg + "</div>\
+				<div class=\"index\">\
+				<a class=\"indexButton\" href=\"/\">go back to home page</a>\
+				</div>\
+				</body>\
+				</html>";
+
 	}
 	_headers["content-type"] = "text/html";
 	_headers["content-length"] = convertToStr(_body.size());
@@ -731,7 +730,7 @@ void	Response::buildGet(ParseRequestResult &request)
 				}
 				std::cerr << "CASE 1.4\n";
 			}
-			if (request.uri == "/files_to_delete/")
+			if (request.uri.find("files_to_delete") != std::string::npos)
 			{
 				std::cerr << "CASE 1.45\n";
 				return(buildResponseJs(request));
@@ -928,8 +927,47 @@ std::vector<std::string> Response::doDirListing(DIR *dir)
 
 void	Response::buildResponseJs(ParseRequestResult &request)
 {
-	(void) request;
-	
+	std::vector<std::string> fileList;
+	std::string	js;
+	request.uri = "./www/files_to_delete/";
+	// request.uri = request.uri.substr(1, request.uri.size() - 1);
+	DIR *dir;
+	struct dirent *dirent;
+	std::cerr << "request uri = " << request.uri << "\n";
+	dir = opendir(request.uri.c_str());
+	if (dir == NULL)
+	{
+		std::cerr << "dir == NULL\n";
+		_body = "";
+		// peut etre ajouter builErrorPage ?
+		return ;
+	}
+	while ((dirent = readdir(dir)) != NULL)
+	{
+		if (std::string(dirent->d_name) != "." && std::string(dirent->d_name) != "..")
+		{
+			fileList.push_back(dirent->d_name);
+		}
+	}
+	closedir(dir);
+	js = "[";
+	for (size_t i = 0; i < fileList.size(); i++)
+	{
+		js += "\"";
+		js += fileList[i];
+		js += "\"";
+		if (i < fileList.size() - 1)
+			js += ", ";
+	}
+	js += "]";
+	std::cerr << "js ===> " << js << "\n";
+	_body = js;
+	std::cerr << "body ===> " << _body << " size = " << _body.size() << "\n";
+	_headers["content-type"] = "application/json";
+	_headers["content-length"] = convertToStr(_body.size());
+
+
+	_statusCode = STATUS_OK;
 	return ;
 }
 
@@ -977,10 +1015,10 @@ ResponseOutcome	Response::sendResponseToClient(int fd)
 	
 	// if (_returnRes.size() > 0)
 	// {
-	// 	std::cerr << "-------->_returnRes to push = " << _returnRes << "\n";
+	// 	std::cerr << "-------->_jsRes to push = " << _returnRes << "\n";
 	// 	if (pushStrToClient(fd, _returnRes) == -1)
 	// 		return RESPONSE_FAILURE;
-	// 	return RESPONSE_SUCCESS;
+	// 	return RESPONSE_SUCCESS_KEEPALIVE;
 	// }
 
 	std::cerr << "-------->_statusLine to push = " << _statusLine << "\n";
@@ -1004,7 +1042,10 @@ ResponseOutcome	Response::sendResponseToClient(int fd)
 	if (it != _headers.end() && strtol(it->second.c_str(), NULL, 10) > 0)
 	{
 		std::cerr << "OK THERE IS A BODY\n";
-	 	line = _body.substr(0, strtol(it->second.c_str(), NULL, 10)); //convertir
+	 	
+		line = _body.substr(0, strtol(it->second.c_str(), NULL, 10)); //convertir
+		std::cerr << "body = " << _body << "\n";
+		std::cerr << "lenght = " << strtol(it->second.c_str(), NULL, 10) << "\n";
 		if (pushStrToClient(fd, line) == -1)
 			return RESPONSE_FAILURE;
 		return RESPONSE_SUCCESS_KEEPALIVE;

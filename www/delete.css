@@ -1,0 +1,42 @@
+body {
+    height: 100%;
+    margin: 0;
+    background-color: #ffd2e0;
+    display: grid;
+    grid-template-rows: 1fr 0fr 2fr 1fr;
+    margin: 0;
+}
+
+.title1 {
+    margin-top: 30px;
+    font-size:2em;
+    color: #000000;
+    text-align: center;
+}
+
+.title2 {
+    margin-top: 20px;
+    font-size:1em;
+    color: #000000;
+    text-align: center;
+}
+
+.list-suppr {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+}
+
+.list {
+    width: 200px;
+    height: 40px;
+}
+
+.suppr {
+    width: 200px;
+    height: 40px;
+    border: none;
+    cursor: pointer;
+}

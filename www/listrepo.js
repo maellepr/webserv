@@ -2,7 +2,7 @@ function fillResourceList() {
     var selectElement = document.getElementById("fileList");
 
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", "/files_to_delete", true);
+    xhr.open("GET", "/files_to_delete/", true);
     xhr.onreadystatechange = function() {
         if (xhr.readyState === 4 && xhr.status === 200) {
             try {

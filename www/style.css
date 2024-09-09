@@ -47,9 +47,18 @@ a:active {
 .index {
 	font-size: 14px;
 	text-align: center;
-	margin-top: 75px;
+	margin-top: 55px;
 	line-height: 5;
+}
 
+.response {
+	margin-top: 75px;
+	line-height: 2;
+	text-align: center;
+}
+
+.value {
+	font-style: italic;
 }
 
 a:link, a:visited {
@@ -112,26 +121,3 @@ a:hover, a:active {
 	text-align: center;
 }
  */
-
-
-
-
-.list-suppr {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    justify-content: center;
-    align-items: center;
-}
-
-.list {
-    width: 200px;
-    height: 40px;
-}
-
-.suppr {
-    width: 200px;
-    height: 40px;
-    border: none;
-    cursor: pointer;
-}

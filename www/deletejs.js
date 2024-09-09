@@ -1,10 +1,10 @@
 document.getElementById('deleteButton').addEventListener('click', function() {
-    var selectElement = document.getElementById("deleteInput");
+    var selectElement = document.getElementById("fileList");
     var selectedResource = selectElement.value;
     var source = selectElement.getAttribute("data-source");
     
     if (!selectedResource) {
-        alert("Please select a resource before deleting it.");
+        alert("Please select a file before deleting it.");
         return;
     } else if (selectedResource === "No files available") {
         alert("No files are available.");
@@ -15,7 +15,7 @@ document.getElementById('deleteButton').addEventListener('click', function() {
         console.log("The deletion of the resource is confirmed.");
         
         var xhr = new XMLHttpRequest();
-        xhr.open('DELETE', 'www/' + selectedResource, true);
+        xhr.open('DELETE', 'www/files_to_delete/' + selectedResource, true);
         
         xhr.onreadystatechange = function() {
             if (xhr.readyState === XMLHttpRequest.DONE) {
