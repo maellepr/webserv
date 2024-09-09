@@ -52,6 +52,7 @@ class Response
 	private:
 		std::string											_statusLine;
 		std::map<std::string, std::string>					_headers;
+		std::map<std::string, std::string>					_cookies;
 		std::string											_body;
 		StatusCode											_statusCode;
 		std::string											_finalURI;

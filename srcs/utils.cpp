@@ -201,3 +201,13 @@ std::string	stringifyVector(std::vector<unsigned char> v)
 {
 	return (std::string(v.begin(), v.end()));
 }
+
+std::string	strToLower(std::string s)
+{
+	std::string lowS;
+	for (std::string::iterator it = s.begin(); it != s.end(); it++)
+	{
+		lowS += tolower(*it);
+	}
+	return (lowS);
+}

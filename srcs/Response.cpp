@@ -253,82 +253,94 @@ void	Response::buildDelete(ParseRequestResult &request)
 	}
 }
 
+	// ***************************************************************************
+	// int fdBody = open("/tmp/.sendBody.txt", O_RDWR | O_CREAT);
+	// std::ofstream fillBody;
+	// fillBody.open("/tmp/.sendBody.txt");
+	// fillBody << request.body;
+	// fillBody.close();
+	// ***************************************************************************
+
 void	Response::buildCgi(ParseRequestResult &request)
 {
 	initCgi(request);
 	if (_statusCode != STATUS_OK)
 		return(buildErrorPage(request, _statusCode));
 	// std::cerr << "max fd = " << _fd_max << "\n";
-	// ***************************************************************************
 	std::cout << "request.body : " << request.body << std::endl;
-	int fdBody = open("/tmp/.sendBody.txt", O_RDWR | O_CREAT);
-	// std::ofstream fillBody;
-	// fillBody.open("/tmp/.sendBody.txt");
-	// fillBody << request.body;
-	// fillBody.close();
-	// ***************************************************************************
-	int	fd[2]; // ***************************************************************************
-	fd[0] = fdBody; // ***************************************************************************
 	int writeStatus;
-	std::string cgiFile	= ".read_cgi.txt";
-	int	cgiFd = open(cgiFile.c_str(), O_WRONLY | O_CREAT | O_TRUNC);
-	if (cgiFd != -1)
+	// std::string cgiFile	= ".read_cgi.txt";
+	int	cgiFdOut = open(".read_cgi.txt", O_WRONLY | O_CREAT | O_TRUNC);
+	if (cgiFdOut == -1)
+		return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
+	if (chmod(".read_cgi.txt", S_IRWXU | S_IRWXG | S_IRWXO) != 0)
 	{
-		if (chmod(cgiFile.c_str(), S_IRWXU | S_IRWXG | S_IRWXO) != 0)
-		{
-			close(cgiFd);
-			return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
-		}
+		close(cgiFdOut);
+		return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
 	}
-	if (pipe(fd) == - 1)// ***************************************************************************
-		return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));// ***************************************************************************
-
+	int	cgiFdIn = open(".input_body.txt", O_WRONLY | O_CREAT | O_TRUNC);
+	if (cgiFdIn == -1)
+		return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
+	if (chmod(".input_body.txt", S_IRWXU | S_IRWXG | S_IRWXO) != 0)
+	{
+		(close(cgiFdOut), close(cgiFdIn));
+		return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
+	}
+	int	fd[2];
+	if (pipe(fd) == - 1)
+	{
+		(close(cgiFdOut), close(cgiFdIn));
+		return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
+	}
 	std::string cgi = findCgi();
 		_cgi = const_cast<char*>(cgi.c_str());
 	if (cgi.size() == 0)
+	{
+		(close(cgiFdOut), close(cgiFdIn));
 		return (buildErrorPage(request, STATUS_BAD_REQUEST));
+	}
 
 	std::vector<std::string> vecEnv = doEnvCgi(request);
 	time_t	start = time(NULL);
 	pid_t	pid = fork();
 	if (pid == -1)
+	{
+		(close(cgiFdOut), close(cgiFdIn));
 		return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
+	}
 	if (pid == 0)//child
 	{
-		// std::cerr << "CHILD 0" << std::endl;
-		dup2(fd[0], STDIN_FILENO);//stdin devient pipe[0] // ***************************************************************************
-		close(fd[0]);// ***************************************************************************
-		// close(fd[1]);
-		dup2(cgiFd, STDOUT_FILENO);//stdout devient pipe[1]
-		close(cgiFd);
+		close(fd[1]);
+		dup2(fd[0], STDIN_FILENO);//stdin devient pipe[0]
+		close(fd[0]);
+		dup2(cgiFdOut, STDOUT_FILENO);//stdout devient pipe[1]
+		close(cgiFdOut);
 		// size_t extention = _finalURI.find_last_of('.');
 		// std::cerr << "_finalURI = " << _finalURI << "\n";
 		// dprintf(2, "size = %lu", extention);
 		// std::string ext = _finalURI.substr(extention, _finalURI.size());
 		// std::cerr << "extention = " << ext << "\n";
 
-	std::ofstream fillBody; // ***************************************************************************
-	fillBody.open("/tmp/.sendBody.txt"); // ***************************************************************************
-	fillBody << request.body; // ***************************************************************************
-	fillBody.close(); // ***************************************************************************
-
 		dprintf(2, "_cgi here = %s\n", _cgi);
 		char *av[] = {_cgi, _finalUriChar, NULL};
 
 		char **env = vectorStringToChar(vecEnv);
 		closeAllFd();
-		// std::cerr << "CHILD 1" << std::endl;
 		execve(_cgi, av, env);
-		// std::cerr << "CHILD 2" << std::endl;
 		// execve failed
 		perror("execve");
 		freeChar(env);
 		sleep(3);
 		exit(EXIT_FAILURE);
 	}
+	close(fd[0]);
+	// write(fd[1], request.body.c_str(), request.body.size());
+	std::ofstream writeInPipe; // ***************************************************************************
+	writeInPipe.open(".input_body.txt"); // ***************************************************************************
+	writeInPipe << request.body; // ***************************************************************************
+	writeInPipe.close(); // ***************************************************************************
+	close(fd[1]);
 	// system("pstree -p");
-	// close(fd[1]);
-	// close(fd[0]);
 	while (true)
 	{
 		// std::cerr << "PARENT 0" << std::endl;
@@ -344,7 +356,8 @@ void	Response::buildCgi(ParseRequestResult &request)
 			if (end - start >= 10)// valeur 3?
 			{
 				std::cerr << BOLD << "return error page timeout\n" << "pid killed = " << pid << "\n" << RESET;
-				close(cgiFd);
+				close(cgiFdOut);
+				close(cgiFdIn);
 				if (kill(pid, SIGKILL) == 0)
 					std::cerr << "Child process killed successfully\n";
 				else
@@ -354,18 +367,20 @@ void	Response::buildCgi(ParseRequestResult &request)
 					std::cerr << "Child process killed successfully\n";
 				_statusCode = STATUS_INTERNAL_SERVER_ERROR;
 				remove(".read_cgi.txt");
-				remove("/tmp/.sendBody.txt"); // *****************************************************************
+				remove(".input_body.txt");
 				return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
 			}
 		}
 		else// waitpid failed
 		{
 			perror("waitpid");
-			close(cgiFd);
+			close(cgiFdOut);
+			close(cgiFdIn);
 			return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
 		}
 	}
-	close(cgiFd);
+	close(cgiFdOut);
+	close(cgiFdIn);
 	buildPageCgi();	
 	if (_statusCode != STATUS_OK)
 		buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR);
@@ -448,32 +463,67 @@ void	Response::buildPageCgi()
 	response << ifs.rdbuf();
 
 	remove(".read_cgi.txt");
-	remove("/tmp/.sendBody.txt"); // *****************************************************************
-	_body = response.str();
+	remove(".input_body.txt");
+	std::string _body = response.str();
+	std::string split = _body;
+	std::cerr << "split : " << split << "\n";
+	std::string line;
+	for (std::string::iterator it = split.begin(); it != split.end(); it++)
+	{
+		line += *it;
+		if (*it == '\n' && *(it - 1) == '\r')
+		{
+			std::cout << "line = " << line << std::endl;
+			std::size_t colon = line.find(":", 0);
+			if (colon != std::string::npos)
+			{
+				std::cout << "semicolon found" << std::endl;
+				std::string key = strToLower(line.substr(0, colon));
+				std::string value = strToLower(line.substr(colon + 1));
+				if (key == "set-cookie")
+				{
+					std::cout << "set COOKIE" << std::endl;
+					_cookies[key] = value;
+				}
+				else
+				{
+					std::cout << "set HEADER" << std::endl;
+					_headers[key] = value;
+				}
+				// REMOVE FROM BODY
+			}
+			line = "";
+		}
+		else
+			break;
+	}
+
 	if (_body.size() == 0)
 	{
 		std::cerr << "response body size = 0\n";
 		_statusCode = STATUS_INTERNAL_SERVER_ERROR;
 		return ;
 	}
+	_body += "\r\n";
 	std::cerr << "response : " << _body << "\n";
 	_headers["content-length"] = convertToStr(_body.size());
+	_headers["content-type"] = "text/html";
 
-	size_t pos = _finalURI.find_last_of("/");
-	if (pos != std::string::npos && (_finalURI.begin() + pos + 1) != _finalURI.end())
-	{
-		std::string resourceName = _finalURI.substr(pos + 1);
-		pos = resourceName.find_last_of(".");
-		if (pos != std::string::npos && (resourceName.begin() + pos + 1) != resourceName.end())
-		{
-			std::string fileExtension = resourceName.substr(pos + 1);
-			if (CONTENT_TYPES.find(fileExtension) != CONTENT_TYPES.end())		
-			{
-				_headers["content-type"] = CONTENT_TYPES[fileExtension];
-				return ;
-			}
-		}
-	}
+	// size_t pos = _finalURI.find_last_of("/");
+	// if (pos != std::string::npos && (_finalURI.begin() + pos + 1) != _finalURI.end())
+	// {
+	// 	std::string resourceName = _finalURI.substr(pos + 1);
+	// 	pos = resourceName.find_last_of(".");
+	// 	if (pos != std::string::npos && (resourceName.begin() + pos + 1) != resourceName.end())
+	// 	{
+	// 		std::string fileExtension = resourceName.substr(pos + 1);
+	// 		if (CONTENT_TYPES.find(fileExtension) != CONTENT_TYPES.end())		
+	// 		{
+	// 			_headers["content-type"] = CONTENT_TYPES[fileExtension];
+	// 			return ;
+	// 		}
+	// 	}
+	// }
 }
 
 void	Response::initCgi(ParseRequestResult &request)
@@ -998,7 +1048,14 @@ ResponseOutcome	Response::sendResponseToClient(int fd)
 	for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); it++)
 	{
 		line = it->first + ": " + it->second + "\r\n";
-		std::cerr << "-------->line to push = " << line << "\n";
+		std::cerr << "-------->header to push = " << line << "\n";
+		if (pushStrToClient(fd, line) == -1)
+			return RESPONSE_FAILURE;
+	}
+	for (std::map<std::string, std::string>::iterator it = _cookies.begin(); it != _cookies.end(); it++)
+	{
+		line = it->first + ": " + it->second + "\r\n";
+		std::cerr << "-------->cookie to push = " << line << "\n";
 		if (pushStrToClient(fd, line) == -1)
 			return RESPONSE_FAILURE;
 	}
