@@ -18,7 +18,7 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 		if (gnl != FOUND_NL)
 		{
 			if (gnl == BAD_REQUEST)
-				return (parsingFailed(STATUS_BAD_REQUEST));
+				return (parsingFailed(STATUS_BAD_REQUEST));	
 			if (_line.size() > MAX_URI_SIZE)
 				return (parsingFailed(STATUS_URI_TOO_LONG));
 			return (parsingPending());

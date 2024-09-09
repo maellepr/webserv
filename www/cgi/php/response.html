@@ -1,9 +1,4 @@
-<?php
-    $query = $_SERVER["QUERY_STRING"];
-    $params = array();
-    parse_str($query, $params);
-
-    echo '<!DOCTYPE html>
+<!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
@@ -16,7 +11,7 @@
         <div class="response">
             <div class="tag">Your favorite color is <span class="value">' .$params['color'] . '</span></div>
             <div class="tag">Your favorite meal is <span class="value">' .$params['meal'] . '</span></div>
-            <div class="tag">Your favorite season <span class="value">' .$params['season'] . '</span></div>
+            <div class="tag">Your favorite season is <span class="value">' .$params['season'] . '</span></div>
 			<br><br>
 			You have very good taste :-)
         </div>
@@ -24,5 +19,4 @@
             <a class="indexButton" href="/">go back to home page</a>
         </div>
     </body>
-</html>';
-?>
+</html>
