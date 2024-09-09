@@ -11,7 +11,7 @@
 			Welcome to webserv home page !
 		</div>
 		<div class="title2">
-			<br><br>☺☺☺ Hello stranger ☺☺☺
+			<br><br>☺☺☺ Hello <span id="username">stranger</span> ☺☺☺
 		</div>
 
 		<div class="index">
@@ -38,7 +38,28 @@
             <img class="img" src="images/fleur2.gif" alt=""></img>
 			<a class="indexButton" href="index.html">
 				Other features
-			</a>		
+			</a>
+
+			<a class="indexButton" href="colors.html">
+				Pick a color
+			</a><br>
+
         </div>
+		<script>
+			// Function to get a cookie by name
+			function getCookie(name) {
+				let value = `; ${document.cookie}`;
+				let parts = value.split(`; ${name}=`);
+				if (parts.length === 2) return parts.pop().split(';').shift();
+			}
+	
+			// Set the cookie value in the HTML
+			window.onload = function() {
+				const username = getCookie('name');
+				if (username) {
+					document.getElementById('username').textContent = username;
+				}
+			};
+		</script>
 	</body>
 </html>

@@ -9,7 +9,7 @@ form = cgi.FieldStorage()
 
 if form.getvalue('name'):
     name = form.getvalue('name')
-    print(f"Set-Cookie: name={name}; path=/\r\n")
+    print(f"Set-Cookie: name={name}; path=/; Max-Age=31536000\r\n")
     print(f"""<!DOCTYPE html>
 <html lang="en">
 	<head>
