@@ -81,9 +81,8 @@ void	Response::generateResponse(ParseRequestResult &request)
 	}
 
 	buildStatusLine();
-	// std::cerr << "_body = " << _body << std::endl;
+	// std::cerr << DARKBLUE << "_body = " << _body << RESET << std::endl;
 	std::cerr << "generate Response 6\n";
-	// build headers (+body)
 }
 
 bool	Response::loopDetectedReturn(ParseRequestResult &request)
@@ -464,38 +463,51 @@ void	Response::buildPageCgi()
 
 	remove(".read_cgi.txt");
 	remove(".input_body.txt");
-	std::string _body = response.str();
+	_body = response.str();
 	std::string split = _body;
-	std::cerr << "split : " << split << "\n";
+	// std::cerr << DARKBLUE << "split : " << split << RESET;
 	std::string line;
 	for (std::string::iterator it = split.begin(); it != split.end(); it++)
 	{
 		line += *it;
-		if (*it == '\n' && *(it - 1) == '\r')
+		// if (*it == '\n')
+		// 	std::cout << "\n" << std::endl;
+		// else if (*it == '\r')
+		// 	std::cout << "\r" << std::endl;
+		// else
+		// 	std::cout << "*it = " << *it << std::endl;
+		if (*it == '\n')
 		{
-			std::cout << "line = " << line << std::endl;
-			std::size_t colon = line.find(":", 0);
-			if (colon != std::string::npos)
+			// std::cout << RED << "line = " << line << RESET;
+			if (*(it -1) == '\r')
 			{
-				std::cout << "semicolon found" << std::endl;
-				std::string key = strToLower(line.substr(0, colon));
-				std::string value = strToLower(line.substr(colon + 1));
-				if (key == "set-cookie")
+				// std::cout << "it - 1 = " << *(it - 1) << std::endl;
+				std::size_t colon = line.find(":", 0);
+				if (colon != std::string::npos)
 				{
-					std::cout << "set COOKIE" << std::endl;
-					_cookies[key] = value;
+					// std::cout << "semicolon found" << std::endl;
+					line.erase(line.size() - 1);
+					line.erase(line.size() - 1);
+					std::string key = strToLower(line.substr(0, colon));
+					std::string value = strToLower(line.substr(colon + 2));
+					if (key == "set-cookie")
+					{
+						// std::cout << "set COOKIE" << std::endl;
+						_cookies[key] = value;
+					}
+					else
+					{
+						// std::cout << "set HEADER" << std::endl;
+						_headers[key] = value;
+					}
+					_body = _body.substr(line.size() + sizeof("\r\n") - 1);
+					// std::cout << "_body = " << DARKYELLOW << _body << RESET;
 				}
-				else
-				{
-					std::cout << "set HEADER" << std::endl;
-					_headers[key] = value;
-				}
-				// REMOVE FROM BODY
 			}
+			else 
+				break;
 			line = "";
 		}
-		else
-			break;
 	}
 
 	if (_body.size() == 0)
@@ -505,25 +517,9 @@ void	Response::buildPageCgi()
 		return ;
 	}
 	_body += "\r\n";
-	std::cerr << "response : " << _body << "\n";
+	// std::cerr << "response : {" << PINK << _body << RESET << "}\n";
 	_headers["content-length"] = convertToStr(_body.size());
 	_headers["content-type"] = "text/html";
-
-	// size_t pos = _finalURI.find_last_of("/");
-	// if (pos != std::string::npos && (_finalURI.begin() + pos + 1) != _finalURI.end())
-	// {
-	// 	std::string resourceName = _finalURI.substr(pos + 1);
-	// 	pos = resourceName.find_last_of(".");
-	// 	if (pos != std::string::npos && (resourceName.begin() + pos + 1) != resourceName.end())
-	// 	{
-	// 		std::string fileExtension = resourceName.substr(pos + 1);
-	// 		if (CONTENT_TYPES.find(fileExtension) != CONTENT_TYPES.end())		
-	// 		{
-	// 			_headers["content-type"] = CONTENT_TYPES[fileExtension];
-	// 			return ;
-	// 		}
-	// 	}
-	// }
 }
 
 void	Response::initCgi(ParseRequestResult &request)
@@ -1032,7 +1028,10 @@ void	Response::buildAutoindexPage(ParseRequestResult &request)
 ResponseOutcome	Response::sendResponseToClient(int fd)
 {
 	std::string	line;
-	
+
+	if (DEBUG)
+		std::cout << GRASSGREEN << "RESPONSE ===============\n" << RESET;
+
 	// if (_returnRes.size() > 0)
 	// {
 	// 	std::cerr << "-------->_returnRes to push = " << _returnRes << "\n";
@@ -1041,21 +1040,21 @@ ResponseOutcome	Response::sendResponseToClient(int fd)
 	// 	return RESPONSE_SUCCESS;
 	// }
 
-	std::cerr << "-------->_statusLine to push = " << _statusLine << "\n";
+	// std::cerr << "-------->_statusLine to push = " << _statusLine << "\n";
 	if (pushStrToClient(fd, _statusLine) == -1)
 		return RESPONSE_FAILURE;
 
 	for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); it++)
 	{
 		line = it->first + ": " + it->second + "\r\n";
-		std::cerr << "-------->header to push = " << line << "\n";
+		// std::cerr << "-------->header to push = " << line;
 		if (pushStrToClient(fd, line) == -1)
 			return RESPONSE_FAILURE;
 	}
 	for (std::map<std::string, std::string>::iterator it = _cookies.begin(); it != _cookies.end(); it++)
 	{
 		line = it->first + ": " + it->second + "\r\n";
-		std::cerr << "-------->cookie to push = " << line << "\n";
+		// std::cerr << "-------->cookie to push = " << line;
 		if (pushStrToClient(fd, line) == -1)
 			return RESPONSE_FAILURE;
 	}
@@ -1068,27 +1067,34 @@ ResponseOutcome	Response::sendResponseToClient(int fd)
 		// std::cerr << "FOUND CONTENT LENGTH of " << strtol(it->second.c_str(), NULL, 10) << "\n";
 	if (it != _headers.end() && strtol(it->second.c_str(), NULL, 10) > 0)
 	{
-		std::cerr << "OK THERE IS A BODY\n";
+		// std::cerr << "OK THERE IS A BODY\n";
 	 	line = _body.substr(0, strtol(it->second.c_str(), NULL, 10)); //convertir
 		if (pushStrToClient(fd, line) == -1)
 			return RESPONSE_FAILURE;
+		if (DEBUG)
+			std::cout << GRASSGREEN << "===============" << RESET << std::endl;
 		return RESPONSE_SUCCESS_KEEPALIVE;
 	}
-	else 
+	else
+	{
+		if (DEBUG)
+			std::cout << GRASSGREEN << "===============" << RESET << std::endl;
 		return (RESPONSE_SUCCESS_KEEPALIVE);
+	}
 	return RESPONSE_PENDING;
 }
 //
 int	Response::pushStrToClient(int fd, std::string &str)
 {
 	size_t	bytesSent = 0, tmpSent = 0;
-	std::cerr << "str = <" << str << ">\n";
-	std::cerr << "str size = " << str.size() << "\n";
+	// std::cerr << "str = <" << str << ">\n";
+	// std::cerr << "str size = " << str.size() << "\n";
+	std::cout << GRASSGREEN << str << RESET;
 	while (bytesSent < str.size())
 	{
-		std::cerr << "pushstrclient 1\n";
+		// std::cerr << "pushstrclient 1\n";
 		tmpSent = send(fd, str.c_str() + bytesSent, str.size() - bytesSent, 0);
-		std::cerr << "pushstrclient 2\n";
+		// std::cerr << "pushstrclient 2\n";
 		if (tmpSent <= 0)
 			return (-1);
 		bytesSent += tmpSent;

@@ -45,6 +45,7 @@
 # define RED	"\e[31m"
 # define ORANGE	"\e[38;2;234;117;26m"
 # define LIGHTGREEN	"\e[38;2;105;231;71m"
+# define GRASSGREEN "\e[38;2;71;223;97m"
 # define LIGHTBLUE	"\e[36m"
 # define PURPLE	"\e[38;2;198;26;234m"
 # define GREY	"\e[38;2;100;89;103m"

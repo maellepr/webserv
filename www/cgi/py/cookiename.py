@@ -9,7 +9,7 @@ form = cgi.FieldStorage()
 
 if form.getvalue('name'):
     name = form.getvalue('name')
-    print(f"Set-Cookie: name={name}\r\n")
+    print(f"Set-Cookie: name={name}; path=/\r\n")
     print(f"""<!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -17,7 +17,7 @@ if form.getvalue('name'):
 	</head>
 	<body>
 		<p>You will be remembered, {name}</p>
-		<a href="../home.html"><button>Back to homepage</button></a>
+		<a href="/"><button>Back to homepage</button></a>
 	</body>
 </html>""")
 else:
@@ -28,6 +28,6 @@ else:
 	</head>
 	<body>
 		<p>Did not quite get your name...</p>
-		<a href="../home.html"><button>Back to homepage</button></a>
+		<a href="/"><button>Back to homepage</button></a>
 	</body>
 </html>""")
