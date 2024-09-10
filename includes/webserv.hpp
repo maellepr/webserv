@@ -29,6 +29,8 @@
 
 # define DEBUG 1
 
+# define COM 0
+
 # define TIMEOUT 10.0
 
 # define MAX_URI_SIZE 2048

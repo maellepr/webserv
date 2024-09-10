@@ -233,7 +233,8 @@ void	Server::_checkDuplicateDefaultServer()
 				nbDefaultVS++;
 			}
 		}
-		std::cerr << "nbDefaultVS = " << nbDefaultVS << "\n";
+		if (COM)
+			std::cerr << "nbDefaultVS = " << nbDefaultVS << "\n";
 		if (nbDefaultVS > 1)
 			throw ErrorConfigFile("Error in the conf file : several servers set up as server by default (in the same bind)");
 		if (nbDefaultVS == 0)
@@ -337,7 +338,8 @@ int	Server::_acceptNewConnection(int server_socket)
         _fd_max = client_fd; // Update the highest socket
     }
     fcntl(client_fd, F_SETFL, O_NONBLOCK);
-    printf("[Server] Accepted new connection on client socket %d.\n", client_fd);
+	if (COM)
+    	std::cerr << "[Server] Accepted new connection on client socket" <<  client_fd << "\n";
 	return (client_fd);
 }
 

@@ -6,13 +6,6 @@
 - verifier les erreurs potentiels cgi (wrong path -> access?)
 - siege
 
-Correction / pooint a revoir : 
-
-.Configuration.
-Setup routes in a server to different directories.
-Setup a default file to search for if you ask for a directory.
-
-
 
 ######### TO DO #########
 
