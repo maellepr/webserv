@@ -1,5 +1,5 @@
-- pages basiques pour autre server
-- faire session cookie + 2eme 
+
+- faire session cookie + 2eme 													=>OK
 - rechecker headers close et keep-alive
 - checker si lorsque error -> socket se ferme (sauf 404)
 - checker cntl C dans cgi et partout
