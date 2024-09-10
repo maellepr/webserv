@@ -30,6 +30,7 @@
 # define DEBUG 1
 
 # define COM 0
+# define REQ_COM 0
 
 # define TIMEOUT 10.0
 
