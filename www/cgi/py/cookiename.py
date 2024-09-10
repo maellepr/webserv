@@ -13,21 +13,27 @@ if form.getvalue('name'):
     print(f"""<!DOCTYPE html>
 <html lang="en">
 	<head>
+		<link href="../../style.css" rel="stylesheet">
 		<title>Saved</title>
 	</head>
 	<body>
-		<p>You will be remembered, {name}</p>
-		<a href="/"><button>Back to homepage</button></a>
+		<div class="title2"><br><br>You will be remembered, {name}<br><br></div>
+		<div class="indexremember">
+            <a class="indexButton" href="/">go back to home page</a>
+        </div>
 	</body>
 </html>""")
 else:
     print("""<!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Say what</title>
+		<link href="../../style.css" rel="stylesheet">
+		<title>Saved</title>
 	</head>
 	<body>
-		<p>Did not quite get your name...</p>
-		<a href="/"><button>Back to homepage</button></a>
+		<div class="title2"><br><br>Did not quite get your name...<br><br></div>
+		<div class="indexremember">
+            <a class="indexButton" href="/">go back to home page</a>
+        </div>
 	</body>
 </html>""")
