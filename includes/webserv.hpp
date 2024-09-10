@@ -27,11 +27,9 @@
 # include <cstring>
 # include <csignal>
 
-# define DEBUG 1
-
+# define DEBUG 0
 # define COM 0
 # define REQ_COM 0
-
 # define LOOP 0
 # define SERVER 0
 # define RESPONSE 0

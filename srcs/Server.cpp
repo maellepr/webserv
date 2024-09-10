@@ -392,7 +392,7 @@ void	Server::loop()
 		// std::cerr << "noSignal = " << noSignal << std::endl;
     	if (LOOP)
 			std::cerr << "\nWHILE 1 - before sleep\n";
-        sleep(1); // A ENLEVER
+        // sleep(1); // A ENLEVER
         _read_fds = _all_sockets;
         _write_fds = _all_sockets;
         timer.tv_sec = 0; // 2 second timeout for select()
@@ -487,7 +487,7 @@ void	Server::loop()
 					{
 						if (LOOP)
 							std::cerr << "*** close socket : " << client.getFd() << std::endl;
-						sleep(1);
+						// sleep(1);
 						_maxConnections[client.getServerFd()] -= 1;
 						// shutdown(client.getFd(), SHUT_RDWR);
 						close(client.getFd());
@@ -516,7 +516,7 @@ void	Server::loop()
 				{
 					if (LOOP)
 						std::cerr << "*** close socket : " << client.getFd() << std::endl;
-					sleep(1);
+					// sleep(1);
 					_maxConnections[client.getServerFd()] -= 1;
 					// shutdown(client.getFd(), SHUT_RDWR);
 					close(client.getFd());

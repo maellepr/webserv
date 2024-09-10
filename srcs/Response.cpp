@@ -685,7 +685,7 @@ std::vector<std::string>	Response::doEnvCgi(ParseRequestResult &request)
 	std::string absPath = getAbsPath(_finalURI);
 	// std::cerr << "absPath == " << absPath << "\n";
 	std::string pathInfo = "/mnt/nfs/homes/mapoirie/Documents/webserv_git/www" + request.uri;
-	std::cerr << "pathInfo : " << pathInfo << "\n";
+	// std::cerr << "pathInfo : " << pathInfo << "\n";
 	exportToEnv(env, "PATH_INFO", pathInfo);
 
 	exportToEnv(env, "QUERY_STRING", request.query);
@@ -1113,9 +1113,11 @@ void	Response::buildResponseJs(ParseRequestResult &request)
 			js += ", ";
 	}
 	js += "]";
-	std::cerr << "js ===> " << js << "\n";
+	if (RESPONSE)
+		std::cerr << "js ===> " << js << "\n";
 	_body = js;
-	std::cerr << "body ===> " << _body << " size = " << _body.size() << "\n";
+	if (RESPONSE)
+		std::cerr << "body ===> " << _body << " size = " << _body.size() << "\n";
 	_headers["content-type"] = "application/json";
 	_headers["content-length"] = convertToStr(_body.size());
 
@@ -1271,7 +1273,7 @@ int	Response::pushStrToClient(int fd, std::string &str)
 	size_t	bytesSent = 0, tmpSent = 0;
 	// std::cerr << "str = <" << str << ">\n";
 	// std::cerr << "str size = " << str.size() << "\n";
-	if (RESPONSE)
+	if (DEBUG)
 		std::cerr << GRASSGREEN << str << RESET;
 	while (bytesSent < str.size())
 	{
