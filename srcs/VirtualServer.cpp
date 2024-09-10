@@ -451,8 +451,8 @@ void	VirtualServer::connectVirtualServers()
 		if (socket_fd == -1)
 			callException(-1);
 		fcntl(socket_fd, F_SETFL, O_NONBLOCK);
-		printf("[Server] Created server socket fd: %d\n", socket_fd);
-
+		std::cerr << "[Server] Created server socket fd: " << socket_fd << "\n";
+		
 		// Bind socket to address and port
 		int opt = 1;
 		setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, 4);
@@ -461,7 +461,7 @@ void	VirtualServer::connectVirtualServers()
 		{
 			callException(-1);
 		}
-		printf("[Server] Bound socket address ip = %s port %d\n", _ip.c_str(), _port);
+		std::cerr << "[Server] Bound socket address ip = " << _ip.c_str() << " port " << _port << "\n";
 		status = listen(socket_fd, 10); // A MODIF
 		if (status != 0)
 			callException(-1);

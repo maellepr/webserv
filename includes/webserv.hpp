@@ -32,6 +32,13 @@
 # define COM 0
 # define REQ_COM 0
 
+# define LOOP 0
+# define SERVER 0
+# define RESPONSE 0
+# define UTILS 0
+# define VSERVER 0
+# define CLIENT 0
+
 # define TIMEOUT 10.0
 
 # define MAX_URI_SIZE 2048

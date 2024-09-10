@@ -106,8 +106,11 @@ bool	isPathADirectory(const std::string &path)
 	
 	if (stat(path.c_str(), &buf) != 0)
 	{
-		std::cerr << "STAT FAILED : \n";
-		std::cerr << strerror(errno) << std::endl;
+		if (UTILS)
+		{	
+			std::cerr << "STAT FAILED : \n";
+			std::cerr << strerror(errno) << std::endl;
+		}
 		return (false);
 	}
 	return (S_ISDIR(buf.st_mode));
@@ -131,16 +134,16 @@ bool	isPathADRegularFile(const std::string &path)
 
 bool	readContent(std::string &uri, std::string &content)
 {
-	std::cerr << "readContent 0\n";
+	// std::cerr << "readContent 0\n";
 	if (isPathADirectory(uri))
 	{
-		std::cerr << "readContent 1\n";
+		// std::cerr << "readContent 1\n";
 		return false;
 	}
 	std::ifstream	file(uri.c_str());
 	if (!file.good())
 	{
-		std::cerr << "readContent 2\n";
+		// std::cerr << "readContent 2\n";
 		return false;
 	}
 	std::stringstream	buf;

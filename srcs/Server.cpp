@@ -16,14 +16,16 @@ Server::~Server()
 		// {
 		// 	close((*vsIt)->getSocketFd());
 		// }
-		std::cerr << "close socket server :" << it->first << "\n";
+		if (SERVER)
+			std::cerr << "close socket server :" << it->first << "\n";
 		close(it->first);
 	}
 
 	// close client sockets
 	for(std::map<int, Client>::iterator it = _clients.begin(); it != _clients.end(); it++)
 	{
-		std::cerr << "close socket client :" << it->second.getFd() << "\n";
+		if (SERVER)
+			std::cerr << "close socket client :" << it->second.getFd() << "\n";
 		// std::cerr << "registered as socket :" << it->first << "\n";
 		close(it->second.getFd());
 	}
@@ -233,7 +235,7 @@ void	Server::_checkDuplicateDefaultServer()
 				nbDefaultVS++;
 			}
 		}
-		if (COM)
+		if (SERVER)
 			std::cerr << "nbDefaultVS = " << nbDefaultVS << "\n";
 		if (nbDefaultVS > 1)
 			throw ErrorConfigFile("Error in the conf file : several servers set up as server by default (in the same bind)");
@@ -338,7 +340,7 @@ int	Server::_acceptNewConnection(int server_socket)
         _fd_max = client_fd; // Update the highest socket
     }
     fcntl(client_fd, F_SETFL, O_NONBLOCK);
-	if (COM)
+	if (SERVER)
     	std::cerr << "[Server] Accepted new connection on client socket" <<  client_fd << "\n";
 	return (client_fd);
 }
@@ -382,19 +384,21 @@ void	Server::loop()
 	// 	if (_fd_max < _virtualServers[i].getFd())
 	// 		_fd_max = _virtualServers[i].getFd();
 	// }
-	dprintf(2, "fd max du debut = %d\n", _fd_max);
+	if (LOOP)
+		std::cerr << "fd max du debut = " << _fd_max << "\n";
 	
 	while (noSignal)
 	{
 		// std::cerr << "noSignal = " << noSignal << std::endl;
-    	dprintf(2, "\nWHILE 1 - before sleep\n");
+    	if (LOOP)
+			std::cerr << "\nWHILE 1 - before sleep\n";
         sleep(1); // A ENLEVER
         _read_fds = _all_sockets;
         _write_fds = _all_sockets;
         timer.tv_sec = 0; // 2 second timeout for select()
         timer.tv_usec = 0;
-        
-        dprintf(2, "\nWHILE 2 - avant select\n");
+        if (LOOP)
+			std::cerr << "\nWHILE 2 - avant select\n";
         status = select(_fd_max + 1, &_read_fds, &_write_fds, NULL, &timer);
         if (status == -1)
 		{
@@ -405,11 +409,15 @@ void	Server::loop()
 		}
         else if (status == 0)
 		{
-            printf("[Server] Waiting...\n");
+            if (LOOP)
+				std::cerr << "[Server] Waiting...\n";
             continue;
         }
-        dprintf(2, "\nWHILE 3 - apres select\n");
-        dprintf(2, "_fd_max = %d\n", _fd_max);
+		if (LOOP)
+		{
+			std::cerr << "\nWHILE 3 - apres select\n";
+			std::cerr << "_fd_max = " << _fd_max << "\n";
+		}
         for (int i = 0; i <= _fd_max && status > 0; i++) // 1 seule boucle ou 2 ?
         {
 			if (FD_ISSET(i, &_all_sockets) != 1)
@@ -420,7 +428,8 @@ void	Server::loop()
 				|| (_clients.find(i) != _clients.end()
 					&& _clients[i].getClientStatus() == REQUEST_ONGOING))
 			{
-				dprintf(2, "\nWHILE 4 - debut boucle read set\n");
+				if (LOOP)
+					std::cerr << "\nWHILE 4 - debut boucle read set\n";
 				status--;
 				// size_t j = 0;
 				// for (;j < _virtualServers.size(); j++)
@@ -435,14 +444,17 @@ void	Server::loop()
 				std::map<int, std::vector<VirtualServer*> >::iterator it = _socketBoundVs.find(i);
 				if (it != _socketBoundVs.end())
 				{
-					std::cout << DARKYELLOW << "\nWHILE 5 - read socket is a server" << RESET << std::endl;
+					if (LOOP)
+						std::cerr << DARKYELLOW << "\nWHILE 5 - read socket is a server" << RESET << std::endl;
 					// dprintf(2, "WHILE 5 - read socket is a server\n");
 					// check if max nb of connections is reached
-					std::cout << "_maxConnections[" << i << "] + 1 = " << _maxConnections[i] + 1 << RESET << std::endl;
+					if (LOOP)
+						std::cerr << "_maxConnections[" << i << "] + 1 = " << _maxConnections[i] + 1 << RESET << std::endl;
 					if (_maxConnections[i] + 1 > MAX_CLIENTS_PER_SERVER)
 					{
 						close(accept(i, NULL, NULL));
-						std::cout << RED << "Server <" << it->first << "> : max number of connexions reached.\nClosed connection request for socket <" << i << ">" << RESET << std::endl;
+						if (LOOP)
+							std::cout << RED << "Server <" << it->first << "> : max number of connexions reached.\nClosed connection request for socket <" << i << ">" << RESET << std::endl;
 						continue;
 					}
 					// create new connection
@@ -455,23 +467,26 @@ void	Server::loop()
 					client.setFdInfos(_fd_max, _read_fds, _write_fds);
 					client.setSocketBoundVs(_socketBoundVs);
 					client.setClient(_clients);
-
-					dprintf(2, "WHILE 5 - 3\n");
+					if (LOOP)
+						std::cerr << "WHILE 5 - 3\n";
 					_clients[client.getFd()] = client;
 					
 					_maxConnections[i] += 1;
-					dprintf(2, "WHILE 5 - 4\n");
+					if (LOOP)
+						std::cerr << "WHILE 5 - 4\n";
 					// res = 0;
 				}
 				else
 				{
-					dprintf(2, "\nWHILE 6 - read socket is a client\n");
+					if (LOOP)
+						std::cerr << "\nWHILE 6 - read socket is a client\n";
 					Client&	client = _clients[i];
 					// std::cerr << "client fd ref read = " << client.getFd() << std::endl;
 					
 					if (client.readRequest(FD_ISSET(i, &_read_fds)) == -1)
 					{
-						std::cout << "*** close socket : " << client.getFd() << std::endl;
+						if (LOOP)
+							std::cerr << "*** close socket : " << client.getFd() << std::endl;
 						sleep(1);
 						_maxConnections[client.getServerFd()] -= 1;
 						// shutdown(client.getFd(), SHUT_RDWR);
@@ -485,19 +500,22 @@ void	Server::loop()
 							// _fd_max = _fd_max - 1; //TEMPORAIRE A MODIF
 					}
 				}
-				dprintf(2, "END of READ\n");
+				if (LOOP)
+					std::cerr << "END of READ\n";
       		}
 			else if (FD_ISSET(i, &_write_fds) == 1)
 			// if (FD_ISSET(i, &_write_fds) == 1)
 			{
-				dprintf(2, "\nWHILE 7 - a client socket is ready to write\n");
+				if (LOOP)
+					std::cerr << "\nWHILE 7 - a client socket is ready to write\n";
 				status--;
                 Client&	client = _clients[i];
 				// std::cerr << "client fd ref write = " << client.getFd() << std::endl;
 				ResponseOutcome status = client.writeResponse();
 				if (status == RESPONSE_FAILURE || status == RESPONSE_SUCCESS_CLOSE) // A VERIF
 				{
-					std::cout << "*** close socket : " << client.getFd() << std::endl;
+					if (LOOP)
+						std::cerr << "*** close socket : " << client.getFd() << std::endl;
 					sleep(1);
 					_maxConnections[client.getServerFd()] -= 1;
 					// shutdown(client.getFd(), SHUT_RDWR);
@@ -514,7 +532,8 @@ void	Server::loop()
 					// if (lol != _clients.end())
 					// 	std::cout << "TROUVE ENCORE" << std::endl;
 				}
-				dprintf(2, "END of WRITE\n");
+				if (LOOP)
+					std::cerr << "END of WRITE\n";
         	}
     	}
 	}

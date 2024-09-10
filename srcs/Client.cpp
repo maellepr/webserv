@@ -103,9 +103,15 @@ int Client::readRequest(int isInReadSet)
 		if (bytesRead <= 0)
 		{
 			if (bytesRead == 0)
-				std::cout << "[" << DARKYELLOW << _clientfd << "]" << "Client socket closed connection.\n" << RESET << std::endl;
+			{
+				if (CLIENT)
+					std::cerr << "[" << DARKYELLOW << _clientfd << "]" << "Client socket closed connection.\n" << RESET << std::endl;
+			}
 			else
-				std::cerr << "[Server] Recv error: " << strerror(errno) << std::endl;
+			{
+				if (CLIENT)
+					std::cerr << "[Server] Recv error: " << strerror(errno) << std::endl;
+			}
 			// close(_clientfd);
 			return (-1);
 		}
@@ -161,7 +167,8 @@ int Client::readRequest(int isInReadSet)
 		_clientStatus = TO_CLOSE;
 	}
 
-	std::cout << LIGHTGREEN << "REQUEST OUTCOME = " << parsedRequest.outcome << RESET << std::endl;
+	if (CLIENT)
+		std::cerr << LIGHTGREEN << "REQUEST OUTCOME = " << parsedRequest.outcome << RESET << std::endl;
 	
 	if (_clientStatus != TO_CLOSE)
 		_clientStatus = NONE;
