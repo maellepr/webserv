@@ -88,7 +88,12 @@ season=dsgd&
 
 
 
-DELETE www/files_to_delete/hello1.txt HTTP/1.1
+DELETE /www/files_to_delete/text4.txt HTTP/1.1
+Host: localhost:8080
+Connection: close
+
+
+UNKNOWN www/files_to_delete/text5.txt HTTP/1.1
 Host: localhost:8080
 Connection: close
 

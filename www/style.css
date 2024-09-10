@@ -109,6 +109,13 @@ a:hover, a:active {
 	
 }
 
+.autoindex {
+
+	text-align:center;
+	line-height: 3.5rem;
+	margin-top: 40px;
+}
+
 /* .img1 {
 	position:block;
 	margin-top:0px;

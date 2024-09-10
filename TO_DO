@@ -1,3 +1,19 @@
+- pages basiques pour autre server
+- faire session cookie + 2eme 
+- rechecker headers close et keep-alive
+- checker si lorsque error -> socket se ferme (sauf 404)
+- checker cntl C dans cgi et partout
+- verifier les erreurs potentiels cgi (wrong path -> access?)
+- siege
+
+Correction / pooint a revoir : 
+
+.Configuration.
+Setup routes in a server to different directories.
+Setup a default file to search for if you ask for a directory.
+
+
+
 ######### TO DO #########
 
 - buildResponse():
@@ -18,7 +34,7 @@
 	Limiter la taille des media?
 
 - buildDelete():
-    faire buildDelete() (suppr fichier)											=>Maelle
+    faire buildDelete() (suppr fichier)											=>OK
 
 - Server.loop():
     gerer correctement les fermetures de sockets (headers close et keep-alive)	=>OK(?)

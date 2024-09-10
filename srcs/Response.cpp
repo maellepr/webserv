@@ -54,7 +54,8 @@ void	Response::generateResponse(ParseRequestResult &request)
 	}
 	else
 	{
-		if (request.location->getConfigLocation().find("cgi") != request.location->getConfigLocation().end()) // CGI
+		if (request.location->getConfigLocation().find("cgi") != request.location->getConfigLocation().end()
+		&& (request.uri.find(".py") != std::string::npos || request.uri.find(".php") != std::string::npos)) // CGI
 		{
 			std::cerr << PINK << ">> CGI <<\n" << RESET;
 			buildCgi(request);
@@ -602,7 +603,10 @@ void	Response::initCgi(ParseRequestResult &request)
 	_finalUriChar = const_cast<char*>(_finalURI.c_str());
 	// dprintf(2, "_finalUriChar = %s\n", _finalUriChar);
 	if (access(_finalUriChar, F_OK) != 0)
+	{
+		std::cerr << "access failed\n";
 		_statusCode = STATUS_NOT_FOUND;
+	}
 }
 
 std::vector<std::string>	Response::doEnvCgi(ParseRequestResult &request)
@@ -731,6 +735,7 @@ void	Response::buildErrorPage(ParseRequestResult &request, StatusCode statusCode
 				<meta charset=\"UTF-8\">\
 				<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\
 				<link href=\"style.css\" rel=\"stylesheet\">\
+				<link href=\"../../style.css\" rel=\"stylesheet\">\
 				<title>Error</title>\
 				</head>\
 				<body>\
@@ -1072,10 +1077,28 @@ void	Response::buildAutoindexPage(ParseRequestResult &request)
 	filesList = doDirListing(dir);
 
 	_headers["content-type"] = "text/html";
-	_body += "<!DOCTYPE html>\n";
-	_body += "<html>\n";
-	_body += "<body>\n";
-	_body += "<h1>Index of " + _finalURI + "</h1>";
+	// _body += "<!DOCTYPE html>\n";
+	// _body += "<html>\n";
+	// _body += "<body>\n";
+	// _body += "<h1>Index of " + _finalURI + "</h1>";
+	// std::cerr << "finalURI autoindex =============> " << _finalURI << "\n";
+	_body = "<!DOCTYPE html>\
+			<html lang=\"en\">\
+    		<head>\
+			<meta charset=\"UTF-8\">\
+			<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\
+        	<link href=\"style_autoindex.css\" rel=\"stylesheet\">\
+			<link href=\"../style_autoindex.css\" rel=\"stylesheet\">\
+        	<link href=\"../../style_autoindex.css\" rel=\"stylesheet\">\
+			<title>Auto index</title>\
+    		</head>\
+			<body>\
+        	<div class=\"title1\"> Auto index </div>\
+        	<div class=\"autoindex\">\
+			" + _finalURI + "\
+        	</div>\
+			</body>\
+			</html>";
 
 	for (std::vector<std::string>::iterator it = filesList.begin(); it != filesList.end(); it++)
 	{
