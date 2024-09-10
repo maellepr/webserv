@@ -240,12 +240,12 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 							while (_ucharLine.empty() == false)
 							{
 								//std::cerr << LIGHTBLUE << "CHUNK 2.1" << RESET << std::endl;
-								if (_ucharLine.back() == '\r')
-									std::cerr << PURPLE << "_ucharLine.back() = " << "CR" << RESET << std::endl;
-								else if (_ucharLine.back() == '\n')
-									std::cerr << PURPLE << "_ucharLine.back() = " << "LF" << RESET << std::endl;
-								else
-									std::cerr << PURPLE << "_ucharLine.back() = " << _ucharLine.back() << RESET << std::endl;
+								// if (_ucharLine.back() == '\r')
+								// 	std::cerr << PURPLE << "_ucharLine.back() = " << "CR" << RESET << std::endl;
+								// else if (_ucharLine.back() == '\n')
+								// 	std::cerr << PURPLE << "_ucharLine.back() = " << "LF" << RESET << std::endl;
+								// else
+								// 	std::cerr << PURPLE << "_ucharLine.back() = " << _ucharLine.back() << RESET << std::endl;
 								if (HEXA_BASE.find(toupper(_ucharLine.back())) == HEXA_BASE.end())
 									return (parsingFailed(STATUS_BAD_REQUEST));
 								//std::cerr << LIGHTBLUE << "CHUNK 2.2" << RESET << std::endl;
@@ -257,10 +257,10 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 							if (_chunkedLen > _vs->getMaxBodySize() || _chunkedLen + _contentLength > _vs->getMaxBodySize())
 								return (parsingFailed(STATUS_PAYLOAD_TOO_LARGE));
 							//std::cerr << PURPLE << "_chunkedLen = " << _chunkedLen << RESET << std::endl;
-							//std::cerr << LIGHTBLUE << "CHUNK 4" << RESET << std::endl;
+							// std::cerr << LIGHTBLUE << "CHUNK 4" << RESET << std::endl;
 							if (_chunkedLen == 0)
 							{
-								//std::cerr << LIGHTBLUE << "CHUNK 5" << RESET << std::endl;
+								std::cerr << LIGHTBLUE << "CHUNK 5" << RESET << std::endl;
 								// _isChunked = true;
 								_ucharLine.clear();
 								// if (_ucharBody.size() != _contentLength)
@@ -271,9 +271,11 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 								// else
 								// 	std::cerr << PURPLE << "*vit = " << *vit << RESET << std::endl;
 								vit++;
+								if (vit == v.end() || (vit + 1) == v.end() || (vit + 2) == v.end())
+									return (parsingFailed(STATUS_BAD_REQUEST));
 								if (*vit != '\r' || *(++vit) != '\n' || ++vit != v.end())
 									return (parsingFailed(STATUS_BAD_REQUEST));
-								//std::cerr << LIGHTBLUE << "CHUNK 5.1" << RESET << std::endl;
+								std::cerr << LIGHTBLUE << "CHUNK 5.1" << RESET << std::endl;
 								_ucharBody.push_back('\r');
 								_ucharBody.push_back('\n');
 								_contentLength += 2; // ??
@@ -282,7 +284,7 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 								return (parsingSucceeded());
 							}
 							_chunkStep = IN_CHUNK;
-							//std::cerr << LIGHTBLUE << "CHUNK 6" << RESET << std::endl;
+							std::cerr << LIGHTBLUE << "CHUNK 6" << RESET << std::endl;
 						}
 					}
 					else

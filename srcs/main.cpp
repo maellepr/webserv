@@ -17,12 +17,14 @@ int main(int argc, char **argv)
 	Server server;
 	try 
 	{
-		std::signal(SIGINT, handleSignal);
+		std::signal(SIGINT, handleSigint);
+		signal(SIGPIPE, &handleSigpipe);
 		server.init(argv[1]);
 		server.loop();
 	}
 	catch (std::exception &e)
 	{
+		std::cerr << "FINI\n";
 		std::cout << e.what() << std::endl;
 		return 1;
 	}

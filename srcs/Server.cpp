@@ -333,7 +333,11 @@ int	Server::_acceptNewConnection(int server_socket)
 
     client_fd = accept(server_socket, NULL, NULL);
     if (client_fd == -1)
-		callException(-3);
+	{
+		noSignal = false;
+		return (-1);
+		// callException(-3);
+	}
     FD_SET(client_fd, &_all_sockets); // Add the new client socket to the set
 	_socketMax.push_back(client_fd);
     if (client_fd > _fd_max) {
@@ -387,9 +391,12 @@ void	Server::loop()
 	if (LOOP)
 		std::cerr << "fd max du debut = " << _fd_max << "\n";
 	
+	// static int count;
 	while (noSignal)
 	{
+		// count++;
 		// std::cerr << "noSignal = " << noSignal << std::endl;
+		// std::cerr << "count = " << count << std::endl;
     	if (LOOP)
 			std::cerr << "\nWHILE 1 - before sleep\n";
         // sleep(1); // A ENLEVER
@@ -399,12 +406,16 @@ void	Server::loop()
         timer.tv_usec = 0;
         if (LOOP)
 			std::cerr << "\nWHILE 2 - avant select\n";
-        status = select(_fd_max + 1, &_read_fds, &_write_fds, NULL, &timer);
+		// if (count == 10)
+		// 	status = -1;
+		// else
+	    status = select(_fd_max + 1, &_read_fds, &_write_fds, NULL, &timer);
         if (status == -1)
 		{
             // callException(-2); // A modifier car le server ne doit pas s'arreter ?
 			// A REMPLACER PAR : (?)
-			noSignal = true;
+			noSignal = false;
+			std::cerr << "Fatal error : select()\n";
 			continue;
 		}
         else if (status == 0)
@@ -452,15 +463,24 @@ void	Server::loop()
 						std::cerr << "_maxConnections[" << i << "] + 1 = " << _maxConnections[i] + 1 << RESET << std::endl;
 					if (_maxConnections[i] + 1 > MAX_CLIENTS_PER_SERVER)
 					{
-						close(accept(i, NULL, NULL));
-						if (LOOP)
-							std::cout << RED << "Server <" << it->first << "> : max number of connexions reached.\nClosed connection request for socket <" << i << ">" << RESET << std::endl;
+						std::cout << RED << "Server <" << it->first << "> : max number of connexions reached.\nClosed connection request for socket <" << i << ">" << RESET << std::endl;
+						if (close(accept(i, NULL, NULL)) == -1)
+						{
+							std::cerr << "close() fatal error : " << strerror(errno) << std::endl;
+							noSignal = false;
+						}
 						continue;
 					}
 					// create new connection
 					Client client;
 
 					client.setFd(_acceptNewConnection(i));
+					if (client.getFd() == -1)
+					{
+						std::cerr << "accept() fatal error : " << strerror(errno) << std::endl;
+						noSignal = false;
+						continue;
+					}
 					client.setServerFd(i);
 					client.setConnectedServers(i, _socketBoundVs);
 
@@ -482,7 +502,6 @@ void	Server::loop()
 						std::cerr << "\nWHILE 6 - read socket is a client\n";
 					Client&	client = _clients[i];
 					// std::cerr << "client fd ref read = " << client.getFd() << std::endl;
-					
 					if (client.readRequest(FD_ISSET(i, &_read_fds)) == -1)
 					{
 						if (LOOP)

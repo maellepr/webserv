@@ -153,10 +153,16 @@ bool	readContent(std::string &uri, std::string &content)
 	return true;
 }
 
-void	handleSignal(int signum)
+void	handleSigint(int signum)
 {
 	(void)signum;
+	// std::cerr << RED << "SIGINT received\n" << RESET;
 	noSignal = false;
+}
+
+void	handleSigpipe(int signum)
+{
+	(void)signum;
 }
 
 std::string	getAbsPath(std::string &path)
