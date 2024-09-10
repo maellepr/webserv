@@ -176,7 +176,8 @@ void	Response::buildReturn(ParseRequestResult &request)
 		_statusCode = STATUS_PERMANENT_REDIRECT;
 
 	// _headers["HTTP/1.1 301 Moved Permanently\r\n"] = "";
-	_headers["location"] = "/" + redirectUri + "\r\n";
+	// _headers["location"] = "/" + redirectUri + "\r\n";
+	_headers["location"] = "/" + redirectUri;
 	// _headers["content-length"] = "0\r\n";
 }
 
@@ -301,7 +302,7 @@ void	Response::buildCgi(ParseRequestResult &request)
 	if (_statusCode != STATUS_OK)
 		return(buildErrorPage(request, _statusCode));
 	// std::cerr << "max fd = " << _fd_max << "\n";
-	std::cout << "request.body : " << request.body << std::endl;
+	// std::cout << "request.body : " << request.body << std::endl;
 	int writeStatus;
 	// std::string cgiFile	= ".read_cgi.txt";
 	int	cgiFdOut = open(".read_cgi.txt", O_WRONLY | O_CREAT | O_TRUNC);
@@ -360,6 +361,7 @@ void	Response::buildCgi(ParseRequestResult &request)
 
 		char **env = vectorStringToChar(vecEnv);
 		closeAllFd();
+		close(cgiFdIn);
 		execve(_cgi, av, env);
 		// execve failed
 		perror("execve");
@@ -416,7 +418,7 @@ void	Response::buildCgi(ParseRequestResult &request)
 	close(cgiFdOut);
 	close(cgiFdIn);
 	buildPageCgi();	
-	if (_statusCode != STATUS_OK)
+	if (_statusCode != STATUS_OK && _statusCode != STATUS_SEE_OTHER)
 		buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR);
 }
 
@@ -486,6 +488,7 @@ void	Response::closeAllFd(void)
 
 void	Response::buildPageCgi()
 {
+	// std::cerr << "buildPageCgi()\n";
 	std::ifstream	ifs(".read_cgi.txt");
 	if (!ifs.is_open())
 	{
@@ -545,16 +548,38 @@ void	Response::buildPageCgi()
 		}
 	}
 
+	// std::cerr << "buildPageCgi() 1\n";
+
+	if (_headers.find("location") != _headers.end())
+	{
+		// std::cerr << "buildPageCgi() 2\n";
+		std::cerr << "location = " << _headers.find("location")->second << "\n";
+		_statusCode = STATUS_SEE_OTHER;
+		if (_headers.find("content-length") != _headers.end())
+		{
+			// std::cerr << "buildPageCgi() 2.1\n";
+			_headers.erase(_headers.find("content-length"));
+		}
+		// std::cerr << "buildPageCgi() 2.2\n";
+		return ;
+	}
+
+	// std::cerr << "buildPageCgi() 3\n";
+
 	if (_body.size() == 0)
 	{
 		std::cerr << "response body size = 0\n";
 		_statusCode = STATUS_INTERNAL_SERVER_ERROR;
 		return ;
 	}
+
+	// std::cerr << "buildPageCgi() 4\n";
+
 	_body += "\r\n";
 	// std::cerr << "response : {" << PINK << _body << RESET << "}\n";
 	_headers["content-length"] = convertToStr(_body.size());
-	_headers["content-type"] = "text/html";
+	if (_headers.find("content-type") == _headers.end())
+		_headers["content-type"] = "text/html";
 }
 
 void	Response::initCgi(ParseRequestResult &request)
@@ -756,7 +781,7 @@ void	Response::buildGet(ParseRequestResult &request)
 				serverName = request.vs->getIP() + ":" + convertToStr(request.vs->getPort());
 			else
 				serverName += ":" + convertToStr(request.vs->getPort());
-			_headers["location"] = "http://" + serverName + request.uri + "/" + "\r\n"; //A mettre ici ou dans builHeaders ?
+			_headers["location"] = "http://" + serverName + request.uri + "/"; //A mettre ici ou dans builHeaders ?
 			return ;
 		}
 		else
@@ -1095,13 +1120,29 @@ ResponseOutcome	Response::sendResponseToClient(int fd)
 	if (pushStrToClient(fd, _statusLine) == -1)
 		return RESPONSE_FAILURE;
 
+	// std::cerr << "AFTER STATUSLINE\n";
+
 	for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); it++)
 	{
 		line = it->first + ": " + it->second + "\r\n";
 		// std::cerr << "-------->header to push = " << line;
+		// std::cerr << DARKYELLOW << "-------->header to push = ";
+		// for (std::string::iterator lol = line.begin(); lol != line.end(); lol++)
+		// {
+		// 	if (*lol == '\n')
+		// 		std::cerr << "LF";
+		// 	else if (*lol == '\r')
+		// 		std::cerr << "CR";
+		// 	else
+		// 		std::cerr << *lol;
+		// }
+		// std::cerr << RESET;
 		if (pushStrToClient(fd, line) == -1)
 			return RESPONSE_FAILURE;
 	}
+
+	// std::cerr << "AFTER HEADERS\n";
+
 	for (std::map<std::string, std::string>::iterator it = _cookies.begin(); it != _cookies.end(); it++)
 	{
 		line = it->first + ": " + it->second + "\r\n";
@@ -1109,25 +1150,35 @@ ResponseOutcome	Response::sendResponseToClient(int fd)
 		if (pushStrToClient(fd, line) == -1)
 			return RESPONSE_FAILURE;
 	}
+
+	// std::cerr << "AFTER COOKIES\n";
+
 	line = "\r\n";
 	if (pushStrToClient(fd, line) == -1)
 		return RESPONSE_FAILURE;
 
+	// std::cerr << "AFTER CRLF\n";
+
 	std::map<std::string, std::string>::iterator it = _headers.find("content-length");
-	// if (it != _headers.end())
-		// std::cerr << "FOUND CONTENT LENGTH of " << strtol(it->second.c_str(), NULL, 10) << "\n";
 	if (it != _headers.end() && strtol(it->second.c_str(), NULL, 10) > 0)
 	{
 		// std::cerr << "OK THERE IS A BODY\n";
+		// std::cerr << "FOUND CONTENT LENGTH of " << strtol(it->second.c_str(), NULL, 10) << "\n";
 	 	line = _body.substr(0, strtol(it->second.c_str(), NULL, 10)); //convertir
 		if (pushStrToClient(fd, line) == -1)
 			return RESPONSE_FAILURE;
+		// line = "\r\n";
+		// if (pushStrToClient(fd, line) == -1)
+		// 	return RESPONSE_FAILURE;
 		if (DEBUG)
 			std::cout << GRASSGREEN << "===============" << RESET << std::endl;
 		return RESPONSE_SUCCESS_KEEPALIVE;
 	}
 	else
 	{
+		line = "\r\n";
+		if (pushStrToClient(fd, line) == -1)
+			return RESPONSE_FAILURE;
 		if (DEBUG)
 			std::cout << GRASSGREEN << "===============" << RESET << std::endl;
 		return (RESPONSE_SUCCESS_KEEPALIVE);

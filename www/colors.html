@@ -4,14 +4,13 @@
         <title>COLORS</title>
     </head>
 	<body>
-		<form action = "/pickcolor.py" method = POST></form>
+		<form action = "../cgi/py/pickcolor.py" method = POST>
 		<fieldset>
 			<legend>Pick a color :</legend>
 		<div>
 			<input type="radio" id="purple" name="color" value="purple" />
 			<label style="color:rgb(134, 0, 139);" for="purple"> purple </label>
 		</div>
-		
 		<div>
 			<input type="radio" id="blue" name="color" value="blue" />
 			<label style="color:rgb(111, 100, 237);" for="blue"> blue </label>
@@ -25,8 +24,13 @@
 			<label style="color:rgb(67, 214, 106);" for="green"> green </label>
 		</div>
 		<div>
+			<input type="radio" id="black" name="color" value="black" />
+			<label style="color:rgb(7, 6, 6);" for="black"> black </label>
+		</div>
+		<div>
 			<input type="submit" value="Confirm" />
 		</div>
 		</fieldset>
+		</form>
 	</body>
 </html>
