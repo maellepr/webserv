@@ -35,12 +35,15 @@ void	Response::generateResponse(ParseRequestResult &request)
 {
 	// std::cout << "request.hostName = " << request.hostName << std::endl;
 	// MODIFIER LES ELSE IF
-	std::cerr << "generate Response 1\n";
+	if (RESPONSE)
+		std::cerr << "generate Response 1\n";
 	if (request.outcome == REQUEST_FAILURE) //parsing failure
 	{
-		std::cerr << "generate Response 2\n";
+		if (RESPONSE)
+			std::cerr << "generate Response 2\n";
 		buildErrorPage(request, request.statusCode);
-		std::cerr << "generate Response 3\n";
+		if (RESPONSE)
+			std::cerr << "generate Response 3\n";
 	}
 	else if (methodIsAuthorize(request) == false) // location method not allowed
 	{
@@ -48,42 +51,53 @@ void	Response::generateResponse(ParseRequestResult &request)
 	}
 	else if (request.location->getReturn().size() > 0) // redirection return + gere les infinite loop !
 	{
-		std::cerr << TURQUOISE << ">> Return <<\n" << RESET;
+		if (RESPONSE)
+			std::cerr << TURQUOISE << ">> Return <<\n" << RESET;
 		buildReturn(request);
-		std::cerr << TURQUOISE << ">> end of return <<\n" << RESET;
+		if (RESPONSE)
+			std::cerr << TURQUOISE << ">> end of return <<\n" << RESET;
 	}
 	else
 	{
 		if (request.location->getConfigLocation().find("cgi") != request.location->getConfigLocation().end()
 		&& (request.uri.find(".py") != std::string::npos || request.uri.find(".php") != std::string::npos)) // CGI
 		{
-			std::cerr << PINK << ">> CGI <<\n" << RESET;
+			if (RESPONSE)
+				std::cerr << PINK << ">> CGI <<\n" << RESET;
 			buildCgi(request);
-			std::cerr << PINK << ">> end of CGI <<\n" << RESET;
+			if (RESPONSE)
+				std::cerr << PINK << ">> end of CGI <<\n" << RESET;
 		}
 		else if (request.method == GET)
 		{
-			std::cerr << "generate Response 4\n";
+			if (RESPONSE)
+				std::cerr << "generate Response 4\n";
 			buildGet(request);
-			std::cerr << "generate Response 5\n";
+			if (RESPONSE)
+				std::cerr << "generate Response 5\n";
 		}
 		else if (request.method == POST)
 		{
-			std::cerr << "generate Response 6\n";
+			if (RESPONSE)
+				std::cerr << "generate Response 6\n";
 			buildPost(request);
-			std::cerr << "generate Response 7\n";
+			if (RESPONSE)
+				std::cerr << "generate Response 7\n";
 		}
 		else if (request.method == DELETE)
 		{
-			std::cerr << PURPLE << ">> Delete <<\n" << RESET;
+			if (RESPONSE)
+				std::cerr << PURPLE << ">> Delete <<\n" << RESET;
 			buildDelete(request);
-			std::cerr << PURPLE << ">> end of delete <<\n" << RESET;
+			if (RESPONSE)
+				std::cerr << PURPLE << ">> end of delete <<\n" << RESET;
 		}
 	}
 
 	buildStatusLine();
 	// std::cerr << DARKBLUE << "_body = " << _body << RESET << std::endl;
-	std::cerr << "generate Response 6\n";
+	if (RESPONSE)
+		std::cerr << "generate Response 6\n";
 }
 
 bool	Response::loopDetectedReturn(ParseRequestResult &request)
@@ -97,7 +111,8 @@ bool	Response::loopDetectedReturn(ParseRequestResult &request)
 	{
 		returnUri.insert(0, "/");
 	}
-	std::cerr << "returnUri = " << returnUri << "\n";
+	if (RESPONSE)
+		std::cerr << "returnUri = " << returnUri << "\n";
 	// On cherche a comparer la prochaine location a laquelle correspond returnUri
 	// avec la location actuelle, si c'est la meme -> infinite loop
 	// exact match
@@ -206,7 +221,8 @@ bool	Response::methodIsAuthorize(ParseRequestResult &request)
 		m = "DELETE";
 	else
 		m = "NONE";// peut etre ajouter erreur
-	std::cerr << PINK << BOLD << "request method : " << m << "\n" << RESET;
+	if (RESPONSE)
+		std::cerr << PINK << BOLD << "request method : " << m << "\n" << RESET;
 	if (it != request.location->getConfigLocation().end())
 	{
 		for (std::vector<std::string>::iterator itSec = it->second.begin(); itSec != it->second.end(); itSec++)
@@ -214,25 +230,29 @@ bool	Response::methodIsAuthorize(ParseRequestResult &request)
 			
 			if (request.method == POST && *itSec == "POST")
 			{
-				std::cerr << PINK << BOLD << "POST allowed\n" << RESET;
+				if (RESPONSE)
+					std::cerr << PINK << BOLD << "POST allowed\n" << RESET;
 				return true ;
 			}
 			else if (request.method == GET && *itSec == "GET")
 			{
-				std::cerr << PINK << BOLD << "GET allowed\n" << RESET;
+				if (RESPONSE)
+					std::cerr << PINK << BOLD << "GET allowed\n" << RESET;
 				return true ;
 			}
 			else if (request.method == DELETE && *itSec == "DELETE")
 			{
-				std::cerr << PINK << BOLD << "DELETE allowed\n" << RESET;	
+				if (RESPONSE)
+					std::cerr << PINK << BOLD << "DELETE allowed\n" << RESET;	
 				return true ;
 			}
 		}
-
-		std::cerr << PINK << BOLD << "method " << m << " not allowed\n" << RESET;
+		if (RESPONSE)
+			std::cerr << PINK << BOLD << "method " << m << " not allowed\n" << RESET;
 		return false;
 	}
-	std::cerr << PINK << BOLD << "all methods allowed\n" << RESET;
+	if (RESPONSE)
+		std::cerr << PINK << BOLD << "all methods allowed\n" << RESET;
 	return true;
 }
 
@@ -241,10 +261,12 @@ void	Response::buildDelete(ParseRequestResult &request)
 	
 	if (request.uri.size() > 0 && request.uri[0] == '/')
 		request.uri = request.uri.substr(1, request.uri.size() - 1);
-	std::cerr << "request uri in delete : " << request.uri << "\n";	
+	if (RESPONSE)
+		std::cerr << "request uri in delete : " << request.uri << "\n";	
 	if (remove(request.uri.c_str()) == 0)
 	{
-		std::cerr << "remove succed\n";
+		if (RESPONSE)
+			std::cerr << "remove succed\n";
 		_body = "<!DOCTYPE html>\
 		<html lang=\"en\">\
 		<head>\
@@ -264,7 +286,8 @@ void	Response::buildDelete(ParseRequestResult &request)
 	}
 	else
 	{
-		std::cerr << "remove failed\n";
+		if (RESPONSE)
+			std::cerr << "remove failed\n";
 		_body = "<!DOCTYPE html>\
 		<html lang=\"en\">\
 		<head><meta charset=\"UTF-8\">\
@@ -356,8 +379,8 @@ void	Response::buildCgi(ParseRequestResult &request)
 		// dprintf(2, "size = %lu", extention);
 		// std::string ext = _finalURI.substr(extention, _finalURI.size());
 		// std::cerr << "extention = " << ext << "\n";
-
-		dprintf(2, "_cgi here = %s\n", _cgi);
+		if (RESPONSE)
+			std::cerr << "_cgi here = " << _cgi << "\n";
 		char *av[] = {_cgi, _finalUriChar, NULL};
 
 		char **env = vectorStringToChar(vecEnv);
@@ -384,7 +407,8 @@ void	Response::buildCgi(ParseRequestResult &request)
 		pid_t	pid_result = waitpid(pid, &writeStatus, WNOHANG);
 		if (pid_result > 0)// success, child process change state
 		{
-			std::cerr << "waitpid success, child process chage state\n";
+			if (RESPONSE)
+				std::cerr << "waitpid success, child process chage state\n";
 			break;
 		}
 		if (pid_result == 0)// no state change detected, verify that not too much time passed (infinite loop ?)
@@ -392,16 +416,26 @@ void	Response::buildCgi(ParseRequestResult &request)
 			time_t	end = time(NULL);
 			if (end - start >= 10)// valeur 3?
 			{
-				std::cerr << BOLD << "return error page timeout\n" << "pid killed = " << pid << "\n" << RESET;
+				if (RESPONSE)
+					std::cerr << BOLD << "return error page timeout\n" << "pid killed = " << pid << "\n" << RESET;
 				close(cgiFdOut);
 				close(cgiFdIn);
 				if (kill(pid, SIGKILL) == 0)
-					std::cerr << "Child process killed successfully\n";
+				{
+					if (RESPONSE)
+						std::cerr << "Child process killed successfully\n";
+				}
 				else
-					std::cerr << "Failed to kill child process\n";
+				{
+					if (RESPONSE)
+						std::cerr << "Failed to kill child process\n";
+				}
 				pid_result = waitpid(pid, &writeStatus, WNOHANG);
-				if (kill(pid, SIGKILL) == 0)
-					std::cerr << "Child process killed successfully\n";
+				// if (kill(pid, SIGKILL) == 0)
+				// {
+				// 	if (RESPONSE)
+				// 		std::cerr << "Child process killed successfully\n";
+				// }
 				_statusCode = STATUS_INTERNAL_SERVER_ERROR;
 				remove(".read_cgi.txt");
 				remove(".input_body.txt");
@@ -468,15 +502,18 @@ void	Response::closeAllFd(void)
 		// {
 		// 	close((*vsIt)->getSocketFd());
 		// }
-		std::cerr << PINK << "close socket server :" << it->first << RESET << "\n";
+		if (RESPONSE)
+			std::cerr << PINK << "close socket server :" << it->first << RESET << "\n";
 		close(it->first);
 	}
 
 	// close client sockets
-	std::cerr << "client size = " << _c->size() << "\n";
+	if (RESPONSE)
+		std::cerr << "client size = " << _c->size() << "\n";
 	for(std::map<int, Client>::iterator it = _c->begin(); it != _c->end(); it++)
 	{
-		std::cerr << PINK << "close socket client :" << it->second.getFd() << RESET << "\n";
+		if (RESPONSE)
+			std::cerr << PINK << "close socket client :" << it->second.getFd() << RESET << "\n";
 		close(it->first);
 	}
 	
@@ -554,7 +591,8 @@ void	Response::buildPageCgi()
 	if (_headers.find("location") != _headers.end())
 	{
 		// std::cerr << "buildPageCgi() 2\n";
-		std::cerr << "location = " << _headers.find("location")->second << "\n";
+		if (RESPONSE)
+			std::cerr << "location = " << _headers.find("location")->second << "\n";
 		_statusCode = STATUS_SEE_OTHER;
 		if (_headers.find("content-length") != _headers.end())
 		{
@@ -569,7 +607,8 @@ void	Response::buildPageCgi()
 
 	if (_body.size() == 0)
 	{
-		std::cerr << "response body size = 0\n";
+		if (RESPONSE)
+			std::cerr << "response body size = 0\n";
 		_statusCode = STATUS_INTERNAL_SERVER_ERROR;
 		return ;
 	}
@@ -604,7 +643,8 @@ void	Response::initCgi(ParseRequestResult &request)
 	// dprintf(2, "_finalUriChar = %s\n", _finalUriChar);
 	if (access(_finalUriChar, F_OK) != 0)
 	{
-		std::cerr << "access failed\n";
+		if (RESPONSE)
+			std::cerr << "access failed\n";
 		_statusCode = STATUS_NOT_FOUND;
 	}
 }
@@ -698,36 +738,35 @@ void	Response::buildErrorPage(ParseRequestResult &request, StatusCode statusCode
 	if (statusCode != STATUS_NOT_FOUND)
 		_errorCloseSocket = true;
 	// Attention, le request.statusCode n'est plus forcement valide => utilise celui envoye dans les arguments
-	std::cerr << "build error page\n";
+	if (RESPONSE)
+		std::cerr << "build error page\n";
 	std::string	errorPageUri("");
 	_statusCode = statusCode;
 	if (request.location)
 	{
-		std::cout << "STATUSCODE = " << _statusCode << std::endl;
+		if (RESPONSE)
+			std::cout << "STATUSCODE = " << _statusCode << std::endl;
 		std::map<int, std::string>::iterator loc = request.location->getErrorPages().find(_statusCode);
 		if (loc != request.location->getErrorPages().end())
 		{
-			std::cout << "Found StatusCode\n";
+			if (RESPONSE)
+				std::cerr << "Found StatusCode\n";
 			errorPageUri = loc->second;
 			// errorPageUri = "." + _rootDir + loc->second;
-			std::cerr << "errorPageUri = " << errorPageUri << "\n";
+			if (RESPONSE)
+				std::cerr << "errorPageUri = " << errorPageUri << "\n";
 		}
 	}
 	if (errorPageUri.empty() || !readContent(errorPageUri, _body))
 	{
-		std::cerr << "PAS DE PAGE ERROR RECORDED\n";
+		if (RESPONSE)
+			std::cerr << "PAS DE PAGE ERROR RECORDED\n";
 		std::string errorMsg;
 		std::map<StatusCode, std::string>::iterator it = STATUS_MESSAGES.find(_statusCode);
 		if (it != STATUS_MESSAGES.end())
 			errorMsg = convertToStr(_statusCode) + " " + STATUS_MESSAGES[_statusCode];
 		else
 			errorMsg = "Unknown error " + convertToStr(_statusCode);
-	// _body += "<!DOCTYPE html>\n";
-	// _body += "<html>\n";
-	// _body += "<body>\n";
-	// _body += "<h1>" + errorMsg + "</h1>";
-	// _body += "</body>\n";
-	// _body += "</html>";
 
 		_body = "<!DOCTYPE html>\
 				<html lang=\"en\">\
@@ -750,10 +789,6 @@ void	Response::buildErrorPage(ParseRequestResult &request, StatusCode statusCode
 	_headers["content-type"] = "text/html";
 	_headers["content-length"] = convertToStr(_body.size());
 
-	// std::cerr << "BODY =" << _body << std::endl;
-		// error_page in location 
-		// or
-		// build error page from scratch
 }
 
 void	Response::buildGet(ParseRequestResult &request)
@@ -761,13 +796,15 @@ void	Response::buildGet(ParseRequestResult &request)
 	_configLocation = request.location->getConfigLocation();
 	if (_configLocation.find("rootDir") != _configLocation.end())
 		_rootDir = _configLocation["rootDir"][0];
-	std::cout << "root = " << _rootDir << std::endl;
+	if (RESPONSE)
+		std::cerr << "root = " << _rootDir << std::endl;
 	if (_rootDir[0] == '/')
 		_rootDir = _rootDir.substr(1, _rootDir.size() - 1);
 	if (_rootDir[_rootDir.size() -1] == '/')
 		_rootDir = _rootDir.substr(0, _rootDir.size() - 1);
 	_finalURI = _rootDir + request.uri;
-	std::cout << "_finalURI = " << _finalURI << std::endl;
+	if (RESPONSE)
+		std::cerr << "_finalURI = " << _finalURI << std::endl;
 
 	// if (isUriValid(_finalURI) == false)
 	// {
@@ -776,7 +813,8 @@ void	Response::buildGet(ParseRequestResult &request)
 	// }
 	if (isPathADirectory(_finalURI))
 	{
-		std::cerr << "Path is a directory\n";
+		if (RESPONSE)
+			std::cerr << "Path is a directory\n";
 		if (_finalURI[_finalURI.size() -1] != '/')
 		{
 			// request.statusCode = STATUS_MOVED_PERMANENTLY;
@@ -791,28 +829,34 @@ void	Response::buildGet(ParseRequestResult &request)
 		}
 		else
 		{
-			std::cerr << "CASE 0\n";
+			if (RESPONSE)
+				std::cerr << "CASE 0\n";
 			if (_configLocation.find("index") != _configLocation.end())
 			{
-				std::cerr << "CASE 1\n";
+				if (RESPONSE)
+					std::cerr << "CASE 1\n";
 				std::vector<std::string> indexPages = _configLocation["index"];
 				Location *newLocation = NULL;
 				if (indexPages.empty() == false)
 				{
-					std::cerr << "CASE 1.1\n";
+					if (RESPONSE)
+						std::cerr << "CASE 1.1\n";
 					for (std::vector<std::string>::iterator it = indexPages.begin(); it != indexPages.end(); it++)
 					{
 						std::string index = (*it)[0] == '/' ? (*it).substr(1, std::string::npos) : (*it);
 						std::string path;
 						path = _finalURI + index;
-						std::cout << "path = " << path << std::endl;
+						if (RESPONSE)
+							std::cerr << "path = " << path << std::endl;
 						if (isPathADRegularFile(path))
 						{
-							std::cout << "path regular"<< std::endl;
+							if (RESPONSE)
+								std::cerr << "path regular"<< std::endl;
 							_finalURI = path;
 							return (buildPage(request));
 						}
-						std::cerr << "CASE 1.2\n";
+						if (RESPONSE)
+							std::cerr << "CASE 1.2\n";
 						if (request.location->getEqualModifier() == true && newLocation == NULL)
 						{
 							newLocation = associateLocationResponse(request, index);
@@ -821,43 +865,52 @@ void	Response::buildGet(ParseRequestResult &request)
 				}
 				if (newLocation)
 				{
-					std::cerr << "CASE 1.3\n";
+					if (RESPONSE)
+						std::cerr << "CASE 1.3\n";
 					request.location = newLocation;
 					return (generateResponse(request));
 				}
-				std::cerr << "CASE 1.4\n";
+				if (RESPONSE)
+					std::cerr << "CASE 1.4\n";
 			}
 			if (request.uri.find("files_to_delete") != std::string::npos)
 			{
-				std::cerr << "CASE 1.45\n";
+				if (RESPONSE)
+					std::cerr << "CASE 1.45\n";
 				return(buildResponseJs(request));
 			}
 			if (_configLocation.find("autoindex") != _configLocation.end()
 					&& _configLocation["autoindex"][0] == "true")
 			{
-					std::cerr << "CASE 1.5\n";
+					if (RESPONSE)
+						std::cerr << "CASE 1.5\n";
 					return(buildAutoindexPage(request));
 			}
-			std::cerr << "CASE 1.6\n";
+			if (RESPONSE)
+				std::cerr << "CASE 1.6\n";
 			return (buildErrorPage(request, STATUS_FORBIDDEN));
 		}
 	}
-	std::cerr << "before build page\n";
+	if (RESPONSE)
+		std::cerr << "before build page\n";
 	if (isPathADRegularFile(_finalURI))
 	{
-		std::cerr << "build page\n";
+		if (RESPONSE)
+			std::cerr << "build page\n";
 		return (buildPage(request));
 	}
 	else
 	{
-		std::cerr << "PAS build page\n";
+		if (RESPONSE)
+			std::cerr << "PAS build page\n";
 		return (buildErrorPage(request, STATUS_NOT_FOUND));
 	}
 }
 
 void	Response::buildPost(ParseRequestResult &request)
 {
-	std::cout << LIGHTBLUE << "BUILDPOST\n" << RESET;
+	if (RESPONSE)
+		std::cerr << LIGHTBLUE << "BUILDPOST\n" << RESET;
 	if (request.isUpload)
 	{
 		listUploadFiles(request);
@@ -888,7 +941,8 @@ void	Response::buildPost(ParseRequestResult &request)
 					}
 				}
 			}
-			std::cerr << "before access = " << filename.c_str() << "\n";
+			if (RESPONSE)
+				std::cerr << "before access = " << filename.c_str() << "\n";
 			if (access(filename.c_str(), F_OK) != 0)
 			{
 				std::ofstream fileToUpload;
@@ -974,11 +1028,13 @@ void	Response::listUploadFiles(ParseRequestResult &request)
 
 void	Response::buildPage(ParseRequestResult &request)
 {
-	std::cerr << "dans build page\n";
+	if (RESPONSE)
+		std::cerr << "dans build page\n";
 	std::ifstream fileRequested(_finalURI.c_str());
 	if (fileRequested.good() == false)
 	{
-		std::cerr << "file not good\n";
+		if (RESPONSE)
+			std::cerr << "file not good\n";
 		return(buildErrorPage(request, STATUS_NOT_FOUND));
 	}
 	std::stringstream buffer;
@@ -1030,11 +1086,11 @@ void	Response::buildResponseJs(ParseRequestResult &request)
 	// request.uri = request.uri.substr(1, request.uri.size() - 1);
 	DIR *dir;
 	struct dirent *dirent;
-	std::cerr << "request uri = " << request.uri << "\n";
+	if (RESPONSE)
+		std::cerr << "request uri = " << request.uri << "\n";
 	dir = opendir(request.uri.c_str());
 	if (dir == NULL)
 	{
-		std::cerr << "dir == NULL\n";
 		_body = "";
 		// peut etre ajouter builErrorPage ?
 		return ;
@@ -1112,7 +1168,8 @@ void	Response::buildAutoindexPage(ParseRequestResult &request)
 			filename = (*it);
 		// hyperlink = _finalURI + (*it);
 		hyperlink = (*it);
-		std::cout << "hyperlink = " << hyperlink << std::endl;
+		if (RESPONSE)
+			std::cerr << "hyperlink = " << hyperlink << std::endl;
 		_body += "<p><a href=" + hyperlink + ">" + filename + "</a></p>\n";
 	}
 
@@ -1214,7 +1271,8 @@ int	Response::pushStrToClient(int fd, std::string &str)
 	size_t	bytesSent = 0, tmpSent = 0;
 	// std::cerr << "str = <" << str << ">\n";
 	// std::cerr << "str size = " << str.size() << "\n";
-	std::cout << GRASSGREEN << str << RESET;
+	if (RESPONSE)
+		std::cerr << GRASSGREEN << str << RESET;
 	while (bytesSent < str.size())
 	{
 		// std::cerr << "pushstrclient 1\n";
