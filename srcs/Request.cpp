@@ -9,12 +9,12 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 	StatusCode	ret(STATUS_NONE);
 	GnlStatus	gnl;
 
-	if (REQ_COM)
-		std::cerr << LIGHTBLUE << "PARSE_BUFFER" << RESET << std::endl;
+	// if (REQ_COM)
+	// 	std::cerr << LIGHTBLUE << "PARSE_BUFFER" << RESET << std::endl;
 	if (_parsingStep == IN_REQUESTLINE)
 	{
-		if (REQ_COM)
-			std::cerr << LIGHTBLUE << "REQUESTLINE" << RESET << std::endl;
+		// if (REQ_COM)
+		// 	std::cerr << LIGHTBLUE << "REQUESTLINE" << RESET << std::endl;
 		gnl = getNextLine(buffer);
 		if (gnl != FOUND_NL)
 		{
@@ -32,8 +32,8 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 	}
 	if (_parsingStep == IN_HEADERS)
 	{
-		if (REQ_COM)
-			std::cerr << LIGHTBLUE << "HEADERS" << RESET << std::endl;
+		// if (REQ_COM)
+		// 	std::cerr << LIGHTBLUE << "HEADERS" << RESET << std::endl;
 		while (buffer.empty() == false)
 		{
 			gnl = getNextLine(buffer);
@@ -60,35 +60,35 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 	}
 	if (_parsingStep == IN_BODY && _vs == NULL)
 	{
-		if (REQ_COM)
-			std::cerr << LIGHTBLUE << "BODY => vs" << RESET << std::endl;
+		// if (REQ_COM)
+		// 	std::cerr << LIGHTBLUE << "BODY => vs" << RESET << std::endl;
 		std::map<std::string, std::string>::iterator host = _headers.find("host");
 		if (host == _headers.end())
 			return (parsingFailed(STATUS_BAD_REQUEST));
 		ret = associateVirtualServer();
 		if (ret != STATUS_NONE)
 			return (parsingFailed(ret));
-		if (REQ_COM)
-		{
-			std::cerr << PURPLE << "Chosen server infos : " << RESET << std::endl;
-			std::cerr << PURPLE << "IP and port : " << _vs->getIP() << ":" << _vs->getPort() << RESET << std::endl;
-			std::cerr << PURPLE << "Server_name : " << _vs->getServerName() << RESET << std::endl;
-		}
+		// if (REQ_COM)
+		// {
+		// 	std::cerr << PURPLE << "Chosen server infos : " << RESET << std::endl;
+		// 	std::cerr << PURPLE << "IP and port : " << _vs->getIP() << ":" << _vs->getPort() << RESET << std::endl;
+		// 	std::cerr << PURPLE << "Server_name : " << _vs->getServerName() << RESET << std::endl;
+		// }
 		ret = associateLocationRequest();
 		if (ret != STATUS_NONE)
 			return (parsingFailed(ret));
-		if (REQ_COM)
-		{
-			std::cerr << GREY << "Chosen location infos : " << RESET << std::endl;
-			std::cerr << GREY << "Location prefix : " << _location->getPrefix() << RESET << std::endl;
-			std::cerr << GREY << "Location root : " << _location->getConfigLocation()["rootDir"][0] << RESET << std::endl;
-			std::cerr << GREY << "Server acting as location (0: false, 1:true) : " << _location->getServerActAsLocation() << RESET << std::endl;
-		}
+		// if (REQ_COM)
+		// {
+		// 	std::cerr << GREY << "Chosen location infos : " << RESET << std::endl;
+		// 	std::cerr << GREY << "Location prefix : " << _location->getPrefix() << RESET << std::endl;
+		// 	std::cerr << GREY << "Location root : " << _location->getConfigLocation()["rootDir"][0] << RESET << std::endl;
+		// 	std::cerr << GREY << "Server acting as location (0: false, 1:true) : " << _location->getServerActAsLocation() << RESET << std::endl;
+		// }
 	}
 	if (_parsingStep == IN_BODY)
 	{
-		if (REQ_COM)
-			std::cerr << LIGHTBLUE << "BODY" << RESET << std::endl;
+		// if (REQ_COM)
+			// std::cerr << LIGHTBLUE << "BODY" << RESET << std::endl;
 		if (_contentLength == 0)
 			ret = checkIfBody();
 		// std::cerr << LIGHTBLUE << "BODY 0" << RESET << std::endl;
@@ -107,8 +107,8 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 			// std::cerr << LIGHTBLUE << "BODY 3" << RESET << std::endl;
 			if (_isUpload)
 			{
-				if (REQ_COM)
-					std::cerr << LIGHTBLUE << "PARSE UPLOAD" << RESET << std::endl;
+				// if (REQ_COM)
+					// std::cerr << LIGHTBLUE << "PARSE UPLOAD" << RESET << std::endl;
 				// std::cerr << LIGHTBLUE << "BODY 4" << RESET << std::endl;
 				_isUpload = false;
 				std::vector<unsigned char> v(buffer.begin(), buffer.end());
@@ -216,8 +216,8 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 			}
 			else if (_isChunked)
 			{
-				if (REQ_COM)
-					std::cerr << LIGHTBLUE << "PARSE CHUNK" << RESET << std::endl;
+				// if (REQ_COM)
+				// 	std::cerr << LIGHTBLUE << "PARSE CHUNK" << RESET << std::endl;
 				std::vector<unsigned char> v(buffer.begin(), buffer.end());
 				buffer = "";
 				for (std::vector<unsigned char>::iterator vit = v.begin(); vit != v.end(); vit++)
@@ -430,18 +430,18 @@ StatusCode	Request::parseHeader(std::string header)
 	// connexion settings if any
 	if (name == "connexion")
 	{
-		if (REQ_COM)
-		{
-			for (std::string::iterator it = value.begin(); it != value.end(); it++)
-			{
-				if (*it == '\n')
-					std::cerr << "LF\n";
-				else if (*it == '\r')
-					std::cerr << "CR\n";
-				else
-					std::cerr << *it;
-			}
-		}
+		// if (REQ_COM)
+		// {
+		// 	for (std::string::iterator it = value.begin(); it != value.end(); it++)
+		// 	{
+		// 		if (*it == '\n')
+		// 			std::cerr << "LF\n";
+		// 		else if (*it == '\r')
+		// 			std::cerr << "CR\n";
+		// 		else
+		// 			std::cerr << *it;
+		// 	}
+		// }
 		if (value == "close")
 			_keepAlive = false;
 		else if (value != "keep-alive")
@@ -454,8 +454,8 @@ StatusCode	Request::parseHeader(std::string header)
 
 StatusCode	Request::checkIfBody()
 {
-	if (REQ_COM)
-		std::cerr << "Check if body\n";
+	// if (REQ_COM)
+	// 	std::cerr << "Check if body\n";
 	_contentLength = 0;
 	std::map<std::string, std::string>::iterator it = _headers.find("content-length");
 	if (it != _headers.end())
@@ -517,8 +517,8 @@ void	Request::fillParseRequestResult(ParseRequestResult &result)
 
 ParseRequestResult Request::parsingFailed(StatusCode statusCode)
 {
-	if (REQ_COM)
-		std::cerr << "PARSING FAILED\n";
+	// if (REQ_COM)
+	// 	std::cerr << "PARSING FAILED\n";
 	ParseRequestResult	result;
 
 	fillParseRequestResult(result);
@@ -529,8 +529,8 @@ ParseRequestResult Request::parsingFailed(StatusCode statusCode)
 
 ParseRequestResult Request::parsingSucceeded()
 {
-	if (REQ_COM)
-		std::cerr << "PARSING SUCCEEDED\n";
+	// if (REQ_COM)
+	// 	std::cerr << "PARSING SUCCEEDED\n";
 	ParseRequestResult	result;
 
 	fillParseRequestResult(result);
@@ -546,8 +546,8 @@ ParseRequestResult Request::parsingSucceeded()
 
 ParseRequestResult Request::parsingPending()
 {
-	if (REQ_COM)
-		std::cerr << "PARSING PENDING\n";
+	// if (REQ_COM)
+	// 	std::cerr << "PARSING PENDING\n";
 	ParseRequestResult	result;
 
 	fillParseRequestResult(result);

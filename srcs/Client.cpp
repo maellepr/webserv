@@ -50,21 +50,6 @@ ClientStatus	&Client::getClientStatus()
 	return _clientStatus;
 }
 
-// VirtualServer &Client::getConnectedServer()
-// {
-//     return ;
-// }
-
-// void	Client::setMaxBodySize(size_t maxBodySize)
-// {
-// 	_maxBodySize = maxBodySize;
-// }
-
-// size_t	Client::getMaxBodySize()
-// {
-// 	return (_maxBodySize);
-// }
-
 void	Client::setFdInfos(int fdMax, fd_set write_fds, fd_set read_fds)
 {
 	_fd_max = fdMax;
@@ -74,10 +59,6 @@ void	Client::setFdInfos(int fdMax, fd_set write_fds, fd_set read_fds)
 
 void	Client::setClient(std::map<int, Client> &c)
 {
-	// for (std::map<int, Client>::iterator it = c.begin(); it != c.end(); it++)
-	// {
-	// 	_clients.push_back(it->first);
-	// }
 	_c = &c;
 }
 
@@ -104,16 +85,16 @@ int Client::readRequest(int isInReadSet)
 			bytesRead = recv(_clientfd, buffer, BUFSIZ, 0);
 			if (bytesRead <= 0)
 			{
-				if (bytesRead == 0)
-				{
-					if (CLIENT)
-						std::cerr << "[" << DARKYELLOW << _clientfd << "]" << "Client socket closed connection.\n" << RESET << std::endl;
-				}
-				else
-				{
-					if (CLIENT)
-						std::cerr << "[Server] Recv error: " << strerror(errno) << std::endl;
-				}
+				// if (bytesRead == 0)
+				// {
+				// 	// if (CLIENT)
+				// 		std::cerr << "[" << DARKYELLOW << _clientfd << "]" << "Client socket closed connection.\n" << RESET << std::endl;
+				// }
+				// else
+				// {
+				// 	if (CLIENT)
+				// 		std::cerr << "[Server] Recv error: " << strerror(errno) << std::endl;
+				// }
 				// close(_clientfd);
 				return (-1);
 			}
@@ -172,8 +153,8 @@ int Client::readRequest(int isInReadSet)
 			_clientStatus = TO_CLOSE;
 		}
 
-		if (CLIENT)
-			std::cerr << LIGHTGREEN << "REQUEST OUTCOME = " << parsedRequest.outcome << RESET << std::endl;
+		// if (CLIENT)
+			// std::cerr << LIGHTGREEN << "REQUEST OUTCOME = " << parsedRequest.outcome << RESET << std::endl;
 		
 		if (_clientStatus != TO_CLOSE)
 			_clientStatus = NONE;

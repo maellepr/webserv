@@ -34,7 +34,6 @@
 # define SERVER 0
 # define RESPONSE 0
 # define UTILS 0
-# define VSERVER 0
 # define CLIENT 0
 
 # define TIMEOUT 10.0
@@ -45,7 +44,7 @@
 # define DEFAULT_CONTENT_TYPE "application/octet-stream"
 # define CGI_VERSION "CGI/1.1"
 # define SERVER_SOFTWARE "webserv/1"
-# define MAX_CLIENTS_PER_SERVER 1000
+# define MAX_CLIENTS_PER_SERVER 10000
 
 # define RESET	"\e[0m"
 # define BOLD	"\e[1m"

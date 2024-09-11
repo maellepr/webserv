@@ -106,11 +106,11 @@ bool	isPathADirectory(const std::string &path)
 	
 	if (stat(path.c_str(), &buf) != 0)
 	{
-		if (UTILS)
-		{	
-			std::cerr << "STAT FAILED : \n";
-			std::cerr << strerror(errno) << std::endl;
-		}
+		// if (UTILS)
+		// {	
+		// 	std::cerr << "STAT FAILED : \n";
+		// 	std::cerr << strerror(errno) << std::endl;
+		// }
 		return (false);
 	}
 	return (S_ISDIR(buf.st_mode));
