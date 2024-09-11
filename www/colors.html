@@ -1,36 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>COLORS</title>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="style.css" rel="stylesheet">
+        <title>Colors</title>
     </head>
 	<body>
 		<form action = "../cgi/py/pickcolor.py" method = POST>
-		<fieldset>
-			<legend>Pick a color :</legend>
-		<div>
+
+			<div class="title1">Pick a color :</div>
+		
+		<div class ="indexcolor">
 			<input type="radio" id="purple" name="color" value="purple" />
-			<label style="color:rgb(134, 0, 139);" for="purple"> purple </label>
-		</div>
-		<div>
+			<label style="color:rgb(146, 0, 151);" for="purple"> purple </label><br>
+
 			<input type="radio" id="blue" name="color" value="blue" />
-			<label style="color:rgb(111, 100, 237);" for="blue"> blue </label>
-		</div>
-		<div>
+			<label style="color:rgb(60, 42, 255);" for="blue"> blue </label><br>
+
 			<input type="radio" id="pink" name="color" value="pink" />
-			<label style="color:rgb(207, 48, 175);" for="pink"> pink </label>
-		</div>
-		<div>
+			<label style="color:rgb(255, 0, 204);" for="pink"> pink </label><br>
+
 			<input type="radio" id="green" name="color" value="green" />
-			<label style="color:rgb(67, 214, 106);" for="green"> green </label>
-		</div>
-		<div>
+			<label style="color:rgb(43, 218, 90);" for="green"> green </label><br>
+
 			<input type="radio" id="black" name="color" value="black" />
-			<label style="color:rgb(7, 6, 6);" for="black"> black </label>
-		</div>
-		<div>
+			<label style="color:rgb(7, 6, 6);" for="black"> black </label><br><br>
+
 			<input type="submit" value="Confirm" />
 		</div>
-		</fieldset>
+
 		</form>
+		<div class="index">
+            <a class="indexButton" href="home.html">go back to home page</a>
+        </div>
 	</body>
 </html>

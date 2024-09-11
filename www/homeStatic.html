@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Static page</title>
+	<link  rel="style2sheet" href="style2.css" >
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden; /* Prevents scrollbars */
+            background-color: #ffffff;
+			font-family: Georgia;
+			justify-content: center;
+			text-align: center;
+        }
+        .image-container {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+        }
+        img {
+            width: 100%;
+            height: 100%;
+        }
+		.title1 {
+    		margin-top: 30px;
+   			font-size:1.5em;
+    		color: #000000;
+    		text-align: center;
+		}
+		.img {
+    		top: 30px;
+    		color: #000000;
+    		text-align: center;
+			width:50px;
+		}
+
+    </style>
+	
+</head>
+<body>
+
+    <!-- Image Containers -->
+    <div class="image-container" id="image1">
+        <img src="images/citrus.gif" alt="Image 1">
+    </div>
+    <div class="image-container" id="image2">
+        <img src="images/microbe2.gif" alt="Image 2">
+    </div>
+    <div class="image-container" id="image3">
+        <img src="images/microbe3.gif" alt="Image 3">
+    </div>
+    <div class="image-container" id="image4">
+        <img src="images/emoji.gif" alt="Image 4">
+    </div>
+    <div class="image-container" id="image5">
+        <img src="images/oeil.gif" alt="Image 5">
+    </div>
+    <div class="image-container" id="image6">
+        <img src="images/heart.gif" alt="Image 6">
+    </div>
+	<div class="title1">
+		<img class="img" src="images/necklace.gif">
+		Static page 
+		<img class="img" src="images/necklace.gif">	
+	</div>
+    <script>
+        // Initial velocity for each image
+        const velocities = [
+            { dx: 2, dy: 2 },  // Velocity for image1
+            { dx: -1.5, dy: 1.5 },  // Velocity for image2
+            { dx: 1, dy: -2 } , // Velocity for image3
+			{ dx: 1.5, dy: -2 },
+			{ dx: 1.5, dy: 2 } ,
+			{ dx: 2, dy: -1.5 }  
+        ];
+
+        // Function to move an image continuously
+        function moveImage(imageId, index) {
+            const image = document.getElementById(imageId);
+            let xPos = Math.random() * (window.innerWidth - 30);  // Random initial X position
+            let yPos = Math.random() * (window.innerHeight - 30); // Random initial Y position
+
+            // Function that continuously updates the image's position
+            function updatePosition() {
+                xPos += velocities[index].dx;
+                yPos += velocities[index].dy;
+
+                // Check if the image hits the boundaries and reverse direction if necessary
+                if (xPos <= 0 || xPos >= window.innerWidth - 30) {
+                    velocities[index].dx *= -1; // Reverse horizontal direction
+                }
+                if (yPos <= 0 || yPos >= window.innerHeight - 30) {
+                    velocities[index].dy *= -1; // Reverse vertical direction
+                }
+
+                // Apply the new position to the image
+                image.style.left = xPos + 'px';
+                image.style.top = yPos + 'px';
+
+                // Use requestAnimationFrame for the next frame
+                requestAnimationFrame(updatePosition);
+            }
+
+            // Start the animation
+            updatePosition();
+        }
+
+        // Move all images continuously
+        window.onload = function() {
+            moveImage('image1', 0);
+            moveImage('image2', 1);
+            moveImage('image3', 2);
+            moveImage('image4', 3);
+            moveImage('image5', 4);
+			moveImage('image6', 5);
+        };
+    </script>
+</body>
+</html>

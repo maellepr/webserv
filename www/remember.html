@@ -2,18 +2,23 @@
 <html lang="en">
     <head>
 		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="style.css" rel="stylesheet">
         <title>Never forget</title>
     </head>
 	<body>
         <form id="form" action="../cgi/py/cookiename.py" method="POST">
-			<div class="nfl">
-				<label for="color">How do you want to be called in the future ?<br></label>
+
+				<div class="title2">How do you want to be called in the future ?<br><br><br></div>
+			<div class ="indexremember">
 				<input type="text" name="name" id="name" maxlength="25" value="yourname" required/>
-			</div>
+
+
             <input id="sendButton" type="submit" value="Remember me !"/><br><br>
-        </form>
-        <div class="index">
-            <a class="indexButton" href="home.html">Back to homepage</a>
+			</div>
+		</form>
+		<div class="indexremember">
+            <a class="indexButton" href="/">go back to home page</a>
         </div>
 	</body>
 </html>
