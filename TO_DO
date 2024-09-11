@@ -6,6 +6,7 @@
 - verifier les erreurs potentiels cgi (wrong path -> access?)
 - siege
 - mettre en page pick color et peut etre changer couleur page
+- fermer les connections dans connect virtual server
 
 ######### TO DO #########
 

@@ -76,7 +76,15 @@ void	Server::init(const char *filename)
 		{
 			std::vector<VirtualServer*>	bindedVS;
 
-			_virtualServers[i].connectVirtualServers();
+			int ret = _virtualServers[i].connectVirtualServers();
+			if (ret)
+			{
+				if (ret == -2)
+					_closeSocketBound(0);
+				else if (ret == -1)
+					_closeSocketBound(1);
+				callException(-1);
+			}
 			bindedVS.push_back(&_virtualServers[i]);
 			_addBindedVS(i, bindedVS);
 			_socketBoundVs[_virtualServers[i].getSocketFd()] = bindedVS;
@@ -513,4 +521,16 @@ void	Server::loop()
         	}
     	}
 	}
+}
+
+void	Server::_closeSocketBound(int socket)
+{
+	int last = 0;
+	for (std::map<int, std::vector<VirtualServer*> >::iterator it = _socketBoundVs.begin(); it != _socketBoundVs.end(); it++)
+	{
+		close(it->first);
+		last = it->first + 1;
+	}
+	if (socket)
+		close (last);
 }

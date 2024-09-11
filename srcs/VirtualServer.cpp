@@ -25,6 +25,14 @@ VirtualServer::VirtualServer()
 
 	_listenState = false;
 	_rootState = false;
+
+	_serverState = false;
+	_autoIndexState = false;
+	_maxBodyState = false;
+	_errorPageState = false;
+	_indexState = false;
+	_defaultServerState = false;
+	_returnState = false;
 }
 
 VirtualServer::~VirtualServer()
@@ -52,38 +60,23 @@ void	VirtualServer::init(std::istream& file)
 		else if (keyword == "}" && empty == false)
 		{
 			checkNecessaryLine();
-			// std::cerr << "\nSERVER :\nlisten : ip  " << _ip << " port " << _port << "\n";
-			// std::cerr << "server_name : " << _serverName << "\n";
-			// std::cerr << "root :" << _rootDir << "\n";
-			// std::cerr << "error_pages : \n";
-			// for(std::map<int, std::string>::iterator ep = _errorPages.begin(); ep != _errorPages.end(); ep++)
-			// {
-			// 	std::cerr << "code: " << ep->first;
-			// 	std::cerr << "  page: " << ep->second << "\n";
-			// }
-			// std::cerr << "return :\n";
-			// for(std::map<int, std::string>::iterator ret = _returnPages.begin(); ret != _returnPages.end(); ret++)
-			// {
-			// 	std::cerr << "code: " << ret->first;
-			// 	std::cerr << "  page: " << ret->second << "\n";
-			// }
 			return ;
 		}
-		else if (keyword == "listen")
+		else if (keyword == "listen" && _listenState == false)
 			parseListen(iss);
-		else if (keyword == "server_name")
+		else if (keyword == "server_name" && _serverState == false)
 			parseServerNames(iss);
-		else if (keyword == "root")
+		else if (keyword == "root" && _rootState == false)
 			parseRoot(iss);
-		else if (keyword == "autoindex")
+		else if (keyword == "autoindex" && _autoIndexState == false)
 			parseAutoIndex(iss);
-		else if (keyword == "client_max_body_size")
+		else if (keyword == "client_max_body_size" && _maxBodyState == false)
 			parseMaxClientBodySize(iss);
-		else if (keyword == "error_page")
+		else if (keyword == "error_page" && _errorPageState == false)
 			parseErrorPages(iss);
-		else if (keyword == "index")
+		else if (keyword == "index" && _indexState == false)
 			parseIndex(iss);
-		else if (keyword == "default_server")
+		else if (keyword == "default_server" && _defaultServerState == false)
 			parseDefaultServer(iss);
 		else if (keyword == "location")
 		{
@@ -98,14 +91,14 @@ void	VirtualServer::init(std::istream& file)
 					location.setEqualModifier(true);
 					if (!(iss >> keyword))
 						throw ErrorConfigFile("Error in the conf file : location : wrong content2");
-					std::cerr << "XXkeyword " << keyword << "\n";
+					// std::cerr << "keyword " << keyword << "\n";
 				}
-				prefix = keyword; // verifier contenu peut-etre
+				prefix = keyword;
 				location.setPrefix(prefix);
 				// std::cerr << "prefix " << prefix << "\n";
 				if ((iss >> keyword) && keyword != "{")
 				{
-					std::cerr << "keyword " << keyword << "\n";
+					// std::cerr << "keyword " << keyword << "\n";
 					throw ErrorConfigFile("Error in the conf file : location : wrong content3");
 				}
 			}
@@ -123,7 +116,7 @@ void	VirtualServer::init(std::istream& file)
 					_location[prefix] = location;
 			}
 		}
-		else if (keyword == "return")
+		else if (keyword == "return" && _returnState == false)
 		{
 			parseReturn(iss);
 		}
@@ -250,6 +243,7 @@ void	VirtualServer::parseServerNames(std::istringstream& iss)
 	// while (iss >> serverName)
 	// 	_serverNames.push_back(serverName);
 	// _serverNameState = true;
+	_serverState = true;
 }
 
 void	VirtualServer::parseRoot(std::istringstream& iss)
@@ -291,6 +285,7 @@ void	VirtualServer::parseAutoIndex(std::istringstream& iss)
 		_indexOnOff = false;
 	else
 		throw ErrorConfigFile("Error in the conf file : auto_index wrong content");
+	_autoIndexState = true;
 }
 
 void	VirtualServer::parseMaxClientBodySize(std::istringstream& iss)
@@ -324,6 +319,7 @@ void	VirtualServer::parseMaxClientBodySize(std::istringstream& iss)
 	}
 	if (_maxBodySize < 0 || _maxBodySize > (3 * 1048576))// limite est de 2MB environ
 		throw ErrorConfigFile("Error in the conf file : max_body_client_size : size has to be between 0 and 3MB");
+	_maxBodyState = true;
 }
 
 void	VirtualServer::parseErrorPages(std::istringstream& iss)
@@ -359,6 +355,7 @@ void	VirtualServer::parseErrorPages(std::istringstream& iss)
     //     std::cout << it->first << " => " << it->second << "\n";
     // }
 	// std::cerr << "\n";
+	_errorPageState = true;
 }
 
 int	VirtualServer::parseErrorCode(std::string& code)
@@ -399,6 +396,7 @@ void	VirtualServer::parseReturn(std::istringstream& iss)
 		throw ErrorConfigFile("Error in the conf file : return : wrong content");
 	for (size_t i = 0; i < codeList.size(); i++)
 		_returnPages[codeList[i]] = code;
+	_returnState = true;
 }
 
 int	VirtualServer::parseCodeReturn(std::string& code)
@@ -428,6 +426,7 @@ void	VirtualServer::parseIndex(std::istringstream& iss)
 		// A COMPLETER AVEC CAS D'ERREUR ?
 		_indexPages.push_back(index);
 	}
+	_indexState = true;
 }
 
 void	VirtualServer::parseDefaultServer(std::istringstream& iss)
@@ -437,9 +436,10 @@ void	VirtualServer::parseDefaultServer(std::istringstream& iss)
 	_defaultVS = true;
 	if (iss >> string)
 		throw ErrorConfigFile("Error in the conf file : default_server : wrong content");
+	_defaultServerState = true;
 }
 
-void	VirtualServer::connectVirtualServers()
+int	VirtualServer::connectVirtualServers()
 {
 
 		// struct sockaddr_in sa;
@@ -449,7 +449,7 @@ void	VirtualServer::connectVirtualServers()
 		// Create the socket
 		socket_fd = socket(_address.sin_family, SOCK_STREAM, 0);
 		if (socket_fd == -1)
-			callException(-1);
+			return(-2);
 		fcntl(socket_fd, F_SETFL, O_NONBLOCK);
 		std::cerr << "[Server] Created server socket fd: " << socket_fd << "\n";
 		
@@ -459,13 +459,14 @@ void	VirtualServer::connectVirtualServers()
 		status = bind(socket_fd, (struct sockaddr *)&_address, sizeof _address);
 		if (status != 0)
 		{
-			callException(-1);
+			return(-1);
 		}
 		std::cerr << "[Server] Bound socket address ip = " << _ip.c_str() << " port " << _port << "\n";
 		status = listen(socket_fd, 10); // A MODIF
 		if (status != 0)
-			callException(-1);
+			return(-1);
 		_socketfd = socket_fd;
+		return(0);
 }
 
 void	VirtualServer::checkNecessaryLine()
@@ -474,10 +475,6 @@ void	VirtualServer::checkNecessaryLine()
 		throw ErrorConfigFile("Error in the conf file : listen is missing");
 	if (_rootState == false)
 		throw ErrorConfigFile("Error in the conf file: root is missing");
-	// bool	_listenState;
-	// bool	_serverNameState;
-	// bool	_rootState;
-	// bool	_returnState;
 	// for(std::map<std::string, Location>::iterator loc = _location.begin(); loc != _location.end(); loc++)
 	// {
 

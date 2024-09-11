@@ -276,7 +276,7 @@ void	Response::buildDelete(ParseRequestResult &request)
 		<div class=\"title2\">The file has been deleted !</div>\
 		<div class=\"index\">\
 		<a class=\"indexButton\" href=\"delete.html\">delete another file</a><br>\
-		<a class=\"indexButton\" href=\"home.html\">go back to home page</a>\
+		<a class=\"indexButton\" href=\"/\">go back to home page</a>\
 		</div>\
 		</body>\
 		</html>";
@@ -296,7 +296,7 @@ void	Response::buildDelete(ParseRequestResult &request)
 		<div class=\"title2\">The file couldn't be deleted</div>\
 		<div class=\"index\">\
 		<a class=\"indexButton\" href=\"delete.html\">try again</a><br>\
-		<a class=\"indexButton\" href=\"home.html\">go back to home page</a>\
+		<a class=\"indexButton\" href=\"/\">go back to home page</a>\
 		</div>\
 		</body>\
 		</html>";
@@ -314,10 +314,7 @@ void	Response::buildCgi(ParseRequestResult &request)
 	initCgi(request);
 	if (_statusCode != STATUS_OK)
 		return(buildErrorPage(request, _statusCode));
-	// std::cerr << "max fd = " << _fd_max << "\n";
-	// std::cout << "request.body : " << request.body << std::endl;
 	int writeStatus;
-	// std::string cgiFile	= ".read_cgi.txt";
 	int	cgiFdOut = open(".read_cgi.txt", O_WRONLY | O_CREAT | O_TRUNC);
 	if (cgiFdOut == -1)
 		return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
@@ -363,15 +360,7 @@ void	Response::buildCgi(ParseRequestResult &request)
 		close(fd[0]);
 		dup2(cgiFdOut, STDOUT_FILENO);//stdout devient pipe[1]
 		close(cgiFdOut);
-		// size_t extention = _finalURI.find_last_of('.');
-		// std::cerr << "_finalURI = " << _finalURI << "\n";
-		// dprintf(2, "size = %lu", extention);
-		// std::string ext = _finalURI.substr(extention, _finalURI.size());
-		// std::cerr << "extention = " << ext << "\n";
-		// if (RESPONSE)
-		// 	std::cerr << "_cgi here = " << _cgi << "\n";
 		char *av[] = {_cgi, _finalUriChar, NULL};
-
 		char **env = vectorStringToChar(vecEnv);
 		closeAllFd();
 		close(cgiFdIn);
@@ -383,49 +372,34 @@ void	Response::buildCgi(ParseRequestResult &request)
 		exit(EXIT_FAILURE);
 	}
 	close(fd[0]);
-	// write(fd[1], request.body.c_str(), request.body.size());
 	std::ofstream writeInPipe; // ***************************************************************************
 	writeInPipe.open(".input_body.txt"); // ***************************************************************************
+	if (!writeInPipe.is_open())
+	{
+		close(fd[1]);
+		return (buildErrorPage(request, STATUS_INTERNAL_SERVER_ERROR));
+	}
 	writeInPipe << request.body; // ***************************************************************************
 	writeInPipe.close(); // ***************************************************************************
 	close(fd[1]);
 	// system("pstree -p");
 	while (true)
 	{
-		// std::cerr << "PARENT 0" << std::endl;
 		pid_t	pid_result = waitpid(pid, &writeStatus, WNOHANG);
 		if (pid_result > 0)// success, child process change state
-		{
-			// if (RESPONSE)
-			// 	std::cerr << "waitpid success, child process chage state\n";
 			break;
-		}
 		if (pid_result == 0)// no state change detected, verify that not too much time passed (infinite loop ?)
 		{
 			time_t	end = time(NULL);
-			if (end - start >= 10)// valeur 3?
+			if (end - start >= 10)
 			{
 				// if (RESPONSE)
 				// 	std::cerr << BOLD << "return error page timeout\n" << "pid killed = " << pid << "\n" << RESET;
 				close(cgiFdOut);
 				close(cgiFdIn);
-				kill(pid, SIGKILL); // A PROTEGER
-				// if (kill(pid, SIGKILL) == 0)
-				// {
-				// 	// if (RESPONSE)
-				// 	// 	std::cerr << "Child process killed successfully\n";
-				// }
-				// else
-				// {
-				// 	// if (RESPONSE)
-				// 	// 	std::cerr << "Failed to kill child process\n";
-				// }
+				if (kill(pid, SIGKILL) == -1)
+					perror("kill");
 				pid_result = waitpid(pid, &writeStatus, WNOHANG);
-				// if (kill(pid, SIGKILL) == 0)
-				// {
-				// 	if (RESPONSE)
-				// 		std::cerr << "Child process killed successfully\n";
-				// }
 				_statusCode = STATUS_INTERNAL_SERVER_ERROR;
 				remove(".read_cgi.txt");
 				remove(".input_body.txt");
@@ -450,10 +424,7 @@ void	Response::buildCgi(ParseRequestResult &request)
 std::string	Response::findCgi()
 {
 	size_t extention = _finalURI.find_last_of('.');
-	// std::cerr << "_finalURI = " << _finalURI << "\n";
-	// dprintf(2, "size = %lu", extention);
 	std::string ext = _finalURI.substr(extention, _finalURI.size());
-	// std::cerr << "extention = " << ext << "\n";
 	std::string cgi;
 
 	if (ext == ".py")
@@ -463,55 +434,18 @@ std::string	Response::findCgi()
 	else
 		cgi = "";
 	return cgi;
-	// _cgi = const_cast<char*>(cgi.c_str());
-	// dprintf(2, "_cgi = %s\n", _cgi);
 }
 
 void	Response::closeAllFd(void)
 {
-	// std::cerr << "class all -> fd_max : " << _fd_max << "\n";
-	// // _fd_max += 13;
-	// for (int fd = 3; fd <= _fd_max; fd++)
-	// {
-	// 	std::cerr << PINK << "close all fd in child\n" << RESET;
-	// 	std::cerr << "fd_max : " << _fd_max << "\n";
-	// 	if (FD_ISSET(fd, &_write_fds))
-	// 		FD_CLR(fd, &_write_fds);
-	// 	if (FD_ISSET(fd, &_read_fds))
-	// 		FD_CLR(fd, &_read_fds);
-		
-	// 	// if (fd == _fd_max)
-	// 	// 	_fd_max--;
-	// 	std::cerr << "fd about to be closed " << fd << "\n";
-	// 	close(fd);
-	// }
-
 	for (std::map<int, std::vector<VirtualServer*> >::iterator it = _socketBoundVs.begin(); it != _socketBoundVs.end(); it++)
 	{
-		// for (std::vector<VirtualServer*>::iterator vsIt = it->second.begin(); vsIt != it->second.end(); vsIt++)
-		// {
-		// 	close((*vsIt)->getSocketFd());
-		// }
-		// if (RESPONSE)
-		// 	std::cerr << PINK << "close socket server :" << it->first << RESET << "\n";
 		close(it->first);
 	}
-
-	// close client sockets
-	// if (RESPONSE)
-	// 	std::cerr << "client size = " << _c->size() << "\n";
 	for(std::map<int, Client>::iterator it = _c->begin(); it != _c->end(); it++)
 	{
-		// if (RESPONSE)
-		// 	std::cerr << PINK << "close socket client :" << it->second.getFd() << RESET << "\n";
 		close(it->first);
 	}
-	
-	// for (size_t i = 3; i < 15; i++)
-	// {
-	// 	std::cerr << PINK << "close socket client :" << i << RESET << "\n";
-	// 	close(i);
-	// }
 }
 
 void	Response::buildPageCgi()
@@ -620,23 +554,17 @@ void	Response::initCgi(ParseRequestResult &request)
 	std::map<std::string, std::vector<std::string> >::iterator it = _configLocation.find("cgi");
 	std::string path = it->second[0];
 	path.insert(0, "./");
-	// char *pathCgi = const_cast<char*>(path.c_str());
 	if (_configLocation.find("rootDir") != _configLocation.end())
-		_rootDir = _configLocation["rootDir"][0];// rootDir : www/cgiTest/cgi-bin
+		_rootDir = _configLocation["rootDir"][0];
 	if (_rootDir[0] == '/')
 		_rootDir = _rootDir.substr(1, _rootDir.size() - 1);
 	if (_rootDir[_rootDir.size() -1] == '/')
 		_rootDir = _rootDir.substr(0, _rootDir.size() - 1);
-	_finalURI = _rootDir + request.uri;// www/cgiTest/cgi-bin/index
+	_finalURI = _rootDir + request.uri;
 	_finalURI.insert(0, "./");
 	_finalUriChar = const_cast<char*>(_finalURI.c_str());
-	// dprintf(2, "_finalUriChar = %s\n", _finalUriChar);
 	if (access(_finalUriChar, F_OK) != 0)
-	{
-		// if (RESPONSE)
-		// 	std::cerr << "access failed\n";
 		_statusCode = STATUS_NOT_FOUND;
-	}
 }
 
 std::vector<std::string>	Response::doEnvCgi(ParseRequestResult &request)
@@ -645,8 +573,6 @@ std::vector<std::string>	Response::doEnvCgi(ParseRequestResult &request)
 
 	std::stringstream ss;
 	ss << request.contentLenght;
-	// std::cerr << "request.contentLenght = " << request.contentLenght << "\n";
-	// std::cerr << "content lenght = " << ss.str() << "\n";
 	exportToEnv(env, "CONTENT_LENGTH", ss.str());
 	std::map<std::string, std::string>::iterator it = request.headers.find("content-type");
 	if (it == request.headers.end())
@@ -655,10 +581,8 @@ std::vector<std::string>	Response::doEnvCgi(ParseRequestResult &request)
 		exportToEnv(env, "CONTENT_TYPE", it->second);
 	exportToEnv(env, "DOCUMENT_ROOT", "/www/html/");
 	exportToEnv(env, "GATEWAY_INTERFACE", CGI_VERSION);
-	// std::cerr << "request_headers = \n";
 	for (std::map<std::string, std::string>::iterator it = request.headers.begin(); it != request.headers.end(); it++)
 	{
-		// std::cerr << it->first << " " << it->second << "\n";
 		std::string keyWord = it->first;
 		int i = 0;
 		while (keyWord[i])
@@ -673,11 +597,8 @@ std::vector<std::string>	Response::doEnvCgi(ParseRequestResult &request)
 			exportToEnv(env, keyWord, it->second);
 	}
 	std::string absPath = getAbsPath(_finalURI);
-	// std::cerr << "absPath == " << absPath << "\n";
 	std::string pathInfo = "/mnt/nfs/homes/mapoirie/Documents/webserv_git/www" + request.uri;
-	// std::cerr << "pathInfo : " << pathInfo << "\n";
 	exportToEnv(env, "PATH_INFO", pathInfo);
-
 	exportToEnv(env, "QUERY_STRING", request.query);
 	exportToEnv(env, "REDIRECT_STATUS", "200");// 200 to indicate the requesst was hande correctly
 	std::string	method;
@@ -687,25 +608,11 @@ std::vector<std::string>	Response::doEnvCgi(ParseRequestResult &request)
 		method = "POST";
 	else if (request.method == DELETE)
 		method = "DELETE";
-	
 	exportToEnv(env, "REQUEST_METHOD", method);
-	// std::cerr << "request.uri =>> " << request.uri << "\n";
-	// exportToEnv(env, "SCRIPT_NAME", request.uri);
-	exportToEnv(env, "SCRIPT_NAME", request.uri);// A CHANGER en fonction
+	exportToEnv(env, "SCRIPT_NAME", request.uri);
 	exportToEnv(env, "SCRIPT_FILENAME", pathInfo);
 	exportToEnv(env, "SERVER_PROTOCOL", PROTOCOL_VERSION);
 	exportToEnv(env, "SERVER_SOFTWARE", SERVER_SOFTWARE);
-	// std::cerr << "Response headers = \n";
-	// for (std::map<std::string, std::string>::iterator it = request.headers.begin(); it != request.headers.end(); it++)
-	// {
-	// 	std::cerr << it->first << "\n";
-	// 	std::cerr << it->second << "\n"; 
-	// }
-	// std::cerr << "ENV =\n";
-	// for (std::vector<std::string>::iterator it = env.begin(); it != env.end(); it++)
-	// {
-	// 	std::cerr << (*it) << "\n";
-	// }
 	return (env);
 }
 
@@ -1053,17 +960,13 @@ void	Response::buildResponseJs(ParseRequestResult &request)
 	std::vector<std::string> fileList;
 	std::string	js;
 	request.uri = "./www/files_to_delete/";
-	// request.uri = request.uri.substr(1, request.uri.size() - 1);
 	DIR *dir;
 	struct dirent *dirent;
-	// if (RESPONSE)
-	// 	std::cerr << "request uri = " << request.uri << "\n";
 	dir = opendir(request.uri.c_str());
 	if (dir == NULL)
 	{
 		_body = "";
-		// peut etre ajouter builErrorPage ?
-		return ;
+		return (buildErrorPage(request, STATUS_NOT_FOUND));
 	}
 	while ((dirent = readdir(dir)) != NULL)
 	{
@@ -1083,15 +986,9 @@ void	Response::buildResponseJs(ParseRequestResult &request)
 			js += ", ";
 	}
 	js += "]";
-	// if (RESPONSE)
-	// 	std::cerr << "js ===> " << js << "\n";
 	_body = js;
-	// if (RESPONSE)
-	// 	std::cerr << "body ===> " << _body << " size = " << _body.size() << "\n";
 	_headers["content-type"] = "application/json";
 	_headers["content-length"] = convertToStr(_body.size());
-
-
 	_statusCode = STATUS_OK;
 	return ;
 }
@@ -1157,8 +1054,8 @@ ResponseOutcome	Response::sendResponseToClient(int fd)
 {
 	std::string	line;
 
-	if (DEBUG)
-		std::cout << GRASSGREEN << "RESPONSE ===============\n" << RESET;
+	// if (DEBUG)
+		// std::cout << GRASSGREEN << "RESPONSE ===============\n" << RESET;
 
 	// if (_returnRes.size() > 0)
 	// {
@@ -1201,8 +1098,8 @@ ResponseOutcome	Response::sendResponseToClient(int fd)
 	 	line = _body.substr(0, strtol(it->second.c_str(), NULL, 10)); //convertir
 		if (pushStrToClient(fd, line) == -1)
 			return RESPONSE_FAILURE;
-		if (DEBUG)
-			std::cout << GRASSGREEN << "===============" << RESET << std::endl;
+		// if (DEBUG)
+		// 	std::cout << GRASSGREEN << "===============" << RESET << std::endl;
 		return RESPONSE_SUCCESS_KEEPALIVE;
 	}
 	else
@@ -1210,8 +1107,8 @@ ResponseOutcome	Response::sendResponseToClient(int fd)
 		line = "\r\n";
 		if (pushStrToClient(fd, line) == -1)
 			return RESPONSE_FAILURE;
-		if (DEBUG)
-			std::cout << GRASSGREEN << "===============" << RESET << std::endl;
+		// if (DEBUG)
+		// 	std::cout << GRASSGREEN << "===============" << RESET << std::endl;
 		return (RESPONSE_SUCCESS_KEEPALIVE);
 	}
 	return RESPONSE_PENDING;
@@ -1222,8 +1119,8 @@ int	Response::pushStrToClient(int fd, std::string &str)
 	size_t	bytesSent = 0, tmpSent = 0;
 	// std::cerr << "str = <" << str << ">\n";
 	// std::cerr << "str size = " << str.size() << "\n";
-	if (DEBUG)
-		std::cerr << GRASSGREEN << str << RESET;
+	// if (DEBUG)
+	// 	std::cerr << GRASSGREEN << str << RESET;
 	while (bytesSent < str.size())
 	{
 		tmpSent = send(fd, str.c_str() + bytesSent, str.size() - bytesSent, 0);

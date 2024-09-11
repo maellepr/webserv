@@ -11,7 +11,3 @@ b
 season=dsgd
 0
 
-
-POST /cgi HTTP/1.1
-Transfer-encoding: chunked
-Host: example.com
