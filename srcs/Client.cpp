@@ -147,7 +147,7 @@ int Client::readRequest(int isInReadSet)
 			_clientStatus = NONE;
 		_keepAlive = parsedRequest.keepAlive;
 
-		_response = new Response; // new A PROTEGER?
+		_response = new Response;
 		_response->setFdInfos(_fd_max, _write_fds, _read_fds);
 		_response->setSocketBoundVs(_socketBoundVs);
 		_response->setClient(_c);

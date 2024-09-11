@@ -8,18 +8,21 @@ std::map<unsigned char, int>		HEXA_BASE;
 
 int main(int argc, char **argv)
 {
-	if (argc != 2)
-	{
-		std::cout << "Error" << std::endl << "One argument expected : configuration file." << std::endl;
-		return 1;
-	}
+	// if (argc != 2)
+	// {
+	// 	std::cout << "Error" << std::endl << "One argument expected : configuration file." << std::endl;
+	// 	return 1;
+	// }
 
 	Server server;
 	try 
 	{
 		std::signal(SIGINT, handleSigint);
 		signal(SIGPIPE, &handleSigpipe);
-		server.init(argv[1]);
+		if (argc != 2)
+			server.init("conf/valid/goodconf.conf");
+		else
+			server.init(argv[1]);
 		server.loop();
 	}
 	catch (std::exception &e)
