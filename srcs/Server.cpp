@@ -399,13 +399,13 @@ void	Server::loop()
         if (status == -1)
 		{
 			noSignal = false;
-			std::cerr << "Fatal error : select()\n";
+			// std::cerr << "Fatal error : select()\n";
 			continue;
 		}
         else if (status == 0)
 		{
-            if (LOOP)
-				std::cerr << "[Server] Waiting...\n";
+            // if (LOOP)
+			// 	std::cerr << "[Server] Waiting...\n";
             continue;
         }
 		// if (LOOP)
@@ -439,7 +439,7 @@ void	Server::loop()
 						std::cout << RED << "Server <" << it->first << "> : max number of connexions reached.\nClosed connection request for socket <" << i << ">" << RESET << std::endl;
 						if (close(accept(i, NULL, NULL)) == -1)
 						{
-							std::cerr << "close() fatal error : " << strerror(errno) << std::endl;
+							// std::cerr << "close() fatal error : " << strerror(errno) << std::endl;
 							noSignal = false;
 						}
 						continue;
@@ -449,7 +449,7 @@ void	Server::loop()
 					client.setFd(_acceptNewConnection(i));
 					if (client.getFd() == -1)
 					{
-						std::cerr << "accept() fatal error : " << strerror(errno) << std::endl;
+						// std::cerr << "accept() fatal error : " << strerror(errno) << std::endl;
 						noSignal = false;
 						continue;
 					}
