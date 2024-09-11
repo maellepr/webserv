@@ -413,7 +413,7 @@ void	Server::loop()
 		// 	std::cerr << "\nWHILE 3 - apres select\n";
 		// 	std::cerr << "_fd_max = " << _fd_max << "\n";
 		// }
-        for (int i = 3; i <= _fd_max && status > 0; i++)
+        for (int i = 3; i <= _fd_max; i++)
         {
 			if (FD_ISSET(i, &_all_sockets) != 1)
 				continue;
@@ -425,7 +425,6 @@ void	Server::loop()
 			{
 				// if (LOOP)
 				// 	std::cerr << "\nWHILE 4 - debut boucle read set\n";
-				status--;
 				std::map<int, std::vector<VirtualServer*> >::iterator it = _socketBoundVs.find(i);
 				if (it != _socketBoundVs.end())
 				{
@@ -436,7 +435,7 @@ void	Server::loop()
 					// }
 					if (_maxConnections[i] + 1 > MAX_CLIENTS_PER_SERVER)
 					{
-						std::cout << RED << "Server <" << it->first << "> : max number of connexions reached.\nClosed connection request for socket <" << i << ">" << RESET << std::endl;
+						// std::cout << RED << "Server <" << it->first << "> : max number of connexions reached.\nClosed connection request for socket <" << i << ">" << RESET << std::endl;
 						if (close(accept(i, NULL, NULL)) == -1)
 						{
 							// std::cerr << "close() fatal error : " << strerror(errno) << std::endl;
@@ -493,11 +492,10 @@ void	Server::loop()
 			{
 				// if (LOOP)
 					// std::cerr << "\nWHILE 7 - a client socket is ready to write\n";
-				status--;
                 Client&	client = _clients[i];
 				// std::cerr << "client fd ref write = " << client.getFd() << std::endl;
-				ResponseOutcome status = client.writeResponse();
-				if (status == RESPONSE_FAILURE || status == RESPONSE_SUCCESS_CLOSE) // A VERIF
+				ResponseOutcome statusR = client.writeResponse();
+				if (statusR == RESPONSE_FAILURE || statusR == RESPONSE_SUCCESS_CLOSE) // A VERIF
 				{
 					// if (LOOP)
 						// std::cerr << "*** close socket : " << client.getFd() << std::endl;

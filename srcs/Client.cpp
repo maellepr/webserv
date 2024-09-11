@@ -72,13 +72,10 @@ void	Client::setSocketBoundVs(std::map<int, std::vector<VirtualServer*> > &vs)
 int Client::readRequest(int isInReadSet)
 {
 	try {
-		// std::cerr << "READ REQUEST\n";
-		// (void)_keepAlive;
 		ParseRequestResult	parsedRequest;
 		if (isInReadSet)
 		{
-			// std::cout << "USE RECV\n";
-			char	buffer[BUFSIZ];// A MODIF
+			char	buffer[BUFSIZ];
 			size_t	bytesRead;
 
 			memset(&buffer, '\0', sizeof(buffer));
@@ -98,8 +95,6 @@ int Client::readRequest(int isInReadSet)
 				// close(_clientfd);
 				return (-1);
 			}
-			// std::cerr << "READ REQUEST 2\n";
-			// buffer[bytesRead] = '\0';
 			if (DEBUG)
 			{
 				std::cout << ORANGE << "REQUEST from client socket : " << _clientfd
@@ -119,22 +114,14 @@ int Client::readRequest(int isInReadSet)
 						}
 						std::cout << ORANGE << "===============" << RESET << std::endl;
 			}
-			// std::cerr << "READ REQUEST 3\n";
 			if (_request == NULL)
 			{
-				_request = new Request(_clientfd, _vsCandidates); // new A PROTEGER ?
+				_request = new Request(_clientfd, _vsCandidates);
 				_requestStartTime = std::time(NULL);
 				_clientStatus = REQUEST_ONGOING;
 			}
 			_buffer.append(buffer, bytesRead);
-			// std::cerr << "READ REQUEST 4\n";
-			// std::string buf(buffer, bytesRead);
-			// _buffer += buf;
-			// _buffer.append(buf);
-			// std::cout << buffer << std::endl;
-			// _buffer += buffer;
 		}
-		// std::cout << "_buffer = " << _buffer << std::endl;
 		parsedRequest = _request->parseBuffer(_buffer);
 		if (parsedRequest.outcome == REQUEST_PENDING)
 		{
@@ -178,23 +165,28 @@ int Client::readRequest(int isInReadSet)
 
 ResponseOutcome Client::writeResponse()
 {
-    ResponseOutcome status(NOTHING_SENT);
+	try {
+		ResponseOutcome status(NOTHING_SENT);
 
-	if (_response)
-	{
-		status = _response->sendResponseToClient(_clientfd);
-		if (status != RESPONSE_PENDING)
+		if (_response)
 		{
-			if (status == RESPONSE_SUCCESS_KEEPALIVE && _keepAlive == false)
+			status = _response->sendResponseToClient(_clientfd);
+			if (status != RESPONSE_PENDING)
 			{
-				status = RESPONSE_SUCCESS_CLOSE;
+				if (status == RESPONSE_SUCCESS_KEEPALIVE && _keepAlive == false)
+				{
+					status = RESPONSE_SUCCESS_CLOSE;
+				}
+				if (_response->getErrorCloseSocket() == true)
+					status = RESPONSE_SUCCESS_CLOSE;
+				delete _response;
+				_response = NULL;
 			}
-			if (_response->getErrorCloseSocket() == true)
-				status = RESPONSE_SUCCESS_CLOSE;
-			delete _response;
-			_response = NULL;
 		}
+		return (status);
+		}
+	catch (std::exception &e)
+	{
+		return (RESPONSE_FAILURE);
 	}
-
-    return (status);
 }

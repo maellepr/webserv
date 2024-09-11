@@ -91,25 +91,20 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 			// std::cerr << LIGHTBLUE << "BODY" << RESET << std::endl;
 		if (_contentLength == 0)
 			ret = checkIfBody();
-		// std::cerr << LIGHTBLUE << "BODY 0" << RESET << std::endl;
 		if (ret != STATUS_NONE)
 			return (parsingFailed(ret));
-		// std::cerr << LIGHTBLUE << "BODY 1" << RESET << std::endl;
 		if (_contentLength == 0 && _isChunked == false)
 		{
-			// std::cerr << LIGHTBLUE << "BODY 2" << RESET << std::endl;
 			if (buffer.empty() == false)
 				return (parsingFailed(STATUS_BAD_REQUEST));
 			return (parsingSucceeded());
 		}
 		else
 		{
-			// std::cerr << LIGHTBLUE << "BODY 3" << RESET << std::endl;
 			if (_isUpload)
 			{
 				// if (REQ_COM)
 					// std::cerr << LIGHTBLUE << "PARSE UPLOAD" << RESET << std::endl;
-				// std::cerr << LIGHTBLUE << "BODY 4" << RESET << std::endl;
 				_isUpload = false;
 				std::vector<unsigned char> v(buffer.begin(), buffer.end());
 				buffer = "";
@@ -156,63 +151,13 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 						_ucharLine.clear();
 					}
 				}
-				// std::cerr << LIGHTBLUE << "BODY 5" << RESET << std::endl;
 				if (_isUpload == false)
 				{
 					_isUpload = true;
 					return (parsingPending());
 				}
-				// std::cerr << LIGHTBLUE << "BODY 5" << RESET << std::endl;
 				_body = stringifyVector(_ucharBody);
-				// std::cerr << LIGHTBLUE << "BODY 6" << RESET << std::endl;
 				return (parsingSucceeded());
-
-				// std::stringstream ss(buffer);
-				// std::string	line;
-				// while (getline(ss, line, '\n'))
-				// {
-				// 	_body.append(line + "\n");
-				// 	// // ******************************
-				// 	// std::cerr << DARKBLUE << "===============" << RESET << std::endl;
-				// 	// for (std::string::iterator it = line.begin(); it != line.end(); it++)
-				// 	// {
-				// 	// 	if ((*it) == '\r')
-				// 	// 		std::cerr << DARKBLUE << "CR";
-				// 	// 	else if ((*it) == '\n')
-				// 	// 		std::cerr << DARKBLUE << "LF" << std::endl;
-				// 	// 	else
-				// 	// 		std::cerr << DARKBLUE << (*it);
-				// 	// }
-				// 	// std::cerr << DARKBLUE << "\n===============" << RESET << std::endl;
-				// 	// // ******************************
-				// 	if (line.size() > 1 && line[line.size() - 1] == '\r')
-				// 	{
-				// 		if (line.substr(0, line.size() - 1) == _boundary + "--")
-				// 		{
-				// 			_isUpload = true;
-				// 			line = "";
-				// 			if (getline(ss, line, '\n'))
-				// 				return (parsingFailed(STATUS_BAD_REQUEST));
-				// 			break ;
-				// 		}
-				// 	}
-				// 	line = "";
-				// }
-				// // std::cerr << LIGHTBLUE << "BODY 4" << RESET << std::endl;
-				// // std::cerr << DARKBLUE << "_BODY = " << _body << RESET << std::endl;
-				// buffer = "";
-				// if (_isUpload == false)
-				// {
-				// 	_isUpload = true;
-				// 	return (parsingPending());
-				// }
-				// else if (_isUpload == true && line.empty() == false)
-				// {
-				// 	// std::cerr << "line = " << line << std::endl;
-				// 	return (parsingFailed(STATUS_BAD_REQUEST));
-				// }
-				// // std::cerr << LIGHTBLUE << "BODY 5" << RESET << std::endl;
-				// return (parsingSucceeded());
 			}
 			else if (_isChunked)
 			{
@@ -222,24 +167,18 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 				buffer = "";
 				for (std::vector<unsigned char>::iterator vit = v.begin(); vit != v.end(); vit++)
 				{
-					// std::cerr << LIGHTBLUE << "CHUNK 0" << RESET << std::endl;
 					if (_chunkStep == IN_LEN)
 					{
-						// std::cerr << LIGHTBLUE << "CHUNK 1" << RESET << std::endl;
-						// std::size_t contentLength(0);
 						std::size_t power(1);
 						_ucharLine.push_back(*vit);
-						// _ucharBody.push_back(*vit);
 						if (*vit == '\n')
 						{
-							//std::cerr << LIGHTBLUE << "CHUNK 2" << RESET << std::endl;
 							if (_ucharLine.size() < 2 || _ucharLine[_ucharLine.size() - 2] != '\r')
 								return (parsingFailed(STATUS_BAD_REQUEST));
 							_ucharLine.pop_back();
 							_ucharLine.pop_back();
 							while (_ucharLine.empty() == false)
 							{
-								//std::cerr << LIGHTBLUE << "CHUNK 2.1" << RESET << std::endl;
 								// if (_ucharLine.back() == '\r')
 								// 	std::cerr << PURPLE << "_ucharLine.back() = " << "CR" << RESET << std::endl;
 								// else if (_ucharLine.back() == '\n')
@@ -248,19 +187,15 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 								// 	std::cerr << PURPLE << "_ucharLine.back() = " << _ucharLine.back() << RESET << std::endl;
 								if (HEXA_BASE.find(toupper(_ucharLine.back())) == HEXA_BASE.end())
 									return (parsingFailed(STATUS_BAD_REQUEST));
-								//std::cerr << LIGHTBLUE << "CHUNK 2.2" << RESET << std::endl;
 								_chunkedLen += HEXA_BASE[toupper(_ucharLine.back())] * power;
 								_ucharLine.pop_back();
 								power *= 16;
 							}
-							//std::cerr << LIGHTBLUE << "CHUNK 3" << RESET << std::endl;
 							if (_chunkedLen > _vs->getMaxBodySize() || _chunkedLen + _contentLength > _vs->getMaxBodySize())
 								return (parsingFailed(STATUS_PAYLOAD_TOO_LARGE));
 							//std::cerr << PURPLE << "_chunkedLen = " << _chunkedLen << RESET << std::endl;
-							// std::cerr << LIGHTBLUE << "CHUNK 4" << RESET << std::endl;
 							if (_chunkedLen == 0)
 							{
-								std::cerr << LIGHTBLUE << "CHUNK 5" << RESET << std::endl;
 								// _isChunked = true;
 								_ucharLine.clear();
 								// if (_ucharBody.size() != _contentLength)
@@ -275,7 +210,6 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 									return (parsingFailed(STATUS_BAD_REQUEST));
 								if (*vit != '\r' || *(++vit) != '\n' || ++vit != v.end())
 									return (parsingFailed(STATUS_BAD_REQUEST));
-								std::cerr << LIGHTBLUE << "CHUNK 5.1" << RESET << std::endl;
 								_ucharBody.push_back('\r');
 								_ucharBody.push_back('\n');
 								_contentLength += 2; // ??
@@ -284,12 +218,10 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 								return (parsingSucceeded());
 							}
 							_chunkStep = IN_CHUNK;
-							std::cerr << LIGHTBLUE << "CHUNK 6" << RESET << std::endl;
 						}
 					}
 					else
 					{
-						//std::cerr << LIGHTBLUE << "CHUNK 7" << RESET << std::endl;
 						_contentLength += _chunkedLen;
 						while (_chunkedLen && vit != v.end())
 						{
@@ -304,12 +236,10 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 							_chunkedLen--;
 							vit++;
 						}
-						//std::cerr << LIGHTBLUE << "CHUNK 8" << RESET << std::endl;
 						if (_chunkedLen != 0 || vit == v.end() || *vit != '\r' || *(++vit) != '\n')
 							return (parsingPending());
 						_ucharLine.clear();
 						_chunkStep = IN_LEN;
-						//std::cerr << LIGHTBLUE << "CHUNK 9" << RESET << std::endl;
 					}
 				}
 			}
@@ -320,27 +250,21 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 					_body.push_back(buffer[0]);
 					buffer = buffer.substr(1, std::string::npos);
 				}
-				// std::cerr << LIGHTBLUE << "BODY 4" << RESET << std::endl;
 				// std::cerr << DARKBLUE << "_body.size() = " << _body.size() << std::endl;
 				// std::cerr << DARKBLUE << "_contentLength = " << _contentLength << std::endl;
 				// std::cerr << DARKBLUE << "_BODY = " << _body << RESET << std::endl;
 				if (_body.size() < _contentLength)
 				{
-					// std::cerr << LIGHTBLUE << "BODY 5" << RESET << std::endl;
 					buffer = "";
 					return (parsingPending());
 				}
-				// std::cerr << LIGHTBLUE << "BODY 6" << RESET << std::endl;
 				if (buffer.empty() == false)
 					return (parsingFailed(STATUS_BAD_REQUEST));
 				return (parsingSucceeded());
-				// std::cerr << LIGHTBLUE << "BODY 7" << RESET << std::endl;
 			}
-			// std::cerr << DARKBLUE << "_BODY = " << _body << RESET << std::endl;
 		}
 	}
 	return (parsingPending());
-	//std::cerr << LIGHTBLUE << "PARSE_BUFFER END" << RESET << std::endl;
 }
 
 GnlStatus	Request::getNextLine(std::string &buffer)
@@ -359,8 +283,6 @@ GnlStatus	Request::getNextLine(std::string &buffer)
 		return (BAD_REQUEST);
 	_line = buffer.substr(0, strEnd - 1);
 	buffer = buffer.substr(strEnd + 1, std::string::npos);
-	// std::cerr << PURPLE << "_line = " << _line << RESET << std::endl;
-	// std::cerr << PURPLE << "buffer = " << buffer << RESET << std::endl;
 	return (FOUND_NL);
 };
 
@@ -368,8 +290,6 @@ StatusCode	Request::parseRequestLine(std::string requestLine)
 {
 	std::string	method, protocol, check;
 	std::istringstream	is(requestLine);
-
-	// std::cerr << LIGHTBLUE << "requestline = " << requestLine << RESET << std::endl;
 
 	if (!(is >> method >> _uri >> protocol) || (is >> check) || _uri[0] != '/')
 		return (STATUS_BAD_REQUEST);
@@ -463,17 +383,15 @@ StatusCode	Request::checkIfBody()
 		if (it->second.find_first_not_of("0123456789", 0) != std::string::npos)
 			return (STATUS_BAD_REQUEST);
 		_contentLength = strtol(it->second.c_str(), NULL, 10);
-		// std::cerr << "Check if body 2\n";
 		if (_contentLength > _vs->getMaxBodySize())
 			return (STATUS_PAYLOAD_TOO_LARGE);
-		// std::cerr << "Check if body 3\n";
 		std::map<std::string, std::string>::iterator it = _headers.find("content-type");
 		if (it == _headers.end())
 			return (STATUS_BAD_REQUEST);
 		else
 		{
 			if (it->second.substr(0, strlen("text/plain")) == "text/plain")
-				return (STATUS_UNSUPPORTED_MEDIA_TYPE); // A CHECKER
+				return (STATUS_UNSUPPORTED_MEDIA_TYPE);
 			else if (it->second.substr(0, strlen("multipart/form-data")) == "multipart/form-data")
 			{
 				_isUpload = true;
@@ -564,13 +482,11 @@ StatusCode	Request::associateVirtualServer()
 	if (ret != STATUS_NONE)
 		return (ret);
 
-	// std::cerr << LIGHTBLUE << "associateVirtualServer 1" << RESET << std::endl;
 	if (_vsCandidates.size() == 1)
 	{
 		_vs = _vsCandidates[0];
 		return (STATUS_NONE);
 	}
-	// std::cerr << LIGHTBLUE << "associateVirtualServer 2" << RESET << std::endl;
 
 	// IP:port check
 	std::vector<VirtualServer*> matchingIpPortCombos;
@@ -580,7 +496,6 @@ StatusCode	Request::associateVirtualServer()
 		_vs = matchingIpPortCombos[0];
 		return (STATUS_NONE);
 	}
-	// std::cerr << LIGHTBLUE << "associateVirtualServer 3" << RESET << std::endl;
 
 	// server_name check
 	if (_hostNameDefined == true)
@@ -593,7 +508,6 @@ StatusCode	Request::associateVirtualServer()
 			return (STATUS_NONE);
 		}
 	}
-	// std::cerr << LIGHTBLUE << "associateVirtualServer 4" << RESET << std::endl;
 
 	// activate default VirtualServer
 	for (std::vector<VirtualServer*>::iterator it = _vsCandidates.begin(); it != _vsCandidates.end(); it++)
@@ -604,7 +518,6 @@ StatusCode	Request::associateVirtualServer()
 			return (STATUS_NONE);
 		}
 	}
-	// std::cerr << LIGHTBLUE << "associateVirtualServer 5" << RESET << std::endl;
 	return (STATUS_INTERNAL_SERVER_ERROR);
 }
 
@@ -681,25 +594,20 @@ VirtualServer*	Request::findServerNamesMatches(std::vector<VirtualServer*> match
 		if (count(serverName.begin(), serverName.end(), '*') != 1)
 			continue;
 		// leading or trailing wildcards : *server_name or server_name*
-		//std::cerr << "servername = " << serverName << std::endl;
 		if (serverName[0] == '*')
 		{
-			//std::cerr << "leading" << std::endl;
 			std::string wServerName = serverName.substr(1, std::string::npos);
 			size_t match_pos = _hostName.find(wServerName);
 			if (match_pos != std::string::npos && (match_pos + wServerName.size()) == _hostName.size())
 			{
-				//std::cerr << "push" << std::endl;
 				leadingWildcard.push_back(*it);
 			}
 		}
 		if (leadingWildcard.empty() && serverName[serverName.size() - 1] == '*')
 		{
-			//std::cerr << "trailing" << std::endl;
 			std::string serverNameW = serverName.substr(0, serverName.size() - 1);
 			if (_hostName.substr(0, serverNameW.size()) == serverNameW)
 			{
-				//std::cerr << "push" << std::endl;
 				trailingWildcard.push_back(*it);
 			}
 		}
@@ -722,7 +630,6 @@ VirtualServer*	Request::findServerNamesMatches(std::vector<VirtualServer*> match
 	{
 		for (std::vector<VirtualServer*>::iterator it = trailingWildcard.begin(); it != trailingWildcard.end(); it++)
 		{
-			//std::cerr << (*it)->getServerName() << std::endl;
 			if ((it + 1) != trailingWildcard.end() \
 				&& (*it)->getServerName().size() > (*(it + 1))->getServerName().size())
 				trailingWildcard.erase(it + 1);
@@ -746,31 +653,20 @@ StatusCode	Request::associateLocationRequest()
 		return (STATUS_NONE);
 	}
 
-	// for (std::map<std::string, Location>::iterator it = _vs->getLocations().begin(); it != _vs->getLocations().end(); it++)
-	// {
-	// 	std::cerr << RED << "equal it = <" << it->first << ">" << RESET << std::endl;
-	// 	std::cerr << RED << "equalmodif = " << it->second.getEqualModifier() << RESET << std::endl;
-	// }
-
 	// exact match
 	for (std::map<std::string, Location>::iterator it = _vs->getLocationsEqual().begin(); it != _vs->getLocationsEqual().end(); it++)
 	{
-		// if (it->second.getEqualModifier() == true)
-		// {
 		if (it->first == _uri)
 		{
 			_location = &(it->second);
 			return (STATUS_NONE);
 		}	
-		// }
 	}
 
 	// longuest prefix
 	size_t len(0);
 	for (std::map<std::string, Location>::iterator it = _vs->getLocations().begin(); it != _vs->getLocations().end(); it++)
 	{
-		// if (it->second.getEqualModifier() == false)
-		// {
 		if (_uri.substr(0, it->first.size()) == it->first)
 		{
 			if (it->first.size() > len)
@@ -779,7 +675,6 @@ StatusCode	Request::associateLocationRequest()
 				len = it->first.size();
 			}
 		}	
-		// }
 	}
 
 	// no location available => server acts as location

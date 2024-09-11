@@ -33,11 +33,9 @@ void	Response::setSocketBoundVs(std::map<int, std::vector<VirtualServer*> > &vs)
 
 void	Response::generateResponse(ParseRequestResult &request)
 {
-	// std::cout << "request.hostName = " << request.hostName << std::endl;
-	// MODIFIER LES ELSE IF
 	// if (RESPONSE)
 		// std::cerr << "generate Response 1\n";
-	if (request.outcome == REQUEST_FAILURE) //parsing failure
+	if (request.outcome == REQUEST_FAILURE)
 	{
 		// if (RESPONSE)
 			// std::cerr << "generate Response 2\n";
@@ -45,11 +43,11 @@ void	Response::generateResponse(ParseRequestResult &request)
 		// if (RESPONSE)
 			// std::cerr << "generate Response 3\n";
 	}
-	else if (methodIsAuthorize(request) == false) // location method not allowed
+	else if (methodIsAuthorize(request) == false)
 	{
 		buildErrorPage(request, STATUS_METHOD_NOT_ALLOWED);
 	}
-	else if (request.location->getReturn().size() > 0) // redirection return + gere les infinite loop !
+	else if (request.location->getReturn().size() > 0)
 	{
 		// if (RESPONSE)
 			// std::cerr << TURQUOISE << ">> Return <<\n" << RESET;
@@ -95,7 +93,6 @@ void	Response::generateResponse(ParseRequestResult &request)
 	}
 
 	buildStatusLine();
-	// std::cerr << DARKBLUE << "_body = " << _body << RESET << std::endl;
 	// if (RESPONSE)
 	// 	std::cerr << "generate Response 6\n";
 }
@@ -311,14 +308,6 @@ void	Response::buildDelete(ParseRequestResult &request)
 	_headers["content-length"] = convertToStr(_body.size());
 	_statusCode = STATUS_OK;
 }
-
-	// ***************************************************************************
-	// int fdBody = open("/tmp/.sendBody.txt", O_RDWR | O_CREAT);
-	// std::ofstream fillBody;
-	// fillBody.open("/tmp/.sendBody.txt");
-	// fillBody << request.body;
-	// fillBody.close();
-	// ***************************************************************************
 
 void	Response::buildCgi(ParseRequestResult &request)
 {
@@ -727,11 +716,7 @@ void	Response::exportToEnv(std::vector<std::string> &env, const std::string &key
 
 void	Response::buildStatusLine()
 {
-	// std::stringstream ss;
-	// ss << _statusCode;
-	// _statusLine = std::string(PROTOCOL_VERSION) + " " + ss.str() + " " + STATUS_MESSAGES[_statusCode] + "\r\n";
 	_statusLine = std::string(PROTOCOL_VERSION) + " " + convertToStr(_statusCode) + " " + STATUS_MESSAGES[_statusCode] + "\r\n";
-	// std::cout << GREEN << "statusLine = " << _statusLine << RESET << std::endl;
 }
 
 void	Response::buildErrorPage(ParseRequestResult &request, StatusCode statusCode)
@@ -974,56 +959,41 @@ void	Response::listUploadFiles(ParseRequestResult &request)
 	std::size_t boundaryPos = request.body.find(request.boundary + "\r\n", 0);
 	if (boundaryPos != 0)
 		return(buildErrorPage(request, STATUS_BAD_REQUEST));
-	// std::cout << LIGHTBLUE << "BUILDPOST 1\n" << RESET;
 	std::size_t beginPos = boundaryPos + request.boundary.size() + strlen("\r\n");
 	// std::cout << DARKYELLOW << "REQBODY :\n" << request.body << RESET << std::endl;
 	while (boundaryPos != std::string::npos)
 	{
-		// std::cout << LIGHTBLUE << "BUILDPOST 2\n" << RESET;
 		// find next upload
 		boundaryPos = request.body.find(request.boundary, beginPos);
 		if (boundaryPos == std::string::npos)
 			break ;
-		// std::cout << DARKYELLOW << "beginPos = " << beginPos << RESET << std::endl;
-		// std::cout << DARKYELLOW << "boundaryPos = " << boundaryPos << RESET << std::endl;
 		std::string subBody = request.body.substr(beginPos, boundaryPos - beginPos);
 		beginPos = boundaryPos + request.boundary.size();
-		// std::cout << DARKYELLOW << "SUBBODY :\n" << subBody << RESET << std::endl;
-		// std::cout << LIGHTBLUE << "BUILDPOST 3\n" << RESET;
 
 		// find filename
 		std::size_t filenameStart = subBody.find("filename=", 0);
 		if (filenameStart == std::string::npos)
 			return(buildErrorPage(request, STATUS_BAD_REQUEST));
-		// std::cout << LIGHTBLUE << "BUILDPOST 4\n" << RESET;
 		filenameStart += strlen("filename=") + 1;
 		std::size_t filenameEnd = subBody.find("\"", filenameStart);
 		if (filenameEnd == std::string::npos)
 			return(buildErrorPage(request, STATUS_BAD_REQUEST));
-		// std::cout << LIGHTBLUE << "BUILDPOST 5\n" << RESET;
 		std::string filename = subBody.substr(filenameStart, filenameEnd - filenameStart);
 
 		// find upload data
 		std::size_t dataStart = subBody.find("\r\n\r\n", 0);
 		if (dataStart == std::string::npos)
 			return(buildErrorPage(request, STATUS_BAD_REQUEST));
-		// std::cout << LIGHTBLUE << "BUILDPOST 6\n" << RESET;
 		dataStart += strlen("\r\n\r\n");
 		std::size_t dataEnd = subBody.find("\r\n", dataStart);
 		if (dataEnd == std::string::npos)
 			return(buildErrorPage(request, STATUS_BAD_REQUEST));
-		// std::cout << LIGHTBLUE << "BUILDPOST 7\n" << RESET;
 		std::string uploadData = subBody.substr(dataStart, dataEnd - dataStart);
 
 		// add new file contents (name + data) to the map
 		if (uploadData.empty() == false)
 			_uploads[filename] = uploadData;
-		// std::cout << LIGHTBLUE << "BUILDPOST 8\n" << RESET;
 	}
-	// for (std::map<std::string, std::string>::iterator it = _uploads.begin(); it != _uploads.end(); it++)
-	// {
-	// 	std::cout << DARKYELLOW << "[ " << it->first << " ] : \n" << it->second << RESET << std::endl;
-	// }
 	return ;
 }
 
@@ -1059,7 +1029,6 @@ void	Response::buildPage(ParseRequestResult &request)
 			if (CONTENT_TYPES.find(fileExtension) != CONTENT_TYPES.end())		
 			{
 				_headers["content-type"] = CONTENT_TYPES[fileExtension];
-				// _headers["content-disposition"] = "attachment";
 				return ;
 			}
 		}
@@ -1203,28 +1172,14 @@ ResponseOutcome	Response::sendResponseToClient(int fd)
 	if (pushStrToClient(fd, _statusLine) == -1)
 		return RESPONSE_FAILURE;
 
-	// std::cerr << "AFTER STATUSLINE\n";
-
 	for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); it++)
 	{
 		line = it->first + ": " + it->second + "\r\n";
 		// std::cerr << "-------->header to push = " << line;
 		// std::cerr << DARKYELLOW << "-------->header to push = ";
-		// for (std::string::iterator lol = line.begin(); lol != line.end(); lol++)
-		// {
-		// 	if (*lol == '\n')
-		// 		std::cerr << "LF";
-		// 	else if (*lol == '\r')
-		// 		std::cerr << "CR";
-		// 	else
-		// 		std::cerr << *lol;
-		// }
-		// std::cerr << RESET;
 		if (pushStrToClient(fd, line) == -1)
 			return RESPONSE_FAILURE;
 	}
-
-	// std::cerr << "AFTER HEADERS\n";
 
 	for (std::map<std::string, std::string>::iterator it = _cookies.begin(); it != _cookies.end(); it++)
 	{
@@ -1234,13 +1189,9 @@ ResponseOutcome	Response::sendResponseToClient(int fd)
 			return RESPONSE_FAILURE;
 	}
 
-	// std::cerr << "AFTER COOKIES\n";
-
 	line = "\r\n";
 	if (pushStrToClient(fd, line) == -1)
 		return RESPONSE_FAILURE;
-
-	// std::cerr << "AFTER CRLF\n";
 
 	std::map<std::string, std::string>::iterator it = _headers.find("content-length");
 	if (it != _headers.end() && strtol(it->second.c_str(), NULL, 10) > 0)
@@ -1250,9 +1201,6 @@ ResponseOutcome	Response::sendResponseToClient(int fd)
 	 	line = _body.substr(0, strtol(it->second.c_str(), NULL, 10)); //convertir
 		if (pushStrToClient(fd, line) == -1)
 			return RESPONSE_FAILURE;
-		// line = "\r\n";
-		// if (pushStrToClient(fd, line) == -1)
-		// 	return RESPONSE_FAILURE;
 		if (DEBUG)
 			std::cout << GRASSGREEN << "===============" << RESET << std::endl;
 		return RESPONSE_SUCCESS_KEEPALIVE;
@@ -1278,9 +1226,7 @@ int	Response::pushStrToClient(int fd, std::string &str)
 		std::cerr << GRASSGREEN << str << RESET;
 	while (bytesSent < str.size())
 	{
-		// std::cerr << "pushstrclient 1\n";
 		tmpSent = send(fd, str.c_str() + bytesSent, str.size() - bytesSent, 0);
-		// std::cerr << "pushstrclient 2\n";
 		if (tmpSent <= 0)
 			return (-1);
 		bytesSent += tmpSent;
@@ -1297,21 +1243,16 @@ Location	*Response::associateLocationResponse(ParseRequestResult &request, std::
 	// exact match
 	for (std::map<std::string, Location>::iterator it = request.vs->getLocationsEqual().begin(); it != request.vs->getLocationsEqual().end(); it++)
 	{
-		// if (it->second.getEqualModifier() == true)
-		// {
 		if (it->first == newURI)
 		{
 			request.uri = newURI;
 			return (&(it->second));
 		}	
-		// }
 	}
 
 	// longuest prefix
 	for (std::map<std::string, Location>::iterator it = request.vs->getLocations().begin(); it != request.vs->getLocations().end(); it++)
 	{
-		// if (it->second.getEqualModifier() == false)
-		// {
 		if (newURI.substr(0, it->first.size()) == it->first)
 		{
 			if (it->first.size() > len)
@@ -1321,7 +1262,6 @@ Location	*Response::associateLocationResponse(ParseRequestResult &request, std::
 				len = it->first.size();
 			}
 		}
-		// }
 	}
 
 	// no location available => server acts as location
