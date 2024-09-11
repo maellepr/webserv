@@ -41,6 +41,7 @@ class Server
 		// void	_checkNecessaryServerName();
 
 		void	_addBindedVS(size_t i, std::vector<VirtualServer*> &bindedVS);
+		void	_closeSocketBound(int socket);
 
 };
 

@@ -39,6 +39,9 @@ Location::Location(std::map<int, std::string>& returnPages, VirtualServer& vs, b
 	_errorPages = vs.getErrorPages();
 
 	_returnPageLocation = vs.getReturnPages();
+
+	_returnState = false;
+	_errorPageState = false;
 }
 
 Location::~Location()
@@ -60,39 +63,39 @@ void	Location::parseLocation(std::istream& file)
 			continue ;
 		if (!(iss >> keyword))
 		{
-			std::cerr << "keyword = " << keyword << "\n";
-			throw ErrorConfigFile("Error in the conf file : location : missing content4");
+			// std::cerr << "keyword = " << keyword << "\n";
+			throw ErrorConfigFile("Error in the conf file : location : missing content");
 		}
-		
-		if (keyword == "root")
+
+		if (keyword == "root" && _configLocation.find("root") == _configLocation.end())
 		{
 			parseLocation(iss, "rootDir");
 		}
-		else if (keyword == "cgi")
+		else if (keyword == "cgi" && _configLocation.find("cgi") == _configLocation.end())
 		{
 			parseLocation(iss, "cgi");
 		}
-		else if (keyword == "index")
+		else if (keyword == "index" && _configLocation.find("index") == _configLocation.end())
 		{
 			parseLocation(iss, "index");
 		}
-		else if (keyword == "auto_index")
+		else if (keyword == "auto_index" && _configLocation.find("auto_index") == _configLocation.end())
 		{
 			parseLocation(iss, "auto_index");
 		}
-		else if (keyword == "methods")
+		else if (keyword == "methods" && _configLocation.find("methods") == _configLocation.end())
 		{
 			parseLocation(iss, "methods");
 		}
-		else if (keyword == "return")
+		else if (keyword == "return" && _returnState == false)
 		{
 			parseReturnPage(iss);
 		}
-		else if (keyword == "upload_dir")
+		else if (keyword == "upload_dir" && _configLocation.find("upload_dir") == _configLocation.end())
 		{
 			parseLocation(iss, "upload_dir");
 		}
-		else if (keyword == "error_page")
+		else if (keyword == "error_page" && _errorPageState == false)
 		{
 			parseLocationErrorPage(iss);
 		}
@@ -104,8 +107,8 @@ void	Location::parseLocation(std::istream& file)
 			break ;
 		else
 		{
-			std::cerr << "parseLocation keyword : " << keyword << "\n";
-			throw ErrorConfigFile("Error in the conf file : location : wrong content 5");
+			// std::cerr << "parseLocation keyword : " << keyword << "\n";
+			throw ErrorConfigFile("Error in the conf file : location : wrong content");
 		}
 	}
 	// std::cerr << "\n_config Location : \n";
@@ -166,6 +169,7 @@ void	Location::parseReturnPage(std::istringstream& iss)
 	if (iss >> code)
 		throw ErrorConfigFile("Error in the conf file : location : return : wrong content");
 	_returnPageLocation[c] = code;
+	_returnState = true;
 }
 
 int	Location::parseReturnCode(std::string& code)
@@ -191,7 +195,7 @@ void	Location::parseLocationErrorPage(std::istringstream& iss)
 	int	errorCode;
 
 	if (!(iss >> code))
-		throw ErrorConfigFile("Error in the conf file : location : error_page : missing informations1");
+		throw ErrorConfigFile("Error in the conf file : location : error_page : missing informations");
 	if (!(_errorPages.empty()))
 		_errorPages.clear();
 	errorCode = parseErrorCode(code);
@@ -202,7 +206,7 @@ void	Location::parseLocationErrorPage(std::istringstream& iss)
 		codeList.push_back(errorCode);
 	}
 	if (code.empty())
-		throw ErrorConfigFile("Error in the conf file : location : error_page : missing informations2");
+		throw ErrorConfigFile("Error in the conf file : location : error_page : missing informations");
 	// parsePathErrorPage(code);
 	if (code[0] != '/' && code.find("..") != std::string::npos)
 		throw ErrorConfigFile("Error in the conf file : location : error_page : wrong path");
@@ -212,6 +216,7 @@ void	Location::parseLocationErrorPage(std::istringstream& iss)
 	{
 		_errorPages[codeList[i]] = code;
 	}
+	_errorPageState = true;
 }
 
 int	Location::parseErrorCode(std::string& code)

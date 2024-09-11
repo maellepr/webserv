@@ -45,7 +45,7 @@ class VirtualServer
 		int		&getIndex();
 
 		void	init(std::istream& file);
-		void	connectVirtualServers();
+		int		connectVirtualServers();
 
 		std::string					&getRoot();
 		std::vector<std::string>	&getIndexPage();
@@ -85,6 +85,14 @@ class VirtualServer
 
 		bool	_listenState;
 		bool	_rootState;
+
+		bool	_serverState;
+		bool	_autoIndexState;
+		bool	_maxBodyState;
+		bool	_errorPageState;
+		bool	_indexState;
+		bool	_defaultServerState;
+		bool	_returnState;
 
 		void	parseListen(std::istringstream& iss);
 		void	parsePort(std::string& port);

@@ -46,6 +46,9 @@ class Location
 
 		bool	_equalModifier;
 
+		bool	_returnState;
+		bool	_errorPageState;
+
 };
 
 #endif
