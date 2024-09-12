@@ -70,19 +70,19 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 			return (parsingFailed(ret));
 		// if (REQ_COM)
 		// {
-		// 	std::cerr << PURPLE << "Chosen server infos : " << RESET << std::endl;
-		// 	std::cerr << PURPLE << "IP and port : " << _vs->getIP() << ":" << _vs->getPort() << RESET << std::endl;
-		// 	std::cerr << PURPLE << "Server_name : " << _vs->getServerName() << RESET << std::endl;
+		std::cerr << PURPLE << "Chosen server infos : " << RESET << std::endl;
+		std::cerr << PURPLE << "IP and port : " << _vs->getIP() << ":" << _vs->getPort() << RESET << std::endl;
+		std::cerr << PURPLE << "Server_name : " << _vs->getServerName() << RESET << std::endl;
 		// }
 		ret = associateLocationRequest();
 		if (ret != STATUS_NONE)
 			return (parsingFailed(ret));
 		// if (REQ_COM)
 		// {
-		// 	std::cerr << GREY << "Chosen location infos : " << RESET << std::endl;
-		// 	std::cerr << GREY << "Location prefix : " << _location->getPrefix() << RESET << std::endl;
-		// 	std::cerr << GREY << "Location root : " << _location->getConfigLocation()["rootDir"][0] << RESET << std::endl;
-		// 	std::cerr << GREY << "Server acting as location (0: false, 1:true) : " << _location->getServerActAsLocation() << RESET << std::endl;
+		std::cerr << GREY << "Chosen location infos : " << RESET << std::endl;
+		std::cerr << GREY << "Location prefix : " << _location->getPrefix() << RESET << std::endl;
+		std::cerr << GREY << "Location root : " << _location->getConfigLocation()["rootDir"][0] << RESET << std::endl;
+		std::cerr << GREY << "Server acting as location (0: false, 1:true) : " << _location->getServerActAsLocation() << RESET << std::endl;
 		// }
 	}
 	if (_parsingStep == IN_BODY)

@@ -1,0 +1,142 @@
+body {
+    height: 100%;
+    margin: 0;
+    background-color: #ffd2e0;
+	font-family: Georgia;
+	justify-content: center;
+	align-items: center;
+
+/*    	display: grid;
+    grid-template-rows: 1fr 0fr 2fr 1fr;
+	margin: 0; */
+}
+
+/* a {
+    color: black; 
+    text-decoration: none; 
+}
+
+a:visited {
+    color: black; 
+}
+
+a:hover {
+    color: black;
+}
+
+a:active {
+    color: black;
+}
+ */
+
+
+.title1 {
+    margin-top: 30px;
+    font-size:2em;
+    color: #000000;
+    text-align: center;
+}
+
+.title2 {
+    margin-top: 20px;
+    font-size:1em;
+    color: #000000;
+    text-align: center;
+}
+
+.index {
+	font-size: 14px;
+	text-align: center;
+	margin-top: 55px;
+	line-height: 5;
+}
+
+.response {
+	margin-top: 75px;
+	line-height: 2;
+	text-align: center;
+}
+
+.value {
+	font-style: italic;
+}
+
+a:link, a:visited {
+	background-color: #ffdce7;
+	color: black;
+	border-radius: 48%;
+	text-align: center;
+	text-decoration: none;
+
+	padding: 10px 14px; 
+	width: 60px;
+	height: 18px;
+}
+
+a:hover, a:active {
+	background-color:#ffbed3;
+	color: white;
+}
+
+
+.img_arrow {
+	transform: rotate(-90deg);
+	text-align: right;
+}
+
+.questionForm {
+	text-align: center;
+	align-items: center;
+	position: relative;
+	line-height: 1.5rem;
+	margin-top: 40px;
+	font-size: 14px;
+	
+}
+
+.nfl {
+	margin-top: 15px;
+}
+
+
+.uploadDoc {
+	text-align: center;
+	align-items: center;
+	position: relative;
+	line-height: 1.5rem;
+	margin-top: 40px;
+	font-size: 14px;
+	
+}
+
+.autoindex {
+
+	text-align:center;
+	line-height: 3.5rem;
+	margin-top: 40px;
+}
+
+.indexcolor {
+	text-align:center;
+	line-height:2rem;
+	margin: 40px;
+}
+
+.indexremember {
+	font-size: 14px;
+	text-align: center;
+	line-height: 5;
+}
+
+/* .img1 {
+	position:block;
+	margin-top:0px;
+	text-align: center;
+}
+
+.img {
+	position:block;
+	margin-top:15px;
+	text-align: center;
+}
+ */

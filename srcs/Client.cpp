@@ -95,25 +95,22 @@ int Client::readRequest(int isInReadSet)
 				// close(_clientfd);
 				return (-1);
 			}
-			if (DEBUG)
-			{
-				std::cout << ORANGE << "REQUEST from client socket : " << _clientfd
-						// << "\n===============\n"
-						// << buffer
-						// << "===============" << RESET << std::endl;
-						<< "\n===============\n";
-						std::string buf(buffer, bytesRead);
-						for (std::string::iterator it = buf.begin(); it != buf.end(); it++)
-						{
-							if ((*it) == '\r')
-								std::cout << ORANGE << "CR";
-							else if ((*it) == '\n')
-								std::cout << ORANGE << "LF" << std::endl;
-							else
-								std::cout << ORANGE << (*it);
-						}
-						std::cout << ORANGE << "===============" << RESET << std::endl;
-			}
+			// if (DEBUG)
+			// {
+			std::cout << ORANGE << "REQUEST from client socket : " << _clientfd
+					<< "\n===============\n";
+					std::string buf(buffer, bytesRead);
+					for (std::string::iterator it = buf.begin(); it != buf.end(); it++)
+					{
+						if ((*it) == '\r')
+							std::cout << ORANGE << "CR";
+						else if ((*it) == '\n')
+							std::cout << ORANGE << "LF" << std::endl;
+						else
+							std::cout << ORANGE << (*it);
+					}
+					std::cout << ORANGE << "===============" << RESET << std::endl;
+			// }
 			if (_request == NULL)
 			{
 				_request = new Request(_clientfd, _vsCandidates);

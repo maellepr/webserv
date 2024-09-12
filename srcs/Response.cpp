@@ -259,7 +259,7 @@ void	Response::buildDelete(ParseRequestResult &request)
 	if (request.uri.size() > 0 && request.uri[0] == '/')
 		request.uri = request.uri.substr(1, request.uri.size() - 1);
 	// if (RESPONSE)
-	// 	std::cerr << "request uri in delete : " << request.uri << "\n";	
+	// std::cerr << "request uri in delete : " << request.uri << "\n";	
 	if (remove(request.uri.c_str()) == 0)
 	{
 		// if (RESPONSE)
@@ -697,7 +697,7 @@ void	Response::buildGet(ParseRequestResult &request)
 		_rootDir = _rootDir.substr(0, _rootDir.size() - 1);
 	_finalURI = _rootDir + request.uri;
 	// if (RESPONSE)
-	// 	std::cerr << "_finalURI = " << _finalURI << std::endl;
+	std::cerr << "_finalURI = " << _finalURI << std::endl;
 
 	// if (isUriValid(_finalURI) == false)
 	// {

@@ -13,6 +13,7 @@ Host: example.com
 
 0
 
+
 2. result --> reponse normal
 POST /cgi/py/response.py HTTP/1.1
 Transfer-encoding: chunked
@@ -86,6 +87,24 @@ season=dsgd&
 
 0
 
+
+GET / HTTP/1.1
+HOST: localhost:8080
+Connection: close
+
+POST /cgi/py/response.py HTTP/1.1
+Transfer-encoding: chunked
+Host: example.com
+
+b
+color=haha&
+
+
+9
+meal=dsf&
+c
+season=dsgd&
+0
 
 
 DELETE /www/files_to_delete/text4.txt HTTP/1.1
