@@ -14,7 +14,7 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 	if (_parsingStep == IN_REQUESTLINE)
 	{
 		// if (REQ_COM)
-		// 	std::cerr << LIGHTBLUE << "REQUESTLINE" << RESET << std::endl;
+		// std::cerr << LIGHTBLUE << "REQUESTLINE" << RESET << std::endl;
 		gnl = getNextLine(buffer);
 		if (gnl != FOUND_NL)
 		{
@@ -33,7 +33,7 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 	if (_parsingStep == IN_HEADERS)
 	{
 		// if (REQ_COM)
-		// 	std::cerr << LIGHTBLUE << "HEADERS" << RESET << std::endl;
+		// std::cerr << LIGHTBLUE << "HEADERS" << RESET << std::endl;
 		while (buffer.empty() == false)
 		{
 			gnl = getNextLine(buffer);
@@ -45,6 +45,7 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 					return (parsingFailed(STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE));
 				return (parsingPending());
 			}
+			// std::cerr << LIGHTBLUE << "HEADERS 0" << RESET << std::endl;
 			if (_line.empty())
 			{
 				_parsingStep = IN_BODY;
@@ -53,8 +54,10 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 			}
 			else
 				ret = parseHeader(_line);
+			// std::cerr << LIGHTBLUE << "HEADERS 1" << RESET << std::endl;
 			if (ret != STATUS_NONE)
 				return (parsingFailed(ret));
+			// std::cerr << LIGHTBLUE << "HEADERS 2" << RESET << std::endl;
 			_line.clear();
 		}
 	}
@@ -70,37 +73,40 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 			return (parsingFailed(ret));
 		// if (REQ_COM)
 		// {
-		std::cerr << PURPLE << "Chosen server infos : " << RESET << std::endl;
-		std::cerr << PURPLE << "IP and port : " << _vs->getIP() << ":" << _vs->getPort() << RESET << std::endl;
-		std::cerr << PURPLE << "Server_name : " << _vs->getServerName() << RESET << std::endl;
+		// std::cerr << PURPLE << "Chosen server infos : " << RESET << std::endl;
+		// std::cerr << PURPLE << "IP and port : " << _vs->getIP() << ":" << _vs->getPort() << RESET << std::endl;
+		// std::cerr << PURPLE << "Server_name : " << _vs->getServerName() << RESET << std::endl;
 		// }
 		ret = associateLocationRequest();
 		if (ret != STATUS_NONE)
 			return (parsingFailed(ret));
 		// if (REQ_COM)
 		// {
-		std::cerr << GREY << "Chosen location infos : " << RESET << std::endl;
-		std::cerr << GREY << "Location prefix : " << _location->getPrefix() << RESET << std::endl;
-		std::cerr << GREY << "Location root : " << _location->getConfigLocation()["rootDir"][0] << RESET << std::endl;
-		std::cerr << GREY << "Server acting as location (0: false, 1:true) : " << _location->getServerActAsLocation() << RESET << std::endl;
+		// std::cerr << GREY << "Chosen location infos : " << RESET << std::endl;
+		// std::cerr << GREY << "Location prefix : " << _location->getPrefix() << RESET << std::endl;
+		// std::cerr << GREY << "Location root : " << _location->getConfigLocation()["rootDir"][0] << RESET << std::endl;
+		// std::cerr << GREY << "Server acting as location (0: false, 1:true) : " << _location->getServerActAsLocation() << RESET << std::endl;
 		// }
 	}
 	if (_parsingStep == IN_BODY)
 	{
 		// if (REQ_COM)
-			// std::cerr << LIGHTBLUE << "BODY" << RESET << std::endl;
+		// std::cerr << LIGHTBLUE << "BODY" << RESET << std::endl;
 		if (_contentLength == 0)
 			ret = checkIfBody();
 		if (ret != STATUS_NONE)
 			return (parsingFailed(ret));
+		// std::cerr << LIGHTBLUE << "BODY 0" << RESET << std::endl;
 		if (_contentLength == 0 && _isChunked == false)
 		{
+			// std::cerr << LIGHTBLUE << "BODY 0.1" << RESET << std::endl;
 			if (buffer.empty() == false)
 				return (parsingFailed(STATUS_BAD_REQUEST));
 			return (parsingSucceeded());
 		}
 		else
 		{
+			// std::cerr << LIGHTBLUE << "BODY 1" << RESET << std::endl;
 			if (_isUpload)
 			{
 				// if (REQ_COM)
@@ -162,13 +168,15 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 			else if (_isChunked)
 			{
 				// if (REQ_COM)
-				// 	std::cerr << LIGHTBLUE << "PARSE CHUNK" << RESET << std::endl;
+				// std::cerr << LIGHTBLUE << "PARSE CHUNK" << RESET << std::endl;
 				std::vector<unsigned char> v(buffer.begin(), buffer.end());
 				buffer = "";
 				for (std::vector<unsigned char>::iterator vit = v.begin(); vit != v.end(); vit++)
 				{
+					// std::cerr << LIGHTBLUE << "CHUNK 1" << RESET << std::endl;
 					if (_chunkStep == IN_LEN)
 					{
+						// std::cerr << LIGHTBLUE << "CHUNK 2" << RESET << std::endl;
 						std::size_t power(1);
 						_ucharLine.push_back(*vit);
 						if (*vit == '\n')
@@ -196,6 +204,7 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 							//std::cerr << PURPLE << "_chunkedLen = " << _chunkedLen << RESET << std::endl;
 							if (_chunkedLen == 0)
 							{
+								// std::cerr << LIGHTBLUE << "CHUNK 4" << RESET << std::endl;
 								// _isChunked = true;
 								_ucharLine.clear();
 								// if (_ucharBody.size() != _contentLength)
@@ -206,10 +215,12 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 								// else
 								// 	std::cerr << PURPLE << "*vit = " << *vit << RESET << std::endl;
 								vit++;
-								if (vit == v.end() || (vit + 1) == v.end() || (vit + 2) == v.end())
+								if (vit == v.end() || (vit + 1) == v.end())
 									return (parsingFailed(STATUS_BAD_REQUEST));
+								// std::cerr << LIGHTBLUE << "CHUNK 5" << RESET << std::endl;
 								if (*vit != '\r' || *(++vit) != '\n' || ++vit != v.end())
 									return (parsingFailed(STATUS_BAD_REQUEST));
+								// std::cerr << LIGHTBLUE << "CHUNK 6" << RESET << std::endl;
 								_ucharBody.push_back('\r');
 								_ucharBody.push_back('\n');
 								_contentLength += 2; // ??
@@ -222,6 +233,7 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 					}
 					else
 					{
+						// std::cerr << LIGHTBLUE << "CHUNK 3" << RESET << std::endl;
 						_contentLength += _chunkedLen;
 						while (_chunkedLen && vit != v.end())
 						{
@@ -245,6 +257,7 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 			}
 			else
 			{
+				// std::cerr << LIGHTBLUE << "BODY 2" << RESET << std::endl;
 				while (buffer.empty() == false && (_body.size() + 1 <= _contentLength))
 				{
 					_body.push_back(buffer[0]);
@@ -260,6 +273,7 @@ ParseRequestResult	Request::parseBuffer(std::string &buffer)
 				}
 				if (buffer.empty() == false)
 					return (parsingFailed(STATUS_BAD_REQUEST));
+				// std::cerr << LIGHTBLUE << "BODY 3" << RESET << std::endl;
 				return (parsingSucceeded());
 			}
 		}
@@ -375,21 +389,27 @@ StatusCode	Request::parseHeader(std::string header)
 StatusCode	Request::checkIfBody()
 {
 	// if (REQ_COM)
-	// 	std::cerr << "Check if body\n";
+	// std::cerr << "Check if body\n";
 	_contentLength = 0;
 	std::map<std::string, std::string>::iterator it = _headers.find("content-length");
 	if (it != _headers.end())
 	{
+		// std::cerr << "Check if body 0\n";
 		if (it->second.find_first_not_of("0123456789", 0) != std::string::npos)
 			return (STATUS_BAD_REQUEST);
+		// std::cerr << "Check if body 1\n";
 		_contentLength = strtol(it->second.c_str(), NULL, 10);
 		if (_contentLength > _vs->getMaxBodySize())
 			return (STATUS_PAYLOAD_TOO_LARGE);
 		std::map<std::string, std::string>::iterator it = _headers.find("content-type");
 		if (it == _headers.end())
+		{
+			// std::cerr << "Check if body \n";
 			return (STATUS_BAD_REQUEST);
+		}
 		else
 		{
+			// std::cerr << "Check if body 3\n";
 			if (it->second.substr(0, strlen("text/plain")) == "text/plain")
 				return (STATUS_UNSUPPORTED_MEDIA_TYPE);
 			else if (it->second.substr(0, strlen("multipart/form-data")) == "multipart/form-data")
@@ -403,9 +423,11 @@ StatusCode	Request::checkIfBody()
 			}
 		}
 	}
+	// std::cerr << "Check if body 4\n";
 	std::map<std::string, std::string>::iterator ita = _headers.find("transfer-encoding");
 	if (ita != _headers.end() && _contentLength != 0)
 		return (STATUS_BAD_REQUEST);
+	// std::cerr << "Check if body 5\n";
 	if (ita != _headers.end())
 	{
 		if (ita->second != "chunked")

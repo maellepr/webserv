@@ -17,17 +17,14 @@ Host: example.com
 2. result --> reponse normal
 POST /cgi/py/response.py HTTP/1.1
 Transfer-encoding: chunked
-Host: example.com
+Host: server.com
 
 b
 color=haha&
-
 9
 meal=dsf&
-
 c
 season=dsgd&
-
 0
 
 
@@ -38,7 +35,6 @@ Host: example.com
 
 b
 color=haha&
-
 9
 meal=dsf&
 
@@ -117,3 +113,24 @@ Host: localhost:8080
 Connection: close
 
 
+
+
+POST /cgi HTTP/1.1
+Transfer-encoding: chunked
+Host: example.com
+
+a
+color=haha
+
+8
+meal=dsf
+b
+season=dsgd
+0
+
+POST /cgi/py/response.py HTTP/1.1
+Host: localhost:8080
+Content-Length: 34
+Content-Type: application/x-www-form-urlencoded
+
+color=haha&meal=haha&season=haha

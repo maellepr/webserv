@@ -697,7 +697,7 @@ void	Response::buildGet(ParseRequestResult &request)
 		_rootDir = _rootDir.substr(0, _rootDir.size() - 1);
 	_finalURI = _rootDir + request.uri;
 	// if (RESPONSE)
-	std::cerr << "_finalURI = " << _finalURI << std::endl;
+	// std::cerr << "_finalURI = " << _finalURI << std::endl;
 
 	// if (isUriValid(_finalURI) == false)
 	// {
