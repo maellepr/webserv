@@ -462,7 +462,7 @@ int	VirtualServer::connectVirtualServers()
 			return(-1);
 		}
 		std::cerr << "[Server] Bound socket address ip = " << _ip.c_str() << " port " << _port << "\n";
-		status = listen(socket_fd, 10); // A MODIF
+		status = listen(socket_fd, 260); // A MODIF
 		if (status != 0)
 			return(-1);
 		_socketfd = socket_fd;
